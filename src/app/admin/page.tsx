@@ -1,67 +1,219 @@
-import Hero from "@/components/Hero";
-import ProductCard from "@/components/ProductCard";
-import { getProducts } from "@/lib/products";
+'use client';
 
-export default async function Home() {
-  const allProducts = await getProducts();
-  const featuredProducts = allProducts.slice(0, 3);
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-  console.log("Products count:", allProducts.length); // للتأكد
+export default function AdminPage() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [product, setProduct] = useState({
+    name: '',
+    price: '',
+    category: '',
+    description: '',
+  });
+  const [mainImage, setMainImage] = useState<File | null>(null);
+  const [subImages, setSubImages] = useState<File[]>([]);
+  const [status, setStatus] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    const auth = localStorage.getItem('adminAuth');
+    if (auth === 'true') {
+      setIsAuthenticated(true);
+    } else {
+      router.push('/admin/login');
+    }
+    setLoading(false);
+  }, [router]);
+
+  const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setMainImage(e.target.files[0]);
+    }
+  };
+
+  const handleSubImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setSubImages(Array.from(e.target.files));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mainImage) {
+      setStatus('❌ الرجاء اختيار صورة رئيسية');
+      return;
+    }
+
+    setUploading(true);
+    setStatus('جاري رفع المنتج والصور...');
+
+    const formData = new FormData();
+    formData.append('name', product.name);
+    formData.append('price', product.price);
+    formData.append('category', product.category);
+    formData.append('description', product.description);
+    formData.append('mainImage', mainImage);
+    subImages.forEach(img => formData.append('subImages', img));
+
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        setStatus('✅ تم إضافة المنتج بنجاح!');
+        setProduct({ name: '', price: '', category: '', description: '' });
+        setMainImage(null);
+        setSubImages([]);
+        const fileInputs = document.querySelectorAll('input[type="file"]');
+        fileInputs.forEach((input: any) => (input.value = ''));
+      } else {
+        setStatus('❌ حدث خطأ أثناء الإضافة');
+      }
+    } catch {
+      setStatus('❌ حدث خطأ في الاتصال');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">جاري التحقق...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
-    <>
-      <Hero />
-      <section className="container mx-auto px-4 py-16">
-        <h1 className="text-3xl md:text-4xl font-bold text-center mb-4">
-          أحدث قطع VELIX
-        </h1>
-        <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-          اكتشف مجموعتنا الجديدة. تفاصيل دقيقة وجودة عالية هتفرق في ستايلك.
-        </p>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredProducts.length > 0 ? (
-            featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))
-          ) : (
-            <p className="text-center col-span-3 text-gray-500">
-              لا توجد منتجات متاحة حاليًا. جرب إضافة منتج من صفحة الإدارة.
-            </p>
-          )}
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold">لوحة تحكم VELIX</h1>
+          <p className="text-gray-600 mt-2">أضف منتج جديد مع الصور</p>
         </div>
         
-        <div className="text-center mt-12">
-          <a
-            href="/products"
-            className="inline-block bg-black text-white px-8 py-3 rounded-full hover:bg-gray-800 transition"
-          >
-            شاهد جميع المنتجات
-          </a>
-        </div>
-      </section>
-
-      <section className="bg-gray-50 py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        {/* Form Card */}
+        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="p-6 space-y-5">
             <div>
-              <div className="text-4xl mb-3">👕</div>
-              <h3 className="text-xl font-bold mb-2">جودة في التفاصيل</h3>
-              <p className="text-gray-600">كل قطعة بتصنع بدقة عالية عشان تدوم معاك</p>
+              <label className="block text-sm font-medium text-gray-700 mb-1">اسم المنتج</label>
+              <input
+                type="text"
+                value={product.name}
+                onChange={(e) => setProduct({ ...product, name: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+                required
+                dir="rtl"
+              />
             </div>
+            
             <div>
-              <div className="text-4xl mb-3">🇪🇬</div>
-              <h3 className="text-xl font-bold mb-2">صناعة مصرية</h3>
-              <p className="text-gray-600">براند مصري 100% بيفتخر بجذوره</p>
+              <label className="block text-sm font-medium text-gray-700 mb-1">السعر (جنيه)</label>
+              <input
+                type="number"
+                value={product.price}
+                onChange={(e) => setProduct({ ...product, price: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+                required
+              />
             </div>
+            
             <div>
-              <div className="text-4xl mb-3">📦</div>
-              <h3 className="text-xl font-bold mb-2">دفع عند الاستلام</h3>
-              <p className="text-gray-600">اطلب دلوقتي واستلم منتجك وادفع بعد ما ترتاح</p>
+              <label className="block text-sm font-medium text-gray-700 mb-1">القسم</label>
+              <select
+                value={product.category}
+                onChange={(e) => setProduct({ ...product, category: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+                required
+              >
+                <option value="">اختر القسم</option>
+                <option value="تيشرتات">تيشرتات</option>
+                <option value="هوديز">هوديز</option>
+                <option value="جاكيتات">جاكيتات</option>
+                <option value="بناطيل">بناطيل</option>
+                <option value="اكسسوارات">اكسسوارات</option>
+              </select>
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">وصف المنتج</label>
+              <textarea
+                value={product.description}
+                onChange={(e) => setProduct({ ...product, description: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+                rows={4}
+                required
+                dir="rtl"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">الصورة الرئيسية</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleMainImageChange}
+                className="w-full p-2 border border-gray-300 rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-black file:text-white hover:file:bg-gray-800 transition"
+                required
+              />
+              {mainImage && (
+                <p className="text-sm text-green-600 mt-1">✓ {mainImage.name}</p>
+              )}
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">صور إضافية (اختياري)</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleSubImagesChange}
+                className="w-full p-2 border border-gray-300 rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-black file:text-white hover:file:bg-gray-800 transition"
+              />
+              {subImages.length > 0 && (
+                <p className="text-sm text-green-600 mt-1">✓ {subImages.length} صور</p>
+              )}
+            </div>
+            
+            <button
+              type="submit"
+              disabled={uploading}
+              className="w-full bg-black text-white py-3 rounded-xl hover:bg-gray-800 transition disabled:opacity-50 font-medium"
+            >
+              {uploading ? 'جاري الرفع...' : '+ إضافة المنتج'}
+            </button>
+            
+            {status && (
+              <p className={`text-center text-sm ${status.includes('✅') ? 'text-green-600' : 'text-red-600'}`}>
+                {status}
+              </p>
+            )}
           </div>
+        </form>
+        
+        {/* Logout Button */}
+        <div className="flex justify-end max-w-2xl mx-auto mt-4">
+          <button
+            onClick={() => {
+              localStorage.removeItem('adminAuth');
+              window.location.href = '/admin/login';
+            }}
+            className="text-sm text-gray-500 hover:text-gray-700 transition"
+          >
+            تسجيل خروج
+          </button>
         </div>
-      </section>
-    </>
+      </div>
+    </div>
   );
 }
