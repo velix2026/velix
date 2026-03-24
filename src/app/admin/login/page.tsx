@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
@@ -25,7 +24,7 @@ export default function AdminLoginPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        localStorage.setItem('adminAuth', 'true');
+        sessionStorage.setItem('adminAuth', 'true');
         router.push('/admin');
       } else {
         setError('كلمة المرور غير صحيحة');
@@ -38,21 +37,25 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-stone-50 via-white to-stone-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          {/* Header with brand */}
-          <div className="bg-black px-8 py-6 text-center">
-            <h1 className="text-3xl font-bold text-white tracking-tight">VELIX</h1>
-            <p className="text-gray-400 text-sm mt-1">لوحة التحكم</p>
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200 overflow-hidden">
+          {/* Header */}
+          <div className="px-8 pt-10 pb-4 text-center">
+            <h1 className="text-4xl font-bold tracking-wide text-stone-800">
+              VELIX
+            </h1>
+            <p className="text-stone-400 text-sm mt-2 font-medium">
+              لوحة التحكم
+            </p>
           </div>
           
           {/* Body */}
-          <div className="px-8 py-8">
+          <div className="px-8 pb-8">
             <form onSubmit={handleSubmit}>
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">
                   كلمة المرور
                 </label>
                 <div className="relative">
@@ -60,7 +63,7 @@ export default function AdminLoginPage() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+                    className="w-full p-4 bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition text-stone-800 font-medium placeholder:text-stone-300"
                     placeholder="••••••••"
                     required
                     autoFocus
@@ -69,7 +72,7 @@ export default function AdminLoginPage() {
               </div>
               
               {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm text-center">
+                <div className="mb-6 p-3 bg-red-50/80 border border-red-100 text-red-500 rounded-xl text-sm text-center font-medium">
                   {error}
                 </div>
               )}
@@ -77,7 +80,7 @@ export default function AdminLoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-black text-white py-3 rounded-xl hover:bg-gray-800 transition disabled:opacity-50 font-medium"
+                className="w-full bg-stone-800 text-white py-4 rounded-2xl hover:bg-stone-700 transition-all duration-200 disabled:opacity-50 font-bold tracking-wide"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -94,19 +97,18 @@ export default function AdminLoginPage() {
             </form>
           </div>
           
-          {/* Footer */}
-          <div className="bg-gray-50 px-8 py-4 text-center border-t border-gray-100">
-            <p className="text-xs text-gray-500">
-              © {new Date().getFullYear()} VELIX. جميع الحقوق محفوظة
-            </p>
+          {/* Footer with button */}
+          <div className="px-8 pb-10 text-center">
+            <a
+              href="/"
+              className="inline-flex items-center justify-center gap-2 text-sm font-medium text-stone-400 hover:text-stone-600 transition-colors duration-200 group"
+            >
+              <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              العودة إلى الموقع
+            </a>
           </div>
-        </div>
-        
-        {/* Back to site link */}
-        <div className="text-center mt-6">
-          <a href="/" className="text-sm text-gray-500 hover:text-black transition">
-            ← العودة إلى الموقع
-          </a>
         </div>
       </div>
     </div>

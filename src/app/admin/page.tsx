@@ -19,7 +19,7 @@ export default function AdminPage() {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    const auth = localStorage.getItem('adminAuth');
+    const auth = sessionStorage.getItem('adminAuth');
     if (auth === 'true') {
       setIsAuthenticated(true);
     } else {
@@ -81,10 +81,15 @@ export default function AdminPage() {
     }
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem('adminAuth');
+    router.push('/admin/login');
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">جاري التحقق...</div>
+      <div className="min-h-screen bg-linear-to-br from-stone-50 to-white flex items-center justify-center">
+        <div className="text-stone-400 font-medium">جاري التحقق...</div>
       </div>
     );
   }
@@ -94,46 +99,52 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-linear-to-br from-stone-50 to-white py-12">
       <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">لوحة تحكم VELIX</h1>
-          <p className="text-gray-600 mt-2">أضف منتج جديد مع الصور</p>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-stone-800">VELIX</h1>
+            <p className="text-stone-400 mt-1 font-medium">لوحة التحكم</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="text-sm font-medium text-stone-400 hover:text-stone-600 transition"
+          >
+            تسجيل خروج
+          </button>
         </div>
         
-        {/* Form Card */}
-        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
+        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl border border-stone-100 overflow-hidden">
           <div className="p-6 space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">اسم المنتج</label>
+              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">اسم المنتج</label>
               <input
                 type="text"
                 value={product.name}
                 onChange={(e) => setProduct({ ...product, name: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition font-medium"
                 required
                 dir="rtl"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">السعر (جنيه)</label>
+              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">السعر (جنيه)</label>
               <input
                 type="number"
                 value={product.price}
                 onChange={(e) => setProduct({ ...product, price: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition font-medium"
                 required
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">القسم</label>
+              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">القسم</label>
               <select
                 value={product.category}
                 onChange={(e) => setProduct({ ...product, category: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition font-medium"
                 required
               >
                 <option value="">اختر القسم</option>
@@ -146,11 +157,11 @@ export default function AdminPage() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">وصف المنتج</label>
+              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">وصف المنتج</label>
               <textarea
                 value={product.description}
                 onChange={(e) => setProduct({ ...product, description: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition"
+                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition font-medium"
                 rows={4}
                 required
                 dir="rtl"
@@ -158,61 +169,48 @@ export default function AdminPage() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">الصورة الرئيسية</label>
+              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">الصورة الرئيسية</label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleMainImageChange}
-                className="w-full p-2 border border-gray-300 rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-black file:text-white hover:file:bg-gray-800 transition"
+                className="w-full p-2 bg-stone-50 border border-stone-200 rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-stone-800 file:text-white file:font-bold hover:file:bg-stone-700 transition"
                 required
               />
               {mainImage && (
-                <p className="text-sm text-green-600 mt-1">✓ {mainImage.name}</p>
+                <p className="text-xs text-stone-400 mt-1 font-medium">✓ {mainImage.name}</p>
               )}
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">صور إضافية (اختياري)</label>
+              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">صور إضافية (اختياري)</label>
               <input
                 type="file"
                 accept="image/*"
                 multiple
                 onChange={handleSubImagesChange}
-                className="w-full p-2 border border-gray-300 rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-black file:text-white hover:file:bg-gray-800 transition"
+                className="w-full p-2 bg-stone-50 border border-stone-200 rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-stone-800 file:text-white file:font-bold hover:file:bg-stone-700 transition"
               />
               {subImages.length > 0 && (
-                <p className="text-sm text-green-600 mt-1">✓ {subImages.length} صور</p>
+                <p className="text-xs text-stone-400 mt-1 font-medium">✓ تم اختيار {subImages.length} صور</p>
               )}
             </div>
             
             <button
               type="submit"
               disabled={uploading}
-              className="w-full bg-black text-white py-3 rounded-xl hover:bg-gray-800 transition disabled:opacity-50 font-medium"
+              className="w-full bg-stone-800 text-white py-3 rounded-xl hover:bg-stone-700 transition disabled:opacity-50 font-bold tracking-wide"
             >
               {uploading ? 'جاري الرفع...' : '+ إضافة المنتج'}
             </button>
             
             {status && (
-              <p className={`text-center text-sm ${status.includes('✅') ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-center text-sm font-medium ${status.includes('✅') ? 'text-green-600' : 'text-red-500'}`}>
                 {status}
               </p>
             )}
           </div>
         </form>
-        
-        {/* Logout Button */}
-        <div className="flex justify-end max-w-2xl mx-auto mt-4">
-          <button
-            onClick={() => {
-              localStorage.removeItem('adminAuth');
-              window.location.href = '/admin/login';
-            }}
-            className="text-sm text-gray-500 hover:text-gray-700 transition"
-          >
-            تسجيل خروج
-          </button>
-        </div>
       </div>
     </div>
   );
