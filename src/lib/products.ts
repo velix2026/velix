@@ -12,15 +12,19 @@ export interface Product {
 
 export async function getProducts(): Promise<Product[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    // في بيئة الإنتاج، نستخدم الرابط المطلق
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://velixstore.vercel.app';
     const res = await fetch(`${baseUrl}/api/products`, {
-      next: { revalidate: 10 },
+      cache: 'no-store', // عدم التخزين المؤقت لجلب أحدث البيانات
     });
     
-    if (!res.ok) throw new Error('Failed to fetch products');
+    if (!res.ok) {
+      console.error('API response not ok:', res.status);
+      return [];
+    }
     
     const products = await res.json();
-    return products;
+    return Array.isArray(products) ? products : [];
   } catch (error) {
     console.error('Error fetching products:', error);
     return [];

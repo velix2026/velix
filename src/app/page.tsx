@@ -23,7 +23,9 @@ export default async function Home() {
               <ProductCard key={product.id} product={product} />
             ))
           ) : (
-            <p className="text-center col-span-3 text-gray-500">لا توجد منتجات متاحة حاليًا</p>
+            <p className="text-center col-span-3 text-gray-500">
+              لا توجد منتجات متاحة حاليًا
+            </p>
           )}
         </div>
         
