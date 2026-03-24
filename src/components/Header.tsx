@@ -23,6 +23,7 @@ export default function Header() {
 
     window.addEventListener('scroll', handleScroll);
     
+    // تحميل عدد المفضلات والسلة من localStorage
     const savedFavorites = localStorage.getItem('favorites');
     const savedCart = localStorage.getItem('cart');
     
@@ -33,7 +34,23 @@ export default function Header() {
       setCartCount(JSON.parse(savedCart).length);
     }
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    // استقبال تحديثات المفضلة والسلة من ProductCard
+    const handleFavoritesUpdate = (event: CustomEvent) => {
+      setFavoritesCount(event.detail);
+    };
+    
+    const handleCartUpdate = (event: CustomEvent) => {
+      setCartCount(event.detail);
+    };
+    
+    window.addEventListener('favoritesUpdated', handleFavoritesUpdate as EventListener);
+    window.addEventListener('cartUpdated', handleCartUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('favoritesUpdated', handleFavoritesUpdate as EventListener);
+      window.removeEventListener('cartUpdated', handleCartUpdate as EventListener);
+    };
   }, []);
 
   const isActive = (path: string) => {
@@ -68,6 +85,7 @@ export default function Header() {
                 alt="VELIX براند ملابس مصري"
                 title="VELIX - براند ملابس مصري عصري"
                 fill
+                sizes="(max-width: 768px) 40px, 48px"
                 className="object-contain"
                 priority
               />
