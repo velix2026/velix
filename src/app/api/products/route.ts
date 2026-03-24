@@ -1,33 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
-import { Redis } from '@upstash/redis';
+import Redis from 'ioredis';
 
-const redis = new Redis({
-  url: process.env.REDIS_URL!,
-  token: '',
-});
+// استخدام Redis مباشرة مع الرابط من .env.local
+const redis = new Redis(process.env.REDIS_URL!);
 
 const PRODUCTS_KEY = 'products';
 
+// قراءة المنتجات من Redis
 async function getProducts() {
   try {
-    const products = await redis.get(PRODUCTS_KEY);
-    return Array.isArray(products) ? products : [];
+    const data = await redis.get(PRODUCTS_KEY);
+    if (!data) return [];
+    return JSON.parse(data);
   } catch (error) {
     console.error('Error reading from Redis:', error);
     return [];
   }
 }
 
+// حفظ المنتجات في Redis
 async function saveProducts(products: any[]) {
   try {
-    await redis.set(PRODUCTS_KEY, products);
+    await redis.set(PRODUCTS_KEY, JSON.stringify(products));
   } catch (error) {
     console.error('Error writing to Redis:', error);
     throw error;
   }
 }
 
+// رفع الصورة إلى Vercel Blob
 async function uploadImageToBlob(file: File, fileName: string): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer());
   const { url } = await put(fileName, buffer, {
@@ -36,6 +38,7 @@ async function uploadImageToBlob(file: File, fileName: string): Promise<string> 
   return url;
 }
 
+// POST: إضافة منتج جديد
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -85,6 +88,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// GET: جلب جميع المنتجات
 export async function GET() {
   const products = await getProducts();
   return NextResponse.json(products);
