@@ -1,47 +1,53 @@
-// src/components/ProductCard.tsx
-import Image from "next/image";
-import { Product } from "@/lib/products";
+'use client';
+
+import { useState } from 'react';
+import Image from 'next/image';
+import { Product } from '@/lib/products';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  // تحويل السعر من نص إلى رقم للعرض
-  const priceNumber = parseFloat(product.price);
-  const oldPriceNumber = product.oldPrice ? parseFloat(product.oldPrice) : undefined;
-  
-  // رسالة واتساب تحتوي على اسم المنتج والسعر
-  const whatsappMessage = `أنا عايز أطلب ${product.name} - سعر ${priceNumber} جنيه`;
+  const [currentImage, setCurrentImage] = useState(product.mainImage);
+  const whatsappMessage = `أنا عايز أطلب ${product.name} - سعر ${product.price} جنيه`;
   const whatsappLink = `https://wa.me/201000000000?text=${encodeURIComponent(whatsappMessage)}`;
 
-  // معالجة الصورة: إذا كان المسار يبدأ بـ /images نضيفه كما هو
-  const imageSrc = product.image || "/images/placeholder.jpg";
+  const allImages = [product.mainImage, ...product.subImages];
 
   return (
     <div className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition overflow-hidden">
       <div className="relative h-80 w-full">
         <Image
-          src={imageSrc}
+          src={currentImage}
           alt={product.name}
           fill
           className="object-cover group-hover:scale-105 transition duration-500"
         />
-        {oldPriceNumber && (
-          <span className="absolute top-3 left-3 bg-red-500 text-white text-sm px-3 py-1 rounded-full">
-            خصم
-          </span>
+        
+        {/* صور مصغرة */}
+        {allImages.length > 1 && (
+          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1 bg-black/50 px-2 py-1 rounded-full">
+            {allImages.slice(0, 4).map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentImage(img)}
+                className={`w-2 h-2 rounded-full transition ${
+                  currentImage === img ? 'bg-white scale-125' : 'bg-white/50'
+                }`}
+                aria-label={`الصورة ${idx + 1}`}
+              />
+            ))}
+          </div>
         )}
       </div>
       <div className="p-4">
-        <h3 className="text-xl font-bold mb-1">{product.name}</h3>
-        <p className="text-gray-500 text-sm mb-2">{product.nameEn}</p>
+        <h3 className="text-xl font-bold mb-1 line-clamp-1">{product.name}</h3>
+        <p className="text-gray-500 text-sm mb-2">{product.category}</p>
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-2xl font-bold text-black">{priceNumber} جنيه</span>
-          {oldPriceNumber && (
-            <span className="text-gray-400 line-through">{oldPriceNumber} جنيه</span>
-          )}
+          <span className="text-2xl font-bold text-black">{product.price} جنيه</span>
         </div>
+        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
         <a
           href={whatsappLink}
           target="_blank"

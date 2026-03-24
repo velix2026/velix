@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function Hero() {
   return (
-    <section className="relative bg-linear-to-r from-black to-gray-900 text-white">
+    <section className="relative bg-linear-to-ro-gray-900 text-white">
       <div className="container mx-auto px-4 py-20 md:py-28">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
@@ -16,7 +16,7 @@ export default function Hero() {
               براند ملابس مصري بيقدملك ستايل عصري يناسب الشباب اللي بيحبوا يبانوا بشكل مختلف. 
               جودة في كل تفصيلة، ودفع عند الاستلام.
             </p>
-            <div className="flex gap-4 flex-wrap">
+            <div className="flex gap-4">
               <a
                 href="/products"
                 className="bg-white text-black px-8 py-3 rounded-full font-semibold hover:bg-gray-200 transition"

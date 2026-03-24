@@ -1,21 +1,14 @@
-// src/app/page.tsx
 import Hero from "@/components/Hero";
 import ProductCard from "@/components/ProductCard";
 import { getProducts } from "@/lib/products";
 
-// الصفحة أصبحت async لجلب البيانات
 export default async function Home() {
-  // جلب المنتجات من Google Sheets
   const allProducts = await getProducts();
-  
-  // عرض أول 3 منتجات فقط في الصفحة الرئيسية (أو كلها لو أقل)
   const featuredProducts = allProducts.slice(0, 3);
 
   return (
     <>
       <Hero />
-      
-      {/* قسم المنتجات المميزة */}
       <section className="container mx-auto px-4 py-16">
         <h1 className="text-3xl md:text-4xl font-bold text-center mb-4">
           أحدث قطع VELIX
@@ -24,7 +17,6 @@ export default async function Home() {
           اكتشف مجموعتنا الجديدة. تفاصيل دقيقة وجودة عالية هتفرق في ستايلك.
         </p>
         
-        {/* عرض المنتجات */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {featuredProducts.length > 0 ? (
             featuredProducts.map((product) => (
@@ -45,7 +37,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* قسم مميزات البراند */}
       <section className="bg-gray-50 py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
