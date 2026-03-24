@@ -10,19 +10,26 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const [currentImage, setCurrentImage] = useState(product.mainImage);
+  const [imgError, setImgError] = useState(false);
+  
   const whatsappMessage = `أنا عايز أطلب ${product.name} - سعر ${product.price} جنيه`;
   const whatsappLink = `https://wa.me/201000000000?text=${encodeURIComponent(whatsappMessage)}`;
 
   const allImages = [product.mainImage, ...product.subImages];
 
+  // إذا كان هناك خطأ في الصورة، نعرض صورة بديلة
+  const imageSrc = imgError ? '/images/placeholder.jpg' : currentImage;
+
   return (
     <div className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition overflow-hidden">
-      <div className="relative h-80 w-full">
+      <div className="relative h-80 w-full bg-gray-100">
         <Image
-          src={currentImage}
+          src={imageSrc}
           alt={product.name}
           fill
           className="object-cover group-hover:scale-105 transition duration-500"
+          onError={() => setImgError(true)}
+          unoptimized // مؤقتًا للتجربة
         />
         
         {allImages.length > 1 && (
@@ -30,7 +37,10 @@ export default function ProductCard({ product }: ProductCardProps) {
             {allImages.slice(0, 4).map((img, idx) => (
               <button
                 key={idx}
-                onClick={() => setCurrentImage(img)}
+                onClick={() => {
+                  setCurrentImage(img);
+                  setImgError(false);
+                }}
                 className={`w-2 h-2 rounded-full transition ${
                   currentImage === img ? 'bg-white scale-125' : 'bg-white/50'
                 }`}
