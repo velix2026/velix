@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@types/multer": "^2.1.0",
+    "@upstash/redis": "^1.37.0",
+    "@vercel/blob": "^2.3.1",
     "googleapis": "^171.4.0",
     "multer": "^2.1.1",
     "next": "16.2.1",

@@ -26,8 +26,3 @@ export async function getProducts(): Promise<Product[]> {
     return [];
   }
 }
-
-export async function getProduct(id: number): Promise<Product | undefined> {
-  const products = await getProducts();
-  return products.find(p => p.id === id);
-}

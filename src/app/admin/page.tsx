@@ -1,8 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminPage() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState({
     name: '',
     price: '',
@@ -12,7 +16,17 @@ export default function AdminPage() {
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [subImages, setSubImages] = useState<File[]>([]);
   const [status, setStatus] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    const auth = localStorage.getItem('adminAuth');
+    if (auth === 'true') {
+      setIsAuthenticated(true);
+    } else {
+      router.push('/admin/login');
+    }
+    setLoading(false);
+  }, [router]);
 
   const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -33,7 +47,7 @@ export default function AdminPage() {
       return;
     }
 
-    setLoading(true);
+    setUploading(true);
     setStatus('جاري رفع المنتج والصور...');
 
     const formData = new FormData();
@@ -55,7 +69,6 @@ export default function AdminPage() {
         setProduct({ name: '', price: '', category: '', description: '' });
         setMainImage(null);
         setSubImages([]);
-        // إعادة تعيين حقول الملفات
         const fileInputs = document.querySelectorAll('input[type="file"]');
         fileInputs.forEach((input: any) => (input.value = ''));
       } else {
@@ -64,9 +77,21 @@ export default function AdminPage() {
     } catch {
       setStatus('❌ حدث خطأ في الاتصال');
     } finally {
-      setLoading(false);
+      setUploading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">جاري التحقق...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-16">
@@ -157,10 +182,10 @@ export default function AdminPage() {
           
           <button
             type="submit"
-            disabled={loading}
+            disabled={uploading}
             className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
           >
-            {loading ? 'جاري الرفع...' : '➕ إضافة المنتج'}
+            {uploading ? 'جاري الرفع...' : '➕ إضافة المنتج'}
           </button>
           
           {status && (
@@ -169,6 +194,18 @@ export default function AdminPage() {
             </p>
           )}
         </form>
+        
+        <div className="flex justify-end max-w-2xl mx-auto mt-4">
+          <button
+            onClick={() => {
+              localStorage.removeItem('adminAuth');
+              window.location.href = '/admin/login';
+            }}
+            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm hover:bg-gray-300 transition"
+          >
+            تسجيل خروج
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -25,7 +25,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           className="object-cover group-hover:scale-105 transition duration-500"
         />
         
-        {/* صور مصغرة */}
         {allImages.length > 1 && (
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1 bg-black/50 px-2 py-1 rounded-full">
             {allImages.slice(0, 4).map((img, idx) => (

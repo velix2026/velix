@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "VELIX | براند ملابس مصري",
     description: "ستايل عصري وجودة في التفاصيل. اطلب دلوقتي بالدفع عند الاستلام.",
-    url: "https://velixclothing.com",
+    url: "https://velixstore.vercel.app",
     siteName: "VELIX",
     locale: "ar_EG",
     type: "website",

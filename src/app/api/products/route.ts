@@ -1,79 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { google } from 'googleapis';
-import fs from 'fs';
-import path from 'path';
-import { Readable } from 'stream';
+import { put } from '@vercel/blob';
+import { Redis } from '@upstash/redis';
 
-// إعدادات Google Drive
-let auth: any = null;
+const redis = new Redis({
+  url: process.env.REDIS_URL!,
+  token: '',
+});
 
-function getAuth() {
-  if (!auth) {
-    auth = new google.auth.GoogleAuth({
-      credentials: {
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
-      },
-      scopes: ['https://www.googleapis.com/auth/drive.file'],
-    });
-  }
-  return auth;
-}
+const PRODUCTS_KEY = 'products';
 
-const drive = google.drive({ version: 'v3', auth: getAuth() });
-
-// قراءة المنتجات من الملف
-function getProducts() {
-  const filePath = path.join(process.cwd(), 'data', 'products.json');
+async function getProducts() {
   try {
-    const data = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(data);
-  } catch {
+    const products = await redis.get(PRODUCTS_KEY);
+    return Array.isArray(products) ? products : [];
+  } catch (error) {
+    console.error('Error reading from Redis:', error);
     return [];
   }
 }
 
-// حفظ المنتجات في الملف
-function saveProducts(products: any[]) {
-  const filePath = path.join(process.cwd(), 'data', 'products.json');
-  fs.writeFileSync(filePath, JSON.stringify(products, null, 2));
+async function saveProducts(products: any[]) {
+  try {
+    await redis.set(PRODUCTS_KEY, products);
+  } catch (error) {
+    console.error('Error writing to Redis:', error);
+    throw error;
+  }
 }
 
-// رفع صورة إلى Google Drive
-async function uploadImageToDrive(
-  file: File,
-  folderId: string,
-  fileName: string
-): Promise<string> {
+async function uploadImageToBlob(file: File, fileName: string): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer());
-  const stream = Readable.from(buffer);
-
-  const response = await drive.files.create({
-    requestBody: {
-      name: fileName,
-      parents: [folderId],
-    },
-    media: {
-      mimeType: file.type,
-      body: stream,
-    },
-    fields: 'id',
+  const { url } = await put(fileName, buffer, {
+    access: 'public',
   });
-
-  // جعل الصورة عامة
-  await drive.permissions.create({
-    fileId: response.data.id!,
-    requestBody: {
-      role: 'reader',
-      type: 'anyone',
-    },
-  });
-
-  // رابط الصورة المباشر
-  return `https://drive.google.com/uc?id=${response.data.id}&export=view`;
+  return url;
 }
 
-// POST: إضافة منتج جديد مع صور
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -89,35 +51,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // إنشاء مجلد باسم المنتج في Drive
-    const folderResponse = await drive.files.create({
-      requestBody: {
-        name: name,
-        mimeType: 'application/vnd.google-apps.folder',
-        parents: [process.env.GOOGLE_DRIVE_FOLDER_ID!],
-      },
-      fields: 'id',
-    });
-    
-    const productFolderId = folderResponse.data.id;
+    const timestamp = Date.now();
+    const mainImageUrl = await uploadImageToBlob(mainImage, `${timestamp}_main.jpg`);
 
-    // رفع الصورة الرئيسية
-    const mainImageUrl = await uploadImageToDrive(mainImage, productFolderId!, 'main.jpg');
-
-    // رفع الصور الفرعية
     const subImagesUrls: string[] = [];
     for (let i = 0; i < subImages.length; i++) {
-      const url = await uploadImageToDrive(subImages[i], productFolderId!, `sub${i + 1}.jpg`);
+      const url = await uploadImageToBlob(subImages[i], `${timestamp}_sub${i + 1}.jpg`);
       subImagesUrls.push(url);
     }
 
-    // قراءة المنتجات الحالية
-    const products = getProducts();
-    
-    // تحديد ID جديد
+    const products = await getProducts();
     const newId = products.length > 0 ? Math.max(...products.map((p: any) => p.id)) + 1 : 1;
     
-    // المنتج الجديد
     const newProduct = {
       id: newId,
       name,
@@ -131,10 +76,7 @@ export async function POST(request: NextRequest) {
     };
     
     products.push(newProduct);
-    saveProducts(products);
-    
-    // إضافة المنتج إلى Google Sheets
-    await addToSheets(newProduct);
+    await saveProducts(products);
     
     return NextResponse.json({ success: true, product: newProduct });
   } catch (error) {
@@ -143,42 +85,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// إضافة المنتج إلى Google Sheets
-async function addToSheets(product: any) {
-  try {
-    const sheetsAuth = new google.auth.GoogleAuth({
-      credentials: {
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
-      },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
-    
-    const sheets = google.sheets({ version: 'v4', auth: sheetsAuth });
-    
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: process.env.GOOGLE_SHEETS_ID,
-      range: 'Sheet1!A:G',
-      valueInputOption: 'USER_ENTERED',
-      requestBody: {
-        values: [[
-          product.id,
-          product.name,
-          product.price,
-          product.category,
-          product.description,
-          product.mainImage,
-          product.subImages.join(','),
-        ]],
-      },
-    });
-  } catch (error) {
-    console.error('Error adding to Sheets:', error);
-  }
-}
-
-// GET: جلب المنتجات
 export async function GET() {
-  const products = getProducts();
+  const products = await getProducts();
   return NextResponse.json(products);
 }
