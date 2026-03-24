@@ -10,8 +10,8 @@ export default function Footer() {
       <div className="container mx-auto px-4 md:px-6 py-6 md:py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
           
-          {/* Brand Column - SEO */}
-          <div className="flex flex-col items-center md:items-start text-center md:text-right">
+          {/* Brand Column - Center on mobile, Right on desktop */}
+          <div className="flex flex-col items-center md:items-end text-center md:text-right">
             <div className="relative w-16 h-16 md:w-20 md:h-20 mb-2">
               <Image
                 src="/logo.png"
@@ -28,8 +28,8 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Quick Links - SEO */}
-          <div>
+          {/* Quick Links - Center on mobile, Right on desktop */}
+          <div className="text-center md:text-right">
             <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3 pb-1 border-b-2 border-gray-300 inline-block">
               روابط سريعة
             </h4>
@@ -52,8 +52,8 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Policies - SEO */}
-          <div>
+          {/* Policies - Center on mobile, Right on desktop */}
+          <div className="text-center md:text-right">
             <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3 pb-1 border-b-2 border-gray-300 inline-block">
               سياسات
             </h4>
@@ -76,8 +76,8 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact & Social - SEO */}
-          <div>
+          {/* Contact & Social - Center on mobile, Right on desktop */}
+          <div className="text-center md:text-right">
             {/* Contact */}
             <div className="mb-4">
               <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3 pb-1 border-b-2 border-gray-300 inline-block">
