@@ -6,16 +6,17 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-200">
+    <footer className="bg-gray-50 border-t border-gray-200" itemScope itemType="https://schema.org/WPFooter">
       <div className="container mx-auto px-4 md:px-6 py-6 md:py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
           
-          {/* Brand Column - Center on mobile, Left on desktop */}
+          {/* Brand Column - SEO */}
           <div className="flex flex-col items-center md:items-start text-center md:text-right">
             <div className="relative w-16 h-16 md:w-20 md:h-20 mb-2">
               <Image
                 src="/logo.png"
-                alt="VELIX"
+                alt="VELIX - براند ملابس مصري"
+                title="VELIX براند ملابس مصري"
                 fill
                 className="object-contain"
               />
@@ -27,12 +28,12 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Quick Links - Center on mobile */}
-          <div className="text-center md:text-right">
+          {/* Quick Links - SEO */}
+          <div>
             <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3 pb-1 border-b-2 border-gray-300 inline-block">
               روابط سريعة
             </h4>
-            <ul className="space-y-1.5 mt-2">
+            <ul className="space-y-1.5 mt-2" aria-label="روابط سريعة">
               <li>
                 <Link href="/" className="text-gray-700 hover:text-black hover:translate-x-1 transition-all duration-200 text-xs font-bold inline-block">
                   الرئيسية
@@ -51,12 +52,12 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Policies - Center on mobile */}
-          <div className="text-center md:text-right">
+          {/* Policies - SEO */}
+          <div>
             <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3 pb-1 border-b-2 border-gray-300 inline-block">
               سياسات
             </h4>
-            <ul className="space-y-1.5 mt-2">
+            <ul className="space-y-1.5 mt-2" aria-label="سياسات الموقع">
               <li>
                 <Link href="/shipping" className="text-gray-700 hover:text-black hover:translate-x-1 transition-all duration-200 text-xs font-bold inline-block">
                   الشحن والتوصيل
@@ -75,20 +76,21 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact & Social - Center on mobile */}
-          <div className="text-center md:text-right">
+          {/* Contact & Social - SEO */}
+          <div>
             {/* Contact */}
             <div className="mb-4">
               <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3 pb-1 border-b-2 border-gray-300 inline-block">
                 تواصل معنا
               </h4>
-              <ul className="space-y-1.5 mt-2">
+              <ul className="space-y-1.5 mt-2" aria-label="طرق التواصل">
                 <li>
                   <a 
                     href="https://wa.me/201500125133" 
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-700 hover:text-black hover:translate-x-1 transition-all duration-200 text-xs font-bold flex items-center justify-center md:justify-start gap-2 group"
+                    aria-label="تواصل عبر واتساب"
                   >
                     <SocialIcon 
                       url="https://wa.me/201500125133" 
@@ -104,14 +106,15 @@ export default function Footer() {
                 </li>
                 <li>
                   <a 
-                    href="mailto:info@velix.com" 
+                    href="mailto:velix2026@gmail.com"
                     className="text-gray-700 hover:text-black hover:translate-x-1 transition-all duration-200 text-xs font-bold flex items-center justify-center md:justify-start gap-2 group"
+                    aria-label="تواصل عبر البريد الإلكتروني"
                   >
                     <SocialIcon 
-                      url="mailto:info@velix.com" 
+                      url="mailto:velix2026@gmail.com"
                       network="email"
                       bgColor="transparent" 
-                      fgColor="#3b82f6"
+                      fgColor="#1877F2"
                       style={{ width: 28, height: 28 }}
                       target="_blank"
                       className="hover:scale-110 transition-transform duration-200"
@@ -127,39 +130,43 @@ export default function Footer() {
               <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3 pb-1 border-b-2 border-gray-300 inline-block">
                 صفحاتنا
               </h4>
-              <div className="flex gap-2 mt-2 justify-center md:justify-start">
+              <div className="flex gap-2 mt-2 justify-center md:justify-start" aria-label="صفحات التواصل الاجتماعي">
                 <SocialIcon 
-                  url="https://instagram.com/velix" 
+                  url="https://instagram.com/velix.2026"
                   bgColor="transparent" 
                   fgColor="#E4405F"
                   style={{ width: 28, height: 28 }}
                   target="_blank"
                   className="hover:scale-110 transition-transform duration-200"
+                  aria-label="Instagram"
                 />
                 <SocialIcon 
-                  url="https://facebook.com/velix2026" 
+                  url="https://www.facebook.com/velix2026"
                   bgColor="transparent" 
                   fgColor="#1877F2"
                   style={{ width: 28, height: 28 }}
                   target="_blank"
                   className="hover:scale-110 transition-transform duration-200"
+                  aria-label="Facebook"
                 />
                 <SocialIcon 
-                  url="https://tiktok.com/@velix" 
+                  url="https://tiktok.com/@velix2026"
                   bgColor="transparent" 
                   fgColor="#EE1D52"
                   style={{ width: 28, height: 28 }}
                   target="_blank"
                   className="hover:scale-110 transition-transform duration-200"
+                  aria-label="TikTok"
                 />
                 <SocialIcon 
-                  url="https://wa.me/201500125133" 
+                  url="https://whatsapp.com/channel/0029VbCamY1JUM2iILsajJ3t"
                   network="whatsapp"
                   bgColor="transparent" 
                   fgColor="#25D366"
                   style={{ width: 28, height: 28 }}
                   target="_blank"
                   className="hover:scale-110 transition-transform duration-200"
+                  aria-label="قناة واتساب"
                 />
               </div>
             </div>
