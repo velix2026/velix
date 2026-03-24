@@ -10,38 +10,52 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
   const featuredProducts = products.slice(0, 3);
 
   return (
-    <section className="container mx-auto px-4 py-20 md:py-28">
-      <div className="text-center mb-12 md:mb-16">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-          أحدث قطع VELIX
-        </h2>
-        <p className="text-gray-500 text-base max-w-2xl mx-auto">
-          اكتشف مجموعتنا الجديدة. تفاصيل دقيقة وجودة عالية هتفرق في ستايلك.
-        </p>
-      </div>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-        {featuredProducts.length > 0 ? (
-          featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))
-        ) : (
-          <p className="text-center col-span-3 text-gray-500">
-            لا توجد منتجات متاحة حاليًا
+    <section className="bg-white py-20 md:py-28">
+      <div className="container mx-auto px-4">
+        {/* عنوان القسم */}
+        <div className="text-center mb-12 md:mb-16">
+          <span className="text-xs text-gray-400 tracking-[0.2em] uppercase mb-3 block">
+            المجموعة الجديدة
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+            تشكيلة الربيع 2026
+          </h2>
+          <div className="w-16 h-0.5 bg-gray-300 mx-auto mt-4 mb-6"></div>
+          <p className="text-gray-500 text-base max-w-2xl mx-auto">
+            اكتشف أحدث تصاميمنا. جودة عالية وتفاصيل دقيقة تناسب ستايلك اليومي.
           </p>
-        )}
-      </div>
-      
-      <div className="text-center mt-12">
-        <Link
-          href="/products"
-          className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-8 py-3 rounded-full font-medium hover:bg-black hover:text-white hover:border-black transition-all duration-300"
-        >
-          شاهد جميع المنتجات
-          <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
+        </div>
+        
+        {/* المنتجات */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {featuredProducts.length > 0 ? (
+            featuredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          ) : (
+            <p className="text-center col-span-3 text-gray-500">
+              لا توجد منتجات متاحة حاليًا
+            </p>
+          )}
+        </div>
+        
+        {/* زر عرض الكل */}
+        <div className="text-center mt-12">
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-8 py-3 rounded-full font-medium hover:bg-black hover:text-white hover:border-black transition-all duration-300 group"
+          >
+            عرض المجموعة كاملة
+            <svg 
+              className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
       </div>
     </section>
   );

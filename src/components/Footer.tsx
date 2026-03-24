@@ -11,13 +11,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
           
           {/* Brand Column - Center on mobile, Right on desktop */}
-          <div className="flex flex-col items-center md:items-end text-center md:text-right">
+          <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <div className="relative w-16 h-16 md:w-20 md:h-20 mb-2">
               <Image
                 src="/logo.png"
                 alt="VELIX - براند ملابس مصري"
                 title="VELIX براند ملابس مصري"
                 fill
+                sizes="(max-width: 768px) 64px, 80px"
                 className="object-contain"
               />
             </div>
@@ -84,43 +85,29 @@ export default function Footer() {
                 تواصل معنا
               </h4>
               <ul className="space-y-1.5 mt-2" aria-label="طرق التواصل">
-                <li>
-                  <a 
-                    href="https://wa.me/201500125133" 
+                <li className="flex items-center justify-center md:justify-start gap-2">
+                  <SocialIcon 
+                    url="https://wa.me/201500125133" 
+                    network="whatsapp"
+                    bgColor="transparent" 
+                    fgColor="#25D366"
+                    style={{ width: 28, height: 28 }}
                     target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-700 hover:text-black hover:translate-x-1 transition-all duration-200 text-xs font-bold flex items-center justify-center md:justify-start gap-2 group"
-                    aria-label="تواصل عبر واتساب"
-                  >
-                    <SocialIcon 
-                      url="https://wa.me/201500125133" 
-                      network="whatsapp"
-                      bgColor="transparent" 
-                      fgColor="#25D366"
-                      style={{ width: 28, height: 28 }}
-                      target="_blank"
-                      className="hover:scale-110 transition-transform duration-200"
-                    />
-                    واتساب
-                  </a>
+                    className="hover:scale-110 transition-transform duration-200"
+                  />
+                  <span className="text-gray-700 text-xs font-bold">واتساب</span>
                 </li>
-                <li>
-                  <a 
-                    href="mailto:velix2026@gmail.com"
-                    className="text-gray-700 hover:text-black hover:translate-x-1 transition-all duration-200 text-xs font-bold flex items-center justify-center md:justify-start gap-2 group"
-                    aria-label="تواصل عبر البريد الإلكتروني"
-                  >
-                    <SocialIcon 
-                      url="mailto:velix2026@gmail.com"
-                      network="email"
-                      bgColor="transparent" 
-                      fgColor="#1877F2"
-                      style={{ width: 28, height: 28 }}
-                      target="_blank"
-                      className="hover:scale-110 transition-transform duration-200"
-                    />
-                    البريد الإلكتروني
-                  </a>
+                <li className="flex items-center justify-center md:justify-start gap-2">
+                  <SocialIcon 
+                    url="mailto:velix2026@gmail.com"
+                    network="email"
+                    bgColor="transparent" 
+                    fgColor="#1877F2"
+                    style={{ width: 28, height: 28 }}
+                    target="_blank"
+                    className="hover:scale-110 transition-transform duration-200"
+                  />
+                  <span className="text-gray-700 text-xs font-bold">البريد الإلكتروني</span>
                 </li>
               </ul>
             </div>

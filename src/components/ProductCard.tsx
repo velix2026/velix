@@ -13,7 +13,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [imgError, setImgError] = useState(false);
   
   const whatsappMessage = `أنا عايز أطلب ${product.name} - سعر ${product.price} جنيه`;
-  const whatsappLink = `https://wa.me/201000000000?text=${encodeURIComponent(whatsappMessage)}`;
+  const whatsappLink = `https://wa.me/201500125133?text=${encodeURIComponent(whatsappMessage)}`;
 
   const allImages = [product.mainImage, ...product.subImages];
 
@@ -27,9 +27,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           src={imageSrc}
           alt={product.name}
           fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-cover group-hover:scale-105 transition duration-500"
           onError={() => setImgError(true)}
-          unoptimized // مؤقتًا للتجربة
         />
         
         {allImages.length > 1 && (

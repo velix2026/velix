@@ -57,6 +57,7 @@ export default function Hero() {
                   src="/images/hoodie-flat.png"
                   alt="VELIX هودي أوفر سايز"
                   fill
+                  sizes="(max-width: 768px) 33vw, 25vw"
                   className="object-cover hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -65,6 +66,7 @@ export default function Hero() {
                   src="/images/pants-flat.png"
                   alt="VELIX شروال رياضي"
                   fill
+                  sizes="(max-width: 768px) 33vw, 25vw"
                   className="object-cover hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -73,6 +75,7 @@ export default function Hero() {
                   src="/images/tshirt-flat.png"
                   alt="VELIX تيشرت كلاسيك"
                   fill
+                  sizes="(max-width: 768px) 33vw, 25vw"
                   className="object-cover hover:scale-105 transition-transform duration-500"
                 />
               </div>
