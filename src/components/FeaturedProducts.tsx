@@ -7,13 +7,37 @@ interface FeaturedProductsProps {
 }
 
 export default function FeaturedProducts({ products }: FeaturedProductsProps) {
-  const featuredProducts = products.slice(0, 3);
+  // الأكثر مبيعاً (أول 4 منتجات حسب id)
+  const bestSellers = [...products].sort((a, b) => b.id - a.id).slice(0, 4);
+  
+  // أحدث المنتجات (التاليين 4)
+  const latestProducts = [...products].sort((a, b) => b.id - a.id).slice(4, 8);
 
   return (
     <section className="bg-white py-20 md:py-28">
       <div className="container mx-auto px-4">
-        {/* عنوان القسم */}
-        <div className="text-center mb-12 md:mb-16">
+        
+        {/* قسم الأكثر مبيعاً */}
+        {bestSellers.length > 0 && (
+          <div className="mb-16">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center justify-center gap-2">
+                <span className="text-2xl">⭐</span>
+                الأكثر مبيعاً
+              </h2>
+              <div className="w-16 h-0.5 bg-gray-300 mx-auto mt-3 mb-4"></div>
+              <p className="text-gray-500 text-sm">أكثر القطع طلباً من عملائنا</p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              {bestSellers.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* قسم أحدث المنتجات */}
+        <div className="text-center mb-8">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
             أحدث المنتجات
           </h2>
@@ -23,14 +47,13 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
           </p>
         </div>
         
-        {/* المنتجات - 3 على الكمبيوتر، 2 على الموبايل */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {featuredProducts.length > 0 ? (
-            featuredProducts.map((product) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          {latestProducts.length > 0 ? (
+            latestProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))
           ) : (
-            <p className="text-center col-span-2 lg:col-span-3 text-gray-500">
+            <p className="text-center col-span-2 sm:col-span-3 lg:col-span-4 text-gray-500">
               لا توجد منتجات متاحة حاليًا
             </p>
           )}

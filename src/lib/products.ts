@@ -8,7 +8,6 @@ export interface Product {
   subImages: string[];
   inStock: boolean;
   createdAt: string;
-  // خصائص إضافية (ستأتي من قاعدة البيانات)
   rating?: number;
   oldPrice?: number;
   stock?: number;
@@ -20,7 +19,9 @@ export interface Product {
 
 export async function getProducts(): Promise<Product[]> {
   try {
-    const res = await fetch(`/api/products`, {
+    // استخدام الرابط المطلق من متغير البيئة
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://velixstore.vercel.app';
+    const res = await fetch(`${baseUrl}/api/products`, {
       cache: 'no-store',
     });
     
@@ -30,9 +31,7 @@ export async function getProducts(): Promise<Product[]> {
     }
     
     const products = await res.json();
-    
-    // لا نضيف أي قيم افتراضية - كل شيء من قاعدة البيانات الحقيقية
-    return products;
+    return Array.isArray(products) ? products : [];
   } catch (error) {
     console.error('Error fetching products:', error);
     return [];

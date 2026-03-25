@@ -5,6 +5,10 @@ import { getProducts } from "@/lib/products";
 
 export default async function Home() {
   const allProducts = await getProducts();
+  
+  console.log('=== Home Page ===');
+  console.log('Total products:', allProducts.length);
+  console.log('Products:', allProducts.map(p => ({ id: p.id, name: p.name, createdAt: p.createdAt })));
 
   return (
     <>
