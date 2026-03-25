@@ -8,7 +8,7 @@ const protectedPaths = [
   '/api/orders/[id]',
 ];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // التحقق من أن المسار محمي
