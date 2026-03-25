@@ -7,6 +7,8 @@ import { Product } from '@/lib/products';
 import OrderModal from '@/components/OrderModal';
 import { ProductCardSkeleton } from '@/components/Skeleton';
 
+export const dynamic = 'force-dynamic';
+
 interface CartItem extends Product {
   quantity: number;
 }

@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { getProducts } from '@/lib/products';
 import OrderModal from '@/components/OrderModal';
 
+export const dynamic = 'force-dynamic';
+
 // الألوان المتاحة
 const allColors = [
   { name: 'أسود', value: '#000000', code: 'black' },

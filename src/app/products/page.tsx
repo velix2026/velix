@@ -9,6 +9,8 @@ import { Product } from '@/lib/products';
 import Image from 'next/image';
 import { create } from 'zustand';
 import { ProductGridSkeleton } from '@/components/Skeleton';
+
+export const dynamic = 'force-dynamic';
 // ==================== Zustand Store (Global State) ====================
 interface StoreState {
   favorites: string[];

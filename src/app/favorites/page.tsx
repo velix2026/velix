@@ -5,7 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Product } from '@/lib/products';
 import OrderModal from '@/components/OrderModal';
-  import { ProductCardSkeleton } from '@/components/Skeleton';
+import { ProductCardSkeleton } from '@/components/Skeleton';
+
+export const dynamic = 'force-dynamic';
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<Product[]>([]);
