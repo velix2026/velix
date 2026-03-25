@@ -60,52 +60,52 @@ export default function SideDrawer({
     <>
       {/* الخلفية الداكنة */}
       <div
-        className="fixed inset-0 bg-black/50 z-50 transition-opacity duration-300"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity duration-300"
         onClick={onClose}
       />
       
-      {/* النافذة المنبثقة */}
+      {/* النافذة المنبثقة في المنتصف */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-xl z-50 transform transition-transform duration-300 ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-white rounded-2xl shadow-2xl z-50 transform transition-all duration-300 ${
+          isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
       >
         {/* الرأس */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold">{title}</h2>
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <h2 className="text-lg font-bold text-gray-900">{title}</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition"
+            className="p-1.5 hover:bg-gray-100 rounded-full transition"
             aria-label="إغلاق"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* المحتوى */}
-        <div className="flex-1 overflow-y-auto p-4" style={{ height: type === 'cart' && items.length > 0 ? 'calc(100% - 140px)' : 'calc(100% - 73px)' }}>
+        <div className="max-h-[60vh] overflow-y-auto p-4">
           {items.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="text-5xl mb-4">{type === 'favorites' ? '❤️' : '🛒'}</div>
-              <p className="text-gray-500">{emptyMessage}</p>
+            <div className="text-center py-8">
+              <div className="text-4xl mb-3">{type === 'favorites' ? '❤️' : '🛒'}</div>
+              <p className="text-gray-500 text-sm">{emptyMessage}</p>
               <button
                 onClick={onClose}
-                className="mt-4 text-sm text-black underline hover:no-underline"
+                className="mt-4 text-xs text-black underline hover:no-underline"
               >
                 مواصلة التسوق
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {items.map((item) => (
-                <div key={item.id} className="flex gap-3 border-b border-gray-100 pb-4">
+                <div key={item.id} className="flex gap-3 border-b border-gray-100 pb-3">
                   {/* صورة المنتج */}
                   <Link
                     href={`/product/${item.id}`}
                     onClick={onClose}
-                    className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0"
+                    className="relative w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0"
                   >
                     <Image
                       src={item.mainImage}
@@ -116,17 +116,17 @@ export default function SideDrawer({
                   </Link>
                   
                   {/* معلومات المنتج */}
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <Link
                       href={`/product/${item.id}`}
                       onClick={onClose}
-                      className="font-bold hover:text-gray-600 transition line-clamp-1 text-sm"
+                      className="font-medium text-sm hover:text-gray-600 transition line-clamp-1"
                     >
                       {item.name}
                     </Link>
                     <p className="text-gray-500 text-xs mb-1">{item.category}</p>
                     <div className="flex items-center justify-between mt-1">
-                      <span className="font-bold text-sm">
+                      <span className="font-bold text-sm text-gray-900">
                         {(item as CartItem).quantity 
                           ? (item.price * (item as CartItem).quantity).toFixed(0) 
                           : item.price} جنيه
@@ -137,14 +137,14 @@ export default function SideDrawer({
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => onUpdateQuantity(item.id, (item as CartItem).quantity - 1)}
-                            className="w-6 h-6 rounded-full border border-gray-300 hover:bg-gray-100 text-sm"
+                            className="w-6 h-6 rounded-full border border-gray-200 hover:bg-gray-100 text-sm flex items-center justify-center"
                           >
                             -
                           </button>
-                          <span className="w-6 text-center text-sm">{(item as CartItem).quantity}</span>
+                          <span className="w-5 text-center text-xs">{(item as CartItem).quantity}</span>
                           <button
                             onClick={() => onUpdateQuantity(item.id, (item as CartItem).quantity + 1)}
-                            className="w-6 h-6 rounded-full border border-gray-300 hover:bg-gray-100 text-sm"
+                            className="w-6 h-6 rounded-full border border-gray-200 hover:bg-gray-100 text-sm flex items-center justify-center"
                           >
                             +
                           </button>
@@ -156,18 +156,18 @@ export default function SideDrawer({
                           onClick={() => onAddToCart(item)}
                           className="text-xs bg-black text-white px-2 py-1 rounded-full hover:bg-gray-800 transition"
                         >
-                          إضافة للسلة
+                          إضافة
                         </button>
                       )}
                       
                       {onRemove && (
                         <button
                           onClick={() => onRemove(item.id)}
-                          className="text-red-500 hover:text-red-700 transition"
+                          className="text-red-400 hover:text-red-600 transition"
                           aria-label="حذف"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
                       )}
@@ -181,19 +181,25 @@ export default function SideDrawer({
 
         {/* أسفل النافذة (للسلة فقط) */}
         {type === 'cart' && items.length > 0 && (
-          <div className="border-t border-gray-200 p-4 bg-white">
-            <div className="flex justify-between font-bold mb-3">
-              <span>الإجمالي</span>
-              <span>{calculateTotal()} جنيه</span>
+          <div className="border-t border-gray-100 p-4 bg-gray-50 rounded-b-2xl">
+            <div className="flex justify-between font-semibold text-sm mb-3">
+              <span className="text-gray-600">الإجمالي</span>
+              <span className="text-gray-900">{calculateTotal()} جنيه</span>
             </div>
             <button
               onClick={() => {
                 alert('جاري التوجيه لصفحة الدفع...');
                 onClose();
               }}
-              className="w-full bg-black text-white py-2 rounded-full hover:bg-gray-800 transition font-medium"
+              className="w-full bg-black text-white py-2.5 rounded-full hover:bg-gray-800 transition text-sm font-medium"
             >
               إتمام الطلب
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full text-center text-xs text-gray-400 mt-2 hover:text-gray-500 transition"
+            >
+              مواصلة التسوق
             </button>
           </div>
         )}
