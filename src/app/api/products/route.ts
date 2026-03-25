@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import Redis from 'ioredis';
 
-// استخدام Redis مباشرة مع الرابط من .env.local
+// استخدام Redis مباشرة من .env.local
 const redis = new Redis(process.env.REDIS_URL!);
 
 const PRODUCTS_KEY = 'products';
@@ -38,22 +38,32 @@ async function uploadImageToBlob(file: File, fileName: string): Promise<string> 
   return url;
 }
 
-// POST: إضافة منتج جديد
+// ==================== POST: إضافة منتج جديد ====================
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     
+    // الحقول الأساسية
     const name = formData.get('name') as string;
     const price = parseFloat(formData.get('price') as string);
     const category = formData.get('category') as string;
     const description = formData.get('description') as string;
     const mainImage = formData.get('mainImage') as File;
     const subImages = formData.getAll('subImages') as File[];
+    
+    // الحقول الإضافية
+    const stock = parseInt(formData.get('stock') as string);
+    const oldPrice = formData.get('oldPrice') ? parseFloat(formData.get('oldPrice') as string) : undefined;
+    const discount = formData.get('discount') ? parseInt(formData.get('discount') as string) : 0;
+    const isNew = formData.get('isNew') === 'true';
+    const sizes = JSON.parse(formData.get('sizes') as string || '[]');
+    const colors = JSON.parse(formData.get('colors') as string || '[]');
 
     if (!name || !price || !mainImage) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // رفع الصور
     const timestamp = Date.now();
     const mainImageUrl = await uploadImageToBlob(mainImage, `${timestamp}_main.jpg`);
 
@@ -70,11 +80,17 @@ export async function POST(request: NextRequest) {
       id: newId,
       name,
       price,
+      oldPrice,
+      discount,
       category,
       description,
       mainImage: mainImageUrl,
       subImages: subImagesUrls,
-      inStock: true,
+      inStock: stock > 0,
+      stock,
+      sizes,
+      colors,
+      isNew,
       createdAt: new Date().toISOString(),
     };
     
@@ -88,7 +104,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET: جلب جميع المنتجات
+// ==================== GET: جلب جميع المنتجات ====================
 export async function GET() {
   const products = await getProducts();
   return NextResponse.json(products);
