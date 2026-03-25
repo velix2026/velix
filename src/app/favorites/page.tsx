@@ -73,7 +73,7 @@ export default function FavoritesPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] xl:grid-cols-6 gap-6">
             {favorites.map((product) => (
               <div key={product.id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition overflow-hidden">
                 {/* صورة المنتج */}
