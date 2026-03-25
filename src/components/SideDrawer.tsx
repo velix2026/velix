@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/lib/products';
@@ -23,7 +23,7 @@ export default function SideDrawer({
   isOpen,
   onClose,
   type,
-  items,
+  items: initialItems,
   onRemove,
   onUpdateQuantity,
   onAddToCart,
@@ -32,15 +32,94 @@ export default function SideDrawer({
   const emptyMessage = type === 'favorites' 
     ? 'لم تقم بإضافة أي منتجات إلى المفضلة بعد'
     : 'سلة التسوق فارغة';
+  
+  const [localItems, setLocalItems] = useState<(Product | CartItem)[]>(initialItems);
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // حساب الإجمالي للسلة
-  const calculateTotal = () => {
+  // حساب الإجمالي
+  useEffect(() => {
     if (type === 'cart') {
-      const cartItems = items as CartItem[];
-      return cartItems.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
+      const cartItems = localItems as CartItem[];
+      const sum = cartItems.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
+      setTotal(sum);
     }
-    return 0;
+  }, [localItems, type]);
+
+  // دالة تحميل البيانات من localStorage (مع تأخير لمنع خطأ React)
+  const loadFromStorage = () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    
+    // استخدام setTimeout لتأخير تحديث الحالة إلى ما بعد انتهاء العرض
+    setTimeout(() => {
+      if (type === 'cart') {
+        const saved = localStorage.getItem('cart');
+        if (saved) {
+          const cartItems = JSON.parse(saved);
+          const cartWithQuantity = cartItems.map((item: Product & { quantity?: number }) => ({ 
+            ...item, 
+            quantity: item.quantity || 1 
+          }));
+          setLocalItems(cartWithQuantity);
+        } else {
+          setLocalItems([]);
+        }
+      } else {
+        const saved = localStorage.getItem('favorites');
+        if (saved) {
+          setLocalItems(JSON.parse(saved));
+        } else {
+          setLocalItems([]);
+        }
+      }
+      setIsLoading(false);
+    }, 0);
   };
+
+  // تحميل البيانات عند فتح النافذة
+  useEffect(() => {
+    if (isOpen) {
+      loadFromStorage();
+    }
+  }, [isOpen]);
+
+  // الاستماع لتحديثات السلة والمفضلة (مع تأخير)
+  useEffect(() => {
+    const handleUpdate = () => {
+      // استخدام setTimeout لتجنب التحديث أثناء العرض
+      setTimeout(() => {
+        if (type === 'cart') {
+          const saved = localStorage.getItem('cart');
+          if (saved) {
+            const cartItems = JSON.parse(saved);
+            const cartWithQuantity = cartItems.map((item: Product & { quantity?: number }) => ({ 
+              ...item, 
+              quantity: item.quantity || 1 
+            }));
+            setLocalItems(cartWithQuantity);
+          } else {
+            setLocalItems([]);
+          }
+        } else {
+          const saved = localStorage.getItem('favorites');
+          if (saved) {
+            setLocalItems(JSON.parse(saved));
+          } else {
+            setLocalItems([]);
+          }
+        }
+      }, 0);
+    };
+    
+    window.addEventListener('cartUpdated', handleUpdate);
+    window.addEventListener('favoritesUpdated', handleUpdate);
+    
+    return () => {
+      window.removeEventListener('cartUpdated', handleUpdate);
+      window.removeEventListener('favoritesUpdated', handleUpdate);
+    };
+  }, [type]);
 
   // منع التمرير عند فتح النافذة
   useEffect(() => {
@@ -53,6 +132,19 @@ export default function SideDrawer({
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
+
+  // دالة تحديث الكمية المحلية (للتحديث الفوري)
+  const handleUpdateQuantity = (id: number, newQuantity: number) => {
+    if (onUpdateQuantity) {
+      onUpdateQuantity(id, newQuantity);
+    }
+    // تحديث محلي فوري
+    setLocalItems(prev => 
+      prev.map(item => 
+        item.id === id ? { ...item, quantity: newQuantity } : item
+      )
+    );
+  };
 
   if (!isOpen) return null;
 
@@ -86,12 +178,15 @@ export default function SideDrawer({
 
         {/* المحتوى */}
         <div className="max-h-[60vh] overflow-y-auto p-4">
-          {items.length === 0 ? (
+          {localItems.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-4xl mb-3">{type === 'favorites' ? '❤️' : '🛒'}</div>
               <p className="text-gray-500 text-sm">{emptyMessage}</p>
               <button
-                onClick={onClose}
+                onClick={() => {
+                  onClose();
+                  window.location.href = '/products';
+                }}
                 className="mt-4 text-xs text-black underline hover:no-underline"
               >
                 مواصلة التسوق
@@ -99,8 +194,11 @@ export default function SideDrawer({
             </div>
           ) : (
             <div className="space-y-3">
-              {items.map((item) => (
-                <div key={item.id} className="flex gap-3 border-b border-gray-100 pb-3">
+              {localItems.map((item) => (
+                <div 
+                  key={item.id} 
+                  className="flex gap-3 border-b border-gray-100 pb-3"
+                >
                   {/* صورة المنتج */}
                   <Link
                     href={`/product/${item.id}`}
@@ -136,14 +234,22 @@ export default function SideDrawer({
                       {type === 'cart' && onUpdateQuantity && (
                         <div className="flex items-center gap-1">
                           <button
-                            onClick={() => onUpdateQuantity(item.id, (item as CartItem).quantity - 1)}
+                            onClick={() => {
+                              const newQuantity = (item as CartItem).quantity - 1;
+                              if (newQuantity >= 1) {
+                                handleUpdateQuantity(item.id, newQuantity);
+                              }
+                            }}
                             className="w-6 h-6 rounded-full border border-gray-200 hover:bg-gray-100 text-sm flex items-center justify-center"
                           >
                             -
                           </button>
                           <span className="w-5 text-center text-xs">{(item as CartItem).quantity}</span>
                           <button
-                            onClick={() => onUpdateQuantity(item.id, (item as CartItem).quantity + 1)}
+                            onClick={() => {
+                              const newQuantity = (item as CartItem).quantity + 1;
+                              handleUpdateQuantity(item.id, newQuantity);
+                            }}
                             className="w-6 h-6 rounded-full border border-gray-200 hover:bg-gray-100 text-sm flex items-center justify-center"
                           >
                             +
@@ -180,11 +286,11 @@ export default function SideDrawer({
         </div>
 
         {/* أسفل النافذة (للسلة فقط) */}
-        {type === 'cart' && items.length > 0 && (
+        {type === 'cart' && localItems.length > 0 && (
           <div className="border-t border-gray-100 p-4 bg-gray-50 rounded-b-2xl">
             <div className="flex justify-between font-semibold text-sm mb-3">
               <span className="text-gray-600">الإجمالي</span>
-              <span className="text-gray-900">{calculateTotal()} جنيه</span>
+              <span className="text-gray-900">{total} جنيه</span>
             </div>
             <button
               onClick={() => {
@@ -196,7 +302,10 @@ export default function SideDrawer({
               إتمام الطلب
             </button>
             <button
-              onClick={onClose}
+              onClick={() => {
+                onClose();
+                window.location.href = '/products';
+              }}
               className="w-full text-center text-xs text-gray-400 mt-2 hover:text-gray-500 transition"
             >
               مواصلة التسوق

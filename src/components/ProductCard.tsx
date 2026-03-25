@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Product } from '@/lib/products';
 
@@ -13,6 +13,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [imgError, setImgError] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isInCart, setIsInCart] = useState(false);
+  const isUpdatingRef = useRef(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const whatsappMessage = `أنا عايز أطلب ${product.name} - سعر ${product.price} جنيه`;
   const whatsappLink = `https://wa.me/201500125133?text=${encodeURIComponent(whatsappMessage)}`;
@@ -20,12 +22,18 @@ export default function ProductCard({ product }: ProductCardProps) {
   const allImages = [product.mainImage, ...product.subImages];
   const imageSrc = imgError ? '/images/placeholder.jpg' : currentImage;
 
-  // تحميل حالة المنتج من localStorage
+  // تحميل حالة المنتج من localStorage - مع تأخير آمن
   const loadState = () => {
-    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    setIsFavorited(favorites.some((item: Product) => item.id === product.id));
-    setIsInCart(cart.some((item: Product) => item.id === product.id));
+    if (isUpdatingRef.current) return;
+    
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    
+    timeoutRef.current = setTimeout(() => {
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      setIsFavorited(favorites.some((item: Product) => item.id === product.id));
+      setIsInCart(cart.some((item: Product) => item.id === product.id));
+    }, 0);
   };
 
   useEffect(() => {
@@ -33,7 +41,13 @@ export default function ProductCard({ product }: ProductCardProps) {
 
     // استقبال التحديثات من الأحداث
     const handleUpdate = () => {
-      loadState();
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        setIsFavorited(favorites.some((item: Product) => item.id === product.id));
+        setIsInCart(cart.some((item: Product) => item.id === product.id));
+      }, 10);
     };
     
     window.addEventListener('favoritesUpdated', handleUpdate);
@@ -42,6 +56,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     return () => {
       window.removeEventListener('favoritesUpdated', handleUpdate);
       window.removeEventListener('cartUpdated', handleUpdate);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [product.id]);
 
@@ -57,6 +72,8 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation();
     
+    isUpdatingRef.current = true;
+    
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
     if (isFavorited) {
       const newFavorites = favorites.filter((item: Product) => item.id !== product.id);
@@ -69,11 +86,17 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
     updateCounts();
     window.dispatchEvent(new CustomEvent('favoritesUpdated'));
+    
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+    }, 100);
   };
 
   const handleCartClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    isUpdatingRef.current = true;
     
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     if (isInCart) {
@@ -87,9 +110,12 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
     updateCounts();
     window.dispatchEvent(new CustomEvent('cartUpdated'));
+    
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+    }, 100);
   };
 
-  // باقي الكود كما هو (return مع الأزرار)...
   return (
     <div className="group bg-white rounded-xl shadow-md hover:shadow-lg transition overflow-hidden">
       {/* صورة المنتج */}
