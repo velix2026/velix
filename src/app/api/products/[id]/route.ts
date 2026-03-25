@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { put } from '@vercel/blob';
 import Redis from 'ioredis';
 
 const redis = new Redis(process.env.REDIS_URL!);
@@ -9,7 +10,8 @@ async function getProducts() {
     const data = await redis.get(PRODUCTS_KEY);
     if (!data) return [];
     return JSON.parse(data);
-  } catch {
+  } catch (error) {
+    console.error('Error reading from Redis:', error);
     return [];
   }
 }
@@ -23,56 +25,89 @@ async function saveProducts(products: any[]) {
   }
 }
 
-// ==================== DELETE: حذف منتج ====================
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+// إعادة ترقيم المنتجات
+async function renumberProducts(products: any[]) {
+  return products.map((product, index) => ({
+    ...product,
+    id: index + 1,
+  }));
+}
+
+async function uploadImageToBlob(file: File, fileName: string): Promise<string> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const { url } = await put(fileName, buffer, {
+    access: 'public',
+  });
+  return url;
+}
+
+// ==================== POST: إضافة منتج جديد ====================
+export async function POST(request: NextRequest) {
   try {
-    const { id } = await params;
-    const products = await getProducts();
-    const filtered = products.filter((p: any) => p.id !== parseInt(id));
+    const formData = await request.formData();
     
-    if (filtered.length === products.length) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    const name = formData.get('name') as string;
+    const price = parseFloat(formData.get('price') as string);
+    const category = formData.get('category') as string;
+    const description = formData.get('description') as string;
+    const mainImage = formData.get('mainImage') as File;
+    const subImages = formData.getAll('subImages') as File[];
+    
+    const stock = parseInt(formData.get('stock') as string);
+    const oldPrice = formData.get('oldPrice') ? parseFloat(formData.get('oldPrice') as string) : undefined;
+    const discount = formData.get('discount') ? parseInt(formData.get('discount') as string) : 0;
+    const isNew = formData.get('isNew') === 'true';
+    const sizes = JSON.parse(formData.get('sizes') as string || '[]');
+    const colors = JSON.parse(formData.get('colors') as string || '[]');
+
+    if (!name || !price || !mainImage) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    const timestamp = Date.now();
+    const mainImageUrl = await uploadImageToBlob(mainImage, `${timestamp}_main.jpg`);
+
+    const subImagesUrls: string[] = [];
+    for (let i = 0; i < subImages.length; i++) {
+      const url = await uploadImageToBlob(subImages[i], `${timestamp}_sub${i + 1}.jpg`);
+      subImagesUrls.push(url);
+    }
+
+    let products = await getProducts();
     
-    await saveProducts(filtered);
-    return NextResponse.json({ success: true });
+    const newProduct = {
+      id: 0, // سيتم تعيينه بعد إعادة الترقيم
+      name,
+      price,
+      oldPrice,
+      discount,
+      category,
+      description,
+      mainImage: mainImageUrl,
+      subImages: subImagesUrls,
+      inStock: stock > 0,
+      stock,
+      sizes,
+      colors,
+      isNew,
+      createdAt: new Date().toISOString(),
+    };
+    
+    products.push(newProduct);
+    
+    // إعادة ترقيم المنتجات
+    const renumbered = await renumberProducts(products);
+    await saveProducts(renumbered);
+    
+    return NextResponse.json({ success: true, product: renumbered[renumbered.length - 1] });
   } catch (error) {
-    console.error('Error deleting product:', error);
-    return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
+    console.error('Error adding product:', error);
+    return NextResponse.json({ error: 'Failed to add product' }, { status: 500 });
   }
 }
 
-// ==================== PATCH: تعديل منتج ====================
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const body = await request.json();
-    const products = await getProducts();
-    const index = products.findIndex((p: any) => p.id === parseInt(id));
-    
-    if (index === -1) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-    }
-    
-    products[index] = { 
-      ...products[index], 
-      ...body,
-      discount: body.oldPrice && body.oldPrice > body.price 
-        ? Math.round(((body.oldPrice - body.price) / body.oldPrice) * 100)
-        : (body.discount || 0),
-      inStock: (body.stock !== undefined) ? body.stock > 0 : products[index].inStock,
-    };
-    
-    await saveProducts(products);
-    return NextResponse.json({ success: true, product: products[index] });
-  } catch (error) {
-    console.error('Error updating product:', error);
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
-  }
+// ==================== GET: جلب جميع المنتجات ====================
+export async function GET() {
+  const products = await getProducts();
+  return NextResponse.json(products);
 }

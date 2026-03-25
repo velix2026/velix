@@ -19,9 +19,20 @@ export interface Product {
 
 export async function getProducts(): Promise<Product[]> {
   try {
-    // استخدام الرابط المطلق من متغير البيئة
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://velixstore.vercel.app';
-    const res = await fetch(`${baseUrl}/api/products`, {
+    // استخدام الرابط النسبي في المتصفح، والمطلق في الخادم
+    const isServer = typeof window === 'undefined';
+    let url: string;
+    
+    if (isServer) {
+      // في الخادم (Server Component)
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://velixstore.vercel.app';
+      url = `${baseUrl}/api/products`;
+    } else {
+      // في المتصفح (Client Component)
+      url = `/api/products`;
+    }
+    
+    const res = await fetch(url, {
       cache: 'no-store',
     });
     
