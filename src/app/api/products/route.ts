@@ -43,7 +43,6 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     
-    // الحقول الأساسية
     const name = formData.get('name') as string;
     const price = parseFloat(formData.get('price') as string);
     const category = formData.get('category') as string;
@@ -51,7 +50,6 @@ export async function POST(request: NextRequest) {
     const mainImage = formData.get('mainImage') as File;
     const subImages = formData.getAll('subImages') as File[];
     
-    // الحقول الإضافية
     const stock = parseInt(formData.get('stock') as string);
     const oldPrice = formData.get('oldPrice') ? parseFloat(formData.get('oldPrice') as string) : undefined;
     const discount = formData.get('discount') ? parseInt(formData.get('discount') as string) : 0;
@@ -63,7 +61,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // رفع الصور
     const timestamp = Date.now();
     const mainImageUrl = await uploadImageToBlob(mainImage, `${timestamp}_main.jpg`);
 

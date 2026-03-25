@@ -38,7 +38,6 @@ export default function AdminPage() {
   const [status, setStatus] = useState('');
   const [uploading, setUploading] = useState(false);
 
-  // حساب نسبة الخصم تلقائياً
   const calculateDiscount = () => {
     if (product.oldPrice && parseFloat(product.oldPrice) > parseFloat(product.price)) {
       const discountPercent = ((parseFloat(product.oldPrice) - parseFloat(product.price)) / parseFloat(product.oldPrice)) * 100;
@@ -70,7 +69,7 @@ export default function AdminPage() {
   };
 
   const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       setMainImage(e.target.files[0]);
     }
   };
@@ -87,12 +86,10 @@ export default function AdminPage() {
       setStatus('❌ الرجاء اختيار صورة رئيسية');
       return;
     }
-
     if (selectedSizes.length === 0) {
       setStatus('❌ الرجاء اختيار مقاس واحد على الأقل');
       return;
     }
-
     if (selectedColors.length === 0) {
       setStatus('❌ الرجاء اختيار لون واحد على الأقل');
       return;
@@ -120,22 +117,10 @@ export default function AdminPage() {
     subImages.forEach(img => formData.append('subImages', img));
 
     try {
-      const res = await fetch('/api/products', {
-        method: 'POST',
-        body: formData,
-      });
-
+      const res = await fetch('/api/products', { method: 'POST', body: formData });
       if (res.ok) {
         setStatus('✅ تم إضافة المنتج بنجاح!');
-        setProduct({
-          name: '',
-          price: '',
-          oldPrice: '',
-          category: '',
-          description: '',
-          stock: '',
-          isNew: false,
-        });
+        setProduct({ name: '', price: '', oldPrice: '', category: '', description: '', stock: '', isNew: false });
         setSelectedSizes([]);
         setSelectedColors([]);
         setMainImage(null);
@@ -167,227 +152,48 @@ export default function AdminPage() {
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-linear-to-br from-stone-50 to-white pt-24 pb-12">
       <div className="container mx-auto px-4">
-        {/* Header with buttons */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
           <div className="text-center sm:text-right">
             <h1 className="text-3xl font-bold text-stone-800">VELIX</h1>
             <p className="text-stone-400 mt-1 font-medium">لوحة التحكم</p>
           </div>
           <div className="flex gap-3">
-            <Link
-              href="/admin/products"
-              className="px-5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10" />
-              </svg>
+            <Link href="/admin/products" className="px-5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-full text-sm font-medium flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10" /></svg>
               إدارة المنتجات
             </Link>
-            <button
-              onClick={handleLogout}
-              className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-sm"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
+            <Link href="/admin/orders" className="px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm font-medium flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+              إدارة الطلبات
+            </Link>
+            <button onClick={handleLogout} className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm font-medium flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
               تسجيل خروج
             </button>
           </div>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl border border-stone-100 overflow-hidden">
           <div className="p-6 space-y-5">
-            {/* اسم المنتج */}
-            <div>
-              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">اسم المنتج</label>
-              <input
-                type="text"
-                value={product.name}
-                onChange={(e) => setProduct({ ...product, name: e.target.value })}
-                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition font-medium"
-                required
-                dir="rtl"
-              />
-            </div>
-            
-            {/* السعر الجديد */}
-            <div>
-              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">السعر (جنيه)</label>
-              <input
-                type="number"
-                value={product.price}
-                onChange={(e) => setProduct({ ...product, price: e.target.value })}
-                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition font-medium"
-                required
-              />
-            </div>
-            
-            {/* السعر القديم (يحسب الخصم تلقائياً) */}
-            <div>
-              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">السعر القديم (للخصم - اختياري)</label>
-              <input
-                type="number"
-                value={product.oldPrice}
-                onChange={(e) => setProduct({ ...product, oldPrice: e.target.value })}
-                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition font-medium"
-                placeholder="اتركه فارغ إذا لا يوجد خصم"
-              />
-              {discount > 0 && (
-                <p className="text-xs text-green-600 mt-1 font-medium">
-                  ✓ نسبة الخصم: {discount}%
-                </p>
-              )}
-            </div>
-            
-            {/* المخزون */}
-            <div>
-              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">عدد القطع المتاحة</label>
-              <input
-                type="number"
-                min="0"
-                value={product.stock}
-                onChange={(e) => setProduct({ ...product, stock: e.target.value })}
-                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition font-medium"
-                required
-              />
-            </div>
-            
-            {/* جديد؟ */}
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="isNew"
-                checked={product.isNew}
-                onChange={(e) => setProduct({ ...product, isNew: e.target.checked })}
-                className="w-4 h-4 rounded border-gray-300 text-stone-800 focus:ring-stone-400"
-              />
-              <label htmlFor="isNew" className="text-sm font-medium text-stone-700">منتج جديد</label>
-            </div>
-            
-            {/* القسم */}
-            <div>
-              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">القسم</label>
-              <select
-                value={product.category}
-                onChange={(e) => setProduct({ ...product, category: e.target.value })}
-                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition font-medium"
-                required
-              >
-                <option value="">اختر القسم</option>
-                <option value="تيشرتات">تيشرتات</option>
-                <option value="هوديز">هوديز</option>
-                <option value="شروال">شروال</option>
-              </select>
-            </div>
-            
-            {/* المقاسات */}
-            <div>
-              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">المقاسات المتاحة</label>
-              <div className="flex flex-wrap gap-2">
-                {sizes.map((size) => (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => handleSizeToggle(size)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                      selectedSizes.includes(size)
-                        ? 'bg-stone-800 text-white shadow-md scale-105'
-                        : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            {/* الألوان */}
-            <div>
-              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">الألوان المتاحة</label>
-              <div className="flex flex-wrap gap-3">
-                {colors.map((color) => (
-                  <button
-                    key={color.code}
-                    type="button"
-                    onClick={() => handleColorToggle(color.code)}
-                    className={`w-10 h-10 rounded-full transition-all duration-200 ${
-                      selectedColors.includes(color.code)
-                        ? 'ring-2 ring-offset-2 ring-stone-800 scale-110'
-                        : 'hover:scale-105'
-                    }`}
-                    style={{
-                      backgroundColor: color.value,
-                      border: color.border ? '1px solid #e5e7eb' : 'none',
-                    }}
-                    title={color.name}
-                  />
-                ))}
-              </div>
-            </div>
-            
-            {/* وصف المنتج */}
-            <div>
-              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">وصف المنتج</label>
-              <textarea
-                value={product.description}
-                onChange={(e) => setProduct({ ...product, description: e.target.value })}
-                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition font-medium"
-                rows={4}
-                required
-                dir="rtl"
-              />
-            </div>
-            
-            {/* الصورة الرئيسية */}
-            <div>
-              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">الصورة الرئيسية</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleMainImageChange}
-                className="w-full p-2 bg-stone-50 border border-stone-200 rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-stone-800 file:text-white file:font-bold hover:file:bg-stone-700 transition"
-                required
-              />
-              {mainImage && (
-                <p className="text-xs text-stone-400 mt-1 font-medium">✓ {mainImage.name}</p>
-              )}
-            </div>
-            
-            {/* صور إضافية */}
-            <div>
-              <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">صور إضافية (اختياري)</label>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleSubImagesChange}
-                className="w-full p-2 bg-stone-50 border border-stone-200 rounded-xl file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-stone-800 file:text-white file:font-bold hover:file:bg-stone-700 transition"
-              />
-              {subImages.length > 0 && (
-                <p className="text-xs text-stone-400 mt-1 font-medium">✓ تم اختيار {subImages.length} صور</p>
-              )}
-            </div>
-            
-            <button
-              type="submit"
-              disabled={uploading}
-              className="w-full bg-stone-800 text-white py-3 rounded-xl hover:bg-stone-700 transition disabled:opacity-50 font-bold tracking-wide"
-            >
-              {uploading ? 'جاري الرفع...' : '+ إضافة المنتج'}
-            </button>
-            
-            {status && (
-              <p className={`text-center text-sm font-medium ${status.includes('✅') ? 'text-green-600' : 'text-red-500'}`}>
-                {status}
-              </p>
-            )}
+            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">اسم المنتج</label><input type="text" value={product.name} onChange={(e) => setProduct({ ...product, name: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" required dir="rtl" /></div>
+            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">السعر (جنيه)</label><input type="number" value={product.price} onChange={(e) => setProduct({ ...product, price: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" required /></div>
+            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">السعر القديم (للخصم - اختياري)</label><input type="number" value={product.oldPrice} onChange={(e) => setProduct({ ...product, oldPrice: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" placeholder="اتركه فارغ إذا لا يوجد خصم" />
+            {discount > 0 && <p className="text-xs text-green-600 mt-1 font-medium">✓ نسبة الخصم: {discount}%</p>}</div>
+            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">عدد القطع المتاحة</label><input type="number" min="0" value={product.stock} onChange={(e) => setProduct({ ...product, stock: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" required /></div>
+            <div className="flex items-center gap-3"><input type="checkbox" id="isNew" checked={product.isNew} onChange={(e) => setProduct({ ...product, isNew: e.target.checked })} /><label htmlFor="isNew" className="text-sm font-medium text-stone-700">منتج جديد</label></div>
+            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">القسم</label><select value={product.category} onChange={(e) => setProduct({ ...product, category: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" required><option value="">اختر القسم</option><option value="تيشرتات">تيشرتات</option><option value="هوديز">هوديز</option><option value="شروال">شروال</option></select></div>
+            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">المقاسات المتاحة</label><div className="flex flex-wrap gap-2">{sizes.map(size => <button type="button" key={size} onClick={() => handleSizeToggle(size)} className={`px-4 py-2 rounded-full text-sm font-medium ${selectedSizes.includes(size) ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>{size}</button>)}</div></div>
+            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">الألوان المتاحة</label><div className="flex flex-wrap gap-3">{colors.map(color => <button type="button" key={color.code} onClick={() => handleColorToggle(color.code)} className={`w-10 h-10 rounded-full transition ${selectedColors.includes(color.code) ? 'ring-2 ring-offset-2 ring-stone-800 scale-110' : 'hover:scale-105'}`} style={{ backgroundColor: color.value, border: color.border ? '1px solid #e5e7eb' : 'none' }} title={color.name} />)}</div></div>
+            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">وصف المنتج</label><textarea value={product.description} onChange={(e) => setProduct({ ...product, description: e.target.value })} rows={4} className="w-full p-3 bg-stone-50 border rounded-xl" required dir="rtl" /></div>
+            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">الصورة الرئيسية</label><input type="file" accept="image/*" onChange={handleMainImageChange} className="w-full p-2 bg-stone-50 border rounded-xl" required /></div>
+            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">صور إضافية (اختياري)</label><input type="file" accept="image/*" multiple onChange={handleSubImagesChange} className="w-full p-2 bg-stone-50 border rounded-xl" /></div>
+            <button type="submit" disabled={uploading} className="w-full bg-stone-800 text-white py-3 rounded-xl hover:bg-stone-700 transition disabled:opacity-50 font-bold tracking-wide">{uploading ? 'جاري الرفع...' : '+ إضافة المنتج'}</button>
+            {status && <p className={`text-center text-sm font-medium ${status.includes('✅') ? 'text-green-600' : 'text-red-500'}`}>{status}</p>}
           </div>
         </form>
       </div>

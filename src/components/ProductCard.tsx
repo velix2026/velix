@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Product } from '@/lib/products';
+import OrderModal from './OrderModal';
 
 // Helper functions for localStorage
 const getStorage = (key: string) => {
@@ -32,9 +34,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [isInCart, setIsInCart] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   
-  const whatsappMessage = `أنا عايز أطلب ${product.name} - سعر ${product.price} جنيه`;
-  const whatsappLink = `https://wa.me/201500125133?text=${encodeURIComponent(whatsappMessage)}`;
   const allImages = [product.mainImage, ...product.subImages];
   const imageSrc = imgError ? '/images/placeholder.jpg' : currentImage;
 
@@ -44,21 +45,36 @@ export default function ProductCard({ product }: ProductCardProps) {
   const hasHalfStar = rating % 1 >= 0.5;
   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
 
-  // تحميل حالة المنتج
-  useEffect(() => {
-    const favorites = getStorage('favorites');
-    const cart = getStorage('cart');
-    setIsFavorited(favorites.some((item: Product) => item.id === product.id));
-    setIsInCart(cart.some((item: Product) => item.id === product.id));
-  }, [product.id]);
+  // استخدام useRef لمنع التحديثات المتكررة أثناء العرض
+  const isUpdatingRef = useRef(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // استقبال التحديثات
-  useEffect(() => {
-    const handleUpdate = () => {
+  // تحميل حالة المنتج من localStorage (مع تأخير)
+  const loadState = () => {
+    if (isUpdatingRef.current) return;
+    
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    
+    timeoutRef.current = setTimeout(() => {
       const favorites = getStorage('favorites');
       const cart = getStorage('cart');
       setIsFavorited(favorites.some((item: Product) => item.id === product.id));
       setIsInCart(cart.some((item: Product) => item.id === product.id));
+    }, 10);
+  };
+
+  useEffect(() => {
+    loadState();
+
+    // استقبال التحديثات من الأحداث
+    const handleUpdate = () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        const favorites = getStorage('favorites');
+        const cart = getStorage('cart');
+        setIsFavorited(favorites.some((item: Product) => item.id === product.id));
+        setIsInCart(cart.some((item: Product) => item.id === product.id));
+      }, 20);
     };
     
     window.addEventListener('favoritesUpdated', handleUpdate);
@@ -67,6 +83,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     return () => {
       window.removeEventListener('favoritesUpdated', handleUpdate);
       window.removeEventListener('cartUpdated', handleUpdate);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [product.id]);
 
@@ -89,6 +106,8 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation();
     
+    isUpdatingRef.current = true;
+    
     const favorites = getStorage('favorites');
     if (isFavorited) {
       const newFavorites = favorites.filter((item: Product) => item.id !== product.id);
@@ -104,11 +123,17 @@ export default function ProductCard({ product }: ProductCardProps) {
     setShowToast(true);
     updateCounts();
     window.dispatchEvent(new CustomEvent('favoritesUpdated'));
+    
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+    }, 100);
   };
 
   const handleCartClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    isUpdatingRef.current = true;
     
     const cart = getStorage('cart');
     if (isInCart) {
@@ -125,6 +150,14 @@ export default function ProductCard({ product }: ProductCardProps) {
     setShowToast(true);
     updateCounts();
     window.dispatchEvent(new CustomEvent('cartUpdated'));
+    
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+    }, 100);
+  };
+
+  const handleOrderSubmit = (orderData: any) => {
+    console.log('Order submitted:', orderData);
   };
 
   // إضافة للمشاهدة مؤخراً
@@ -137,19 +170,21 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <>
       <div className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden relative">
-        {/* صورة المنتج */}
+        {/* الجزء العلوي (الصورة والأزرار) */}
         <div className="relative aspect-square w-full bg-gray-100 overflow-hidden">
-          <Image
-            src={imageSrc}
-            alt={product.name}
-            fill
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-            className="object-cover group-hover:scale-105 transition duration-700"
-            onError={() => setImgError(true)}
-          />
+          <Link href={`/product/${product.id}`} className="block h-full w-full">
+            <Image
+              src={imageSrc}
+              alt={product.name}
+              fill
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              className="object-cover group-hover:scale-105 transition duration-700"
+              onError={() => setImgError(true)}
+            />
+          </Link>
           
-          {/* Badges - عرض المخزون الحقيقي */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {/* Badges */}
+          <div className="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none">
             {product.isNew && (
               <span className="bg-black text-white text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full font-medium">
                 جديد
@@ -160,7 +195,6 @@ export default function ProductCard({ product }: ProductCardProps) {
                 -{product.discount}%
               </span>
             )}
-            {/* عرض المخزون الحقيقي - يظهر فقط عندما 5 أو أقل */}
             {product.stock !== undefined && product.stock <= 5 && product.stock > 0 && (
               <span className="bg-orange-500 text-white text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full font-medium animate-pulse">
                 باقي {product.stock} فقط 🔥
@@ -211,6 +245,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <button
                   key={idx}
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     setCurrentImage(img);
                     setImgError(false);
@@ -225,54 +260,71 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
         
-        {/* معلومات المنتج */}
+        {/* معلومات المنتج - الجزء السفلي */}
         <div className="p-2 md:p-3">
-          {/* التقييم */}
-          {rating > 0 && (
-            <div className="flex items-center gap-0.5 mb-1">
-              <div className="flex items-center text-yellow-400 text-[8px] md:text-[10px]">
-                {[...Array(fullStars)].map((_, i) => (
-                  <span key={i}>★</span>
-                ))}
-                {hasHalfStar && <span>½</span>}
-                {[...Array(emptyStars)].map((_, i) => (
-                  <span key={i} className="text-gray-300">★</span>
-                ))}
+          <Link href={`/product/${product.id}`} className="block">
+            {/* التقييم */}
+            {rating > 0 && (
+              <div className="flex items-center gap-0.5 mb-1">
+                <div className="flex items-center text-yellow-400 text-[8px] md:text-[10px]">
+                  {[...Array(fullStars)].map((_, i) => (
+                    <span key={i}>★</span>
+                  ))}
+                  {hasHalfStar && <span>½</span>}
+                  {[...Array(emptyStars)].map((_, i) => (
+                    <span key={i} className="text-gray-300">★</span>
+                  ))}
+                </div>
+                <span className="text-gray-400 text-[8px]">({rating})</span>
               </div>
-              <span className="text-gray-400 text-[8px]">({rating})</span>
-            </div>
-          )}
-          
-          <h3 className="text-[10px] md:text-xs font-bold mb-0.5 line-clamp-1 hover:text-gray-600 transition">
-            {product.name}
-          </h3>
-          <p className="text-gray-400 text-[8px] md:text-[10px] mb-0.5">{product.category}</p>
-          
-          {/* السعر مع الخصم */}
-          <div className="flex items-center gap-1 mb-0.5">
-            <span className="text-xs md:text-sm font-bold text-black">{product.price} جنيه</span>
-            {product.oldPrice && (
-              <span className="text-[8px] text-gray-400 line-through">{product.oldPrice} جنيه</span>
             )}
-          </div>
+            
+            <h3 className="text-[10px] md:text-xs font-bold mb-0.5 line-clamp-1 hover:text-gray-600 transition">
+              {product.name}
+            </h3>
+            <p className="text-gray-400 text-[8px] md:text-[10px] mb-0.5">{product.category}</p>
+            
+            {/* السعر مع الخصم */}
+            <div className="flex items-center gap-1 mb-0.5">
+              <span className="text-xs md:text-sm font-bold text-black">{product.price} جنيه</span>
+              {product.oldPrice && (
+                <span className="text-[8px] text-gray-400 line-through">{product.oldPrice} جنيه</span>
+              )}
+            </div>
+            
+            {/* شحن مجاني */}
+            {product.price > 500 && (
+              <p className="text-green-600 text-[8px] mb-0.5 font-medium">
+                شحن مجاني
+              </p>
+            )}
+          </Link>
           
-          {/* شحن مجاني */}
-          {product.price > 500 && (
-            <p className="text-green-600 text-[8px] mb-0.5 font-medium">
-              شحن مجاني
-            </p>
-          )}
-          
-          <a
-            href={whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-center bg-black text-white text-[9px] md:text-[10px] py-1 rounded-full hover:bg-gray-800 transition hover:scale-105 active:scale-95"
+          {/* زر اطلب الآن */}
+          <button
+            onClick={() => setIsOrderModalOpen(true)}
+            className="block text-center bg-black text-white text-[9px] md:text-[10px] py-1 rounded-full hover:bg-gray-800 transition hover:scale-105 active:scale-95 mt-1 w-full"
           >
             اطلب الآن
-          </a>
+          </button>
         </div>
       </div>
+      
+      {/* Order Modal */}
+      <OrderModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        product={{
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          mainImage: product.mainImage,
+          selectedSize: undefined,
+          selectedColor: undefined,
+          quantity: 1,
+        }}
+        onSubmit={handleOrderSubmit}
+      />
       
       {/* Toast Notification */}
       {showToast && (

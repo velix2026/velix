@@ -51,7 +51,6 @@ export default function SideDrawer({
     if (isLoading) return;
     setIsLoading(true);
     
-    // استخدام setTimeout لتأخير تحديث الحالة إلى ما بعد انتهاء العرض
     setTimeout(() => {
       if (type === 'cart') {
         const saved = localStorage.getItem('cart');
@@ -84,10 +83,9 @@ export default function SideDrawer({
     }
   }, [isOpen]);
 
-  // الاستماع لتحديثات السلة والمفضلة (مع تأخير)
+  // الاستماع لتحديثات السلة والمفضلة
   useEffect(() => {
     const handleUpdate = () => {
-      // استخدام setTimeout لتجنب التحديث أثناء العرض
       setTimeout(() => {
         if (type === 'cart') {
           const saved = localStorage.getItem('cart');
@@ -133,12 +131,11 @@ export default function SideDrawer({
     };
   }, [isOpen]);
 
-  // دالة تحديث الكمية المحلية (للتحديث الفوري)
+  // دالة تحديث الكمية المحلية
   const handleUpdateQuantity = (id: number, newQuantity: number) => {
     if (onUpdateQuantity) {
       onUpdateQuantity(id, newQuantity);
     }
-    // تحديث محلي فوري
     setLocalItems(prev => 
       prev.map(item => 
         item.id === id ? { ...item, quantity: newQuantity } : item
@@ -262,7 +259,7 @@ export default function SideDrawer({
                           onClick={() => onAddToCart(item)}
                           className="text-xs bg-black text-white px-2 py-1 rounded-full hover:bg-gray-800 transition"
                         >
-                          إضافة
+                          إضافة للسلة
                         </button>
                       )}
                       

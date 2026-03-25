@@ -60,11 +60,9 @@ export async function PATCH(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
     
-    // تحديث المنتج مع الحفاظ على البيانات الموجودة
     products[index] = { 
       ...products[index], 
       ...body,
-      // إعادة حساب الخصم إذا تم تغيير السعر أو السعر القديم
       discount: body.oldPrice && body.oldPrice > body.price 
         ? Math.round(((body.oldPrice - body.price) / body.oldPrice) * 100)
         : (body.discount || 0),

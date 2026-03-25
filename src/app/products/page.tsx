@@ -8,7 +8,7 @@ import { getProducts } from "@/lib/products";
 import { Product } from '@/lib/products';
 import Image from 'next/image';
 import { create } from 'zustand';
-
+import { ProductGridSkeleton } from '@/components/Skeleton';
 // ==================== Zustand Store (Global State) ====================
 interface StoreState {
   favorites: string[];
@@ -213,17 +213,16 @@ export default function ProductsPage() {
 
   const recommended = products.filter(p => !bestSellers.some(b => b.id === p.id)).slice(0, 4);
 
-  if (loading) {
-    return (
-      <div className="bg-white py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <AutoGrid>
-            {[...Array(12)].map((_, i) => <SkeletonCard key={i} />)}
-          </AutoGrid>
-        </div>
+  // واستخدمه في حالة loading
+if (loading) {
+  return (
+    <div className="bg-white py-16 md:py-24">
+      <div className="container mx-auto px-4">
+        <ProductGridSkeleton count={12} />
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <section className="bg-white py-12 md:py-20">
