@@ -6,7 +6,7 @@ import { getProducts } from "@/lib/products";
 import { Product } from '@/lib/products';
 import Image from 'next/image';
 
-// تعريف التصنيفات - بدون جاكيتات
+// تعريف التصنيفات
 const categories = [
   { id: 'all', name: 'الكل', image: '/images/all-categories.png' },
   { id: 'تيشرتات', name: 'تيشرتات', image: '/images/tshirt-category.png' },
@@ -194,8 +194,8 @@ export default function ProductsPage() {
           </div>
         )}
 
-        {/* Sticky Filter Bar */}
-        <div className="sticky top-16 md:top-20 z-40 bg-white py-4 border-b border-gray-100 mb-6">
+        {/* Filter Bar - بدون sticky */}
+        <div className="bg-white py-4 border-b border-gray-100 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             {/* شريط البحث */}
             <div className="relative w-full md:w-80">
