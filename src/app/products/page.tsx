@@ -6,12 +6,11 @@ import { getProducts } from "@/lib/products";
 import { Product } from '@/lib/products';
 import Image from 'next/image';
 
-// تعريف التصنيفات
+// تعريف التصنيفات - بدون جاكيتات
 const categories = [
   { id: 'all', name: 'الكل', image: '/images/all-categories.png' },
   { id: 'تيشرتات', name: 'تيشرتات', image: '/images/tshirt-category.png' },
   { id: 'هوديز', name: 'هوديز', image: '/images/hoodie-category.png' },
-  { id: 'جاكيتات', name: 'جاكيتات', image: '/images/jacket-category.png' },
   { id: 'شروال', name: 'شروال', image: '/images/pants-category.png' },
 ];
 
@@ -263,7 +262,7 @@ export default function ProductsPage() {
           <h2 className="text-xl font-bold text-gray-900 mb-6 text-center md:text-right">
             تصفح حسب القسم
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {categories.map((category) => (
               <button
                 key={category.id}
