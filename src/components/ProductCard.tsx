@@ -22,7 +22,7 @@ const setStorage = (key: string, value: any) => {
 };
 
 interface ProductCardProps {
-  product: Product & { stock?: number; discount?: number; isNew?: boolean; rating?: number; oldPrice?: number };
+  product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
@@ -38,8 +38,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const allImages = [product.mainImage, ...product.subImages];
   const imageSrc = imgError ? '/images/placeholder.jpg' : currentImage;
 
-  // حساب التقييم (مؤقت)
-  const rating = product.rating || 4.5;
+  // حساب التقييم
+  const rating = product.rating || 0;
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;
   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
@@ -148,19 +148,20 @@ export default function ProductCard({ product }: ProductCardProps) {
             onError={() => setImgError(true)}
           />
           
-          {/* Badges */}
+          {/* Badges - عرض المخزون الحقيقي */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {product.isNew && (
               <span className="bg-black text-white text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full font-medium">
                 جديد
               </span>
             )}
-            {product.discount && (
+            {product.discount && product.discount > 0 && (
               <span className="bg-red-500 text-white text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full font-medium">
                 -{product.discount}%
               </span>
             )}
-            {product.stock !== undefined && product.stock < 5 && product.stock > 0 && (
+            {/* عرض المخزون الحقيقي - يظهر فقط عندما 5 أو أقل */}
+            {product.stock !== undefined && product.stock <= 5 && product.stock > 0 && (
               <span className="bg-orange-500 text-white text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full font-medium animate-pulse">
                 باقي {product.stock} فقط 🔥
               </span>
@@ -227,36 +228,38 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* معلومات المنتج */}
         <div className="p-2 md:p-3">
           {/* التقييم */}
-          <div className="flex items-center gap-1 mb-1">
-            <div className="flex items-center text-yellow-400 text-[10px] md:text-xs">
-              {[...Array(fullStars)].map((_, i) => (
-                <span key={i}>★</span>
-              ))}
-              {hasHalfStar && <span>½</span>}
-              {[...Array(emptyStars)].map((_, i) => (
-                <span key={i} className="text-gray-300">★</span>
-              ))}
+          {rating > 0 && (
+            <div className="flex items-center gap-0.5 mb-1">
+              <div className="flex items-center text-yellow-400 text-[8px] md:text-[10px]">
+                {[...Array(fullStars)].map((_, i) => (
+                  <span key={i}>★</span>
+                ))}
+                {hasHalfStar && <span>½</span>}
+                {[...Array(emptyStars)].map((_, i) => (
+                  <span key={i} className="text-gray-300">★</span>
+                ))}
+              </div>
+              <span className="text-gray-400 text-[8px]">({rating})</span>
             </div>
-            <span className="text-gray-500 text-[9px] md:text-[10px]">({rating})</span>
-          </div>
+          )}
           
-          <h3 className="text-xs md:text-sm font-bold mb-0.5 line-clamp-1 hover:text-gray-600 transition">
+          <h3 className="text-[10px] md:text-xs font-bold mb-0.5 line-clamp-1 hover:text-gray-600 transition">
             {product.name}
           </h3>
-          <p className="text-gray-500 text-[10px] md:text-xs mb-1">{product.category}</p>
+          <p className="text-gray-400 text-[8px] md:text-[10px] mb-0.5">{product.category}</p>
           
           {/* السعر مع الخصم */}
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm md:text-base font-bold text-black">{product.price} جنيه</span>
+          <div className="flex items-center gap-1 mb-0.5">
+            <span className="text-xs md:text-sm font-bold text-black">{product.price} جنيه</span>
             {product.oldPrice && (
-              <span className="text-xs text-gray-400 line-through">{product.oldPrice} جنيه</span>
+              <span className="text-[8px] text-gray-400 line-through">{product.oldPrice} جنيه</span>
             )}
           </div>
           
           {/* شحن مجاني */}
           {product.price > 500 && (
-            <p className="text-green-600 text-[9px] md:text-[10px] mb-1 font-medium">
-              شحن مجاني 🚚
+            <p className="text-green-600 text-[8px] mb-0.5 font-medium">
+              شحن مجاني
             </p>
           )}
           
@@ -264,7 +267,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             href={whatsappLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="block text-center bg-black text-white text-[11px] md:text-xs py-1.5 rounded-full hover:bg-gray-800 transition hover:scale-105 active:scale-95"
+            className="block text-center bg-black text-white text-[9px] md:text-[10px] py-1 rounded-full hover:bg-gray-800 transition hover:scale-105 active:scale-95"
           >
             اطلب الآن
           </a>
@@ -273,7 +276,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       
       {/* Toast Notification */}
       {showToast && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-black/90 text-white px-4 py-2 rounded-full text-sm z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-black/90 text-white px-3 py-1.5 rounded-full text-xs z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
           {toastMessage}
         </div>
       )}
