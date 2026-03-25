@@ -12,10 +12,9 @@ export interface Product {
 
 export async function getProducts(): Promise<Product[]> {
   try {
-    // في بيئة الإنتاج، نستخدم الرابط المطلق
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://velixstore.vercel.app';
-    const res = await fetch(`${baseUrl}/api/products`, {
-      cache: 'no-store', // عدم التخزين المؤقت لجلب أحدث البيانات
+    // استخدام الرابط النسبي (يعمل في كل البيئات)
+    const res = await fetch(`/api/products`, {
+      cache: 'no-store',
     });
     
     if (!res.ok) {
