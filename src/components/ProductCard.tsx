@@ -21,24 +21,36 @@ export default function ProductCard({ product }: ProductCardProps) {
   const imageSrc = imgError ? '/images/placeholder.jpg' : currentImage;
 
   // تحميل حالة المنتج من localStorage
-  useEffect(() => {
+  const loadState = () => {
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     setIsFavorited(favorites.some((item: Product) => item.id === product.id));
     setIsInCart(cart.some((item: Product) => item.id === product.id));
-  }, [product.id]);
-
-  // تحديث عدد المفضلة في الهيدر
-  const updateFavoritesCount = () => {
-    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    const event = new CustomEvent('favoritesUpdated', { detail: favorites.length });
-    window.dispatchEvent(event);
   };
 
-  const updateCartCount = () => {
+  useEffect(() => {
+    loadState();
+
+    // استقبال التحديثات من الأحداث
+    const handleUpdate = () => {
+      loadState();
+    };
+    
+    window.addEventListener('favoritesUpdated', handleUpdate);
+    window.addEventListener('cartUpdated', handleUpdate);
+
+    return () => {
+      window.removeEventListener('favoritesUpdated', handleUpdate);
+      window.removeEventListener('cartUpdated', handleUpdate);
+    };
+  }, [product.id]);
+
+  // تحديث العداد في الهيدر
+  const updateCounts = () => {
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const event = new CustomEvent('cartUpdated', { detail: cart.length });
-    window.dispatchEvent(event);
+    window.dispatchEvent(new CustomEvent('favoritesUpdated', { detail: favorites.length }));
+    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: cart.length }));
   };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
@@ -55,7 +67,8 @@ export default function ProductCard({ product }: ProductCardProps) {
       localStorage.setItem('favorites', JSON.stringify(favorites));
       setIsFavorited(true);
     }
-    updateFavoritesCount();
+    updateCounts();
+    window.dispatchEvent(new CustomEvent('favoritesUpdated'));
   };
 
   const handleCartClick = (e: React.MouseEvent) => {
@@ -72,9 +85,11 @@ export default function ProductCard({ product }: ProductCardProps) {
       localStorage.setItem('cart', JSON.stringify(cart));
       setIsInCart(true);
     }
-    updateCartCount();
+    updateCounts();
+    window.dispatchEvent(new CustomEvent('cartUpdated'));
   };
 
+  // باقي الكود كما هو (return مع الأزرار)...
   return (
     <div className="group bg-white rounded-xl shadow-md hover:shadow-lg transition overflow-hidden">
       {/* صورة المنتج */}
