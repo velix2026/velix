@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/lib/products';
+import OrderModal from './OrderModal';
 
 interface CartItem extends Product {
   quantity: number;
@@ -36,6 +37,8 @@ export default function SideDrawer({
   const [localItems, setLocalItems] = useState<(Product | CartItem)[]>(initialItems);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [orderCartItems, setOrderCartItems] = useState<CartItem[]>([]);
 
   // حساب الإجمالي
   useEffect(() => {
@@ -141,6 +144,19 @@ export default function SideDrawer({
         item.id === id ? { ...item, quantity: newQuantity } : item
       )
     );
+  };
+
+  // فتح نافذة الطلب
+  const openOrderModal = () => {
+    const cartItems = localItems as CartItem[];
+    setOrderCartItems(cartItems);
+    setIsOrderModalOpen(true);
+  };
+
+  const handleOrderSubmit = (orderData: any) => {
+    console.log('Order submitted:', orderData);
+    setIsOrderModalOpen(false);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -290,10 +306,7 @@ export default function SideDrawer({
               <span className="text-gray-900">{total} جنيه</span>
             </div>
             <button
-              onClick={() => {
-                alert('جاري التوجيه لصفحة الدفع...');
-                onClose();
-              }}
+              onClick={openOrderModal}
               className="w-full bg-black text-white py-2.5 rounded-full hover:bg-gray-800 transition text-sm font-medium"
             >
               إتمام الطلب
@@ -310,6 +323,22 @@ export default function SideDrawer({
           </div>
         )}
       </div>
+
+      {/* Order Modal */}
+      {isOrderModalOpen && orderCartItems.length > 0 && (
+        <OrderModal
+          isOpen={isOrderModalOpen}
+          onClose={() => setIsOrderModalOpen(false)}
+          product={{
+            id: 0,
+            name: `طلب متعدد (${orderCartItems.length} منتج)`,
+            price: total,
+            mainImage: orderCartItems[0]?.mainImage || '',
+            quantity: 1,
+          }}
+          onSubmit={handleOrderSubmit}
+        />
+      )}
     </>
   );
 }
