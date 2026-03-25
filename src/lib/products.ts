@@ -8,11 +8,16 @@ export interface Product {
   subImages: string[];
   inStock: boolean;
   createdAt: string;
+  // خصائص إضافية اختيارية
+  rating?: number;
+  oldPrice?: number;
+  stock?: number;
+  isNew?: boolean;
+  discount?: number;
 }
 
 export async function getProducts(): Promise<Product[]> {
   try {
-    // استخدام الرابط النسبي (يعمل في كل البيئات)
     const res = await fetch(`/api/products`, {
       cache: 'no-store',
     });
@@ -23,7 +28,16 @@ export async function getProducts(): Promise<Product[]> {
     }
     
     const products = await res.json();
-    return Array.isArray(products) ? products : [];
+    
+    // إضافة قيم افتراضية للخصائص الإضافية
+    return products.map((p: Product) => ({
+      ...p,
+      rating: p.rating || Math.floor(Math.random() * (50 - 35 + 1) + 35) / 10, // 3.5 - 5.0
+      stock: p.stock !== undefined ? p.stock : Math.floor(Math.random() * 20) + 1,
+      isNew: p.isNew !== undefined ? p.isNew : Math.random() > 0.8,
+      discount: p.discount || 0,
+      oldPrice: p.oldPrice || (Math.random() > 0.7 ? p.price + Math.floor(Math.random() * 200) + 50 : undefined)
+    }));
   } catch (error) {
     console.error('Error fetching products:', error);
     return [];
