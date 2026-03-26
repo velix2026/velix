@@ -122,102 +122,12 @@ export default function ProductActions({ product, onOrder, onAddToCart }: Produc
   };
 
   return (
-    <div>
-      {/* المقاسات */}
-      {sizes.length > 0 && (
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">المقاس:</label>
-          <div className="flex flex-wrap gap-2">
-            {sizes.map((size) => (
-              <button
-                key={size}
-                onClick={() => updateSelection('size', size)}
-                className={`px-4 py-2 rounded-full border transition-all ${
-                  selection.size === size
-                    ? 'bg-black text-white border-black'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-black'
-                }`}
-              >
-                {size}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* الألوان */}
-      {colors.length > 0 && (
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">اللون:</label>
-          <div className="flex flex-wrap gap-3">
-            {colors.map((colorCode) => {
-              const color = allColors.find(c => c.code === colorCode);
-              return (
-                <button
-                  key={colorCode}
-                  onClick={() => updateSelection('color', colorCode)}
-                  className={`w-10 h-10 rounded-full transition-all ${
-                    selection.color === colorCode
-                      ? 'ring-2 ring-offset-2 ring-black scale-110'
-                      : 'hover:scale-105'
-                  }`}
-                  style={{
-                    backgroundColor: color?.value || colorCode,
-                    border: color?.border ? '1px solid #e5e7eb' : 'none',
-                  }}
-                  title={color?.name}
-                />
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* الكمية */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium mb-2">الكمية:</label>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => updateSelection('quantity', Math.max(1, selection.quantity - 1))}
-            className="w-10 h-10 rounded-full border border-gray-300 hover:bg-gray-100 transition"
-          >
-            -
-          </button>
-          <span className="w-12 text-center text-lg font-medium">{selection.quantity}</span>
-          <button
-            onClick={() => updateSelection('quantity', Math.min(stock, selection.quantity + 1))}
-            disabled={selection.quantity >= stock}
-            className="w-10 h-10 rounded-full border border-gray-300 hover:bg-gray-100 transition disabled:opacity-50"
-          >
-            +
-          </button>
-          <span className="text-sm text-gray-500 mr-2">متاح: {stock} قطعة</span>
-        </div>
-      </div>
-
-      {/* أزرار الإجراءات الرئيسية */}
-      <div className="flex gap-3 mb-6">
-        <button
-          onClick={handleOrder}
-          disabled={stock === 0}
-          className="flex-1 bg-black text-white py-3 rounded-full font-medium hover:bg-gray-800 transition disabled:opacity-50"
-        >
-          اطلب الآن
-        </button>
-        <button
-          onClick={handleAddToCart}
-          disabled={stock === 0}
-          className="flex-1 bg-gray-800 text-white py-3 rounded-full font-medium hover:bg-gray-700 transition disabled:opacity-50"
-        >
-          أضف للسلة
-        </button>
-      </div>
-
-      {/* أزرار جانبية (المفضلة + المشاركة) */}
-      <div className="flex gap-3 justify-end">
+    <>
+      {/* أزرار المفضلة والمشاركة - ستظهر في Breadcrumb عبر الـ Portal */}
+      <div className="hidden md:flex items-center gap-3" id="product-actions-portal">
         <button
           onClick={toggleFavorite}
-          className={`w-12 h-12 rounded-full border transition flex items-center justify-center ${
+          className={`p-2 rounded-full border transition flex items-center justify-center ${
             isFavorited
               ? 'bg-red-500 text-white border-red-500'
               : 'bg-white text-gray-700 border-gray-300 hover:border-black'
@@ -231,7 +141,7 @@ export default function ProductActions({ product, onOrder, onAddToCart }: Produc
         
         <button
           onClick={shareProduct}
-          className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition flex items-center justify-center shadow-sm"
+          className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition flex items-center justify-center"
           aria-label="مشاركة المنتج"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,6 +149,99 @@ export default function ProductActions({ product, onOrder, onAddToCart }: Produc
           </svg>
         </button>
       </div>
-    </div>
+
+      {/* باقي محتوى المنتج */}
+      <div>
+        {/* المقاسات */}
+        {sizes.length > 0 && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">المقاس:</label>
+            <div className="flex flex-wrap gap-2">
+              {sizes.map((size) => (
+                <button
+                  key={size}
+                  onClick={() => updateSelection('size', size)}
+                  className={`px-4 py-2 rounded-full border transition-all ${
+                    selection.size === size
+                      ? 'bg-black text-white border-black'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-black'
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* الألوان */}
+        {colors.length > 0 && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">اللون:</label>
+            <div className="flex flex-wrap gap-3">
+              {colors.map((colorCode) => {
+                const color = allColors.find(c => c.code === colorCode);
+                return (
+                  <button
+                    key={colorCode}
+                    onClick={() => updateSelection('color', colorCode)}
+                    className={`w-10 h-10 rounded-full transition-all ${
+                      selection.color === colorCode
+                        ? 'ring-2 ring-offset-2 ring-black scale-110'
+                        : 'hover:scale-105'
+                    }`}
+                    style={{
+                      backgroundColor: color?.value || colorCode,
+                      border: color?.border ? '1px solid #e5e7eb' : 'none',
+                    }}
+                    title={color?.name}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* الكمية */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2">الكمية:</label>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => updateSelection('quantity', Math.max(1, selection.quantity - 1))}
+              className="w-10 h-10 rounded-full border border-gray-300 hover:bg-gray-100 transition"
+            >
+              -
+            </button>
+            <span className="w-12 text-center text-lg font-medium">{selection.quantity}</span>
+            <button
+              onClick={() => updateSelection('quantity', Math.min(stock, selection.quantity + 1))}
+              disabled={selection.quantity >= stock}
+              className="w-10 h-10 rounded-full border border-gray-300 hover:bg-gray-100 transition disabled:opacity-50"
+            >
+              +
+            </button>
+            <span className="text-sm text-gray-500 mr-2">متاح: {stock} قطعة</span>
+          </div>
+        </div>
+
+        {/* أزرار الإجراءات الرئيسية */}
+        <div className="flex gap-3 mb-6">
+          <button
+            onClick={handleOrder}
+            disabled={stock === 0}
+            className="flex-1 bg-black text-white py-3 rounded-full font-medium hover:bg-gray-800 transition disabled:opacity-50"
+          >
+            اطلب الآن
+          </button>
+          <button
+            onClick={handleAddToCart}
+            disabled={stock === 0}
+            className="flex-1 bg-gray-800 text-white py-3 rounded-full font-medium hover:bg-gray-700 transition disabled:opacity-50"
+          >
+            أضف للسلة
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
