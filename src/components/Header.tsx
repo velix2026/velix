@@ -1,60 +1,25 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
-import SideDrawer from './SideDrawer';
-import { Product } from '@/lib/products';
 
-interface CartItem extends Product {
-  quantity: number;
-}
+// استيراد hooks منفصلة للسلة والمفضلة
+import { useFavorites } from '@/hooks/useFavorites';
+import { useCart } from '@/hooks/useCart';
+import SideDrawer from './SideDrawer';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [favoritesCount, setFavoritesCount] = useState(0);
-  const [cartCount, setCartCount] = useState(0);
   const [isFavoritesDrawerOpen, setIsFavoritesDrawerOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
-  const [favorites, setFavorites] = useState<Product[]>([]);
-  const [cart, setCart] = useState<CartItem[]>([]);
   const pathname = usePathname();
-
-  // تحديث القوائم من localStorage
-  const loadFavorites = useCallback(() => {
-    const saved = localStorage.getItem('favorites');
-    if (saved) {
-      const favs = JSON.parse(saved);
-      setFavorites(favs);
-      setFavoritesCount(favs.length);
-    } else {
-      setFavorites([]);
-      setFavoritesCount(0);
-    }
-  }, []);
-
-  const loadCart = useCallback(() => {
-    const saved = localStorage.getItem('cart');
-    if (saved) {
-      const cartItems = JSON.parse(saved);
-      // حساب إجمالي الكميات
-      const totalQuantity = cartItems.reduce((sum: number, item: Product & { quantity?: number }) => {
-        return sum + (item.quantity || 1);
-      }, 0);
-      setCartCount(totalQuantity);
-      
-      const cartWithQuantity = cartItems.map((item: Product & { quantity?: number }) => ({ 
-        ...item, 
-        quantity: item.quantity || 1 
-      }));
-      setCart(cartWithQuantity);
-    } else {
-      setCart([]);
-      setCartCount(0);
-    }
-  }, []);
+  
+  // استخدام hooks المنفصلة
+  const { favorites, favoritesCount, removeFromFavorites } = useFavorites();
+  const { cart, cartCount, updateCartQuantity, removeFromCart, addToCart } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -66,106 +31,18 @@ export default function Header() {
     };
 
     window.addEventListener('scroll', handleScroll);
-    
-    loadFavorites();
-    loadCart();
-
-    const handleFavoritesUpdate = () => {
-      loadFavorites();
-    };
-    
-    const handleCartUpdate = () => {
-      loadCart();
-    };
-    
-    window.addEventListener('favoritesUpdated', handleFavoritesUpdate);
-    window.addEventListener('cartUpdated', handleCartUpdate);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('favoritesUpdated', handleFavoritesUpdate);
-      window.removeEventListener('cartUpdated', handleCartUpdate);
-    };
-  }, [loadFavorites, loadCart]);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const isActive = (path: string) => {
     return pathname === path;
   };
 
-  // وظائف المفضلة
-  const removeFromFavorites = useCallback((productId: number) => {
-    setFavorites(prev => {
-      const newFavorites = prev.filter(p => p.id !== productId);
-      localStorage.setItem('favorites', JSON.stringify(newFavorites));
-      setFavoritesCount(newFavorites.length);
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('favoritesUpdated'));
-      }, 0);
-      return newFavorites;
-    });
-  }, []);
-
-  // وظائف السلة
-  const updateCartQuantity = useCallback((productId: number, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    
-    setCart(prevCart => {
-      const updatedCart = prevCart.map(item =>
-        item.id === productId ? { ...item, quantity: newQuantity } : item
-      );
-      
-      // حساب إجمالي الكميات
-      const totalQuantity = updatedCart.reduce((sum, item) => sum + item.quantity, 0);
-      setCartCount(totalQuantity);
-      
-      const toSave = updatedCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
-      localStorage.setItem('cart', JSON.stringify(toSave));
-      window.dispatchEvent(new CustomEvent('cartUpdated'));
-      
-      return updatedCart;
-    });
-  }, []);
-
-  const removeFromCart = useCallback((productId: number) => {
-    setCart(prevCart => {
-      const newCart = prevCart.filter(item => item.id !== productId);
-      const totalQuantity = newCart.reduce((sum, item) => sum + item.quantity, 0);
-      setCartCount(totalQuantity);
-      
-      const toSave = newCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
-      localStorage.setItem('cart', JSON.stringify(toSave));
-      window.dispatchEvent(new CustomEvent('cartUpdated'));
-      return newCart;
-    });
-  }, []);
-
-  const addToCart = useCallback((product: Product) => {
-    setCart(prevCart => {
-      const existing = prevCart.find(item => item.id === product.id);
-      if (!existing) {
-        const newCart = [...prevCart, { ...product, quantity: 1 }];
-        const totalQuantity = newCart.reduce((sum, item) => sum + item.quantity, 0);
-        setCartCount(totalQuantity);
-        
-        const toSave = newCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
-        localStorage.setItem('cart', JSON.stringify(toSave));
-        window.dispatchEvent(new CustomEvent('cartUpdated'));
-        alert('تم إضافة المنتج إلى السلة');
-        return newCart;
-      } else {
-        alert('المنتج موجود بالفعل في السلة');
-        return prevCart;
-      }
-    });
-  }, []);
-
   const handleFavoritesClick = () => {
-    loadFavorites();
     setIsFavoritesDrawerOpen(true);
   };
 
   const handleCartClick = () => {
-    loadCart();
     setIsCartDrawerOpen(true);
   };
 
@@ -182,7 +59,7 @@ export default function Header() {
       >
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between h-14 md:h-16">
-            {/* Logo with SEO */}
+            {/* Logo */}
             <Link href="/" className="flex items-center shrink-0" aria-label="VELIX - الصفحة الرئيسية">
               <div className="relative w-10 h-10 md:w-12 md:h-12">
                 <Image
@@ -198,7 +75,7 @@ export default function Header() {
               <span className="sr-only">VELIX - براند ملابس مصري</span>
             </Link>
 
-            {/* Desktop Navigation with SEO */}
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8" aria-label="القائمة الرئيسية" itemScope itemType="https://schema.org/SiteNavigationElement">
               <Link 
                 href="/" 
@@ -295,7 +172,7 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Mobile Navigation with SEO */}
+          {/* Mobile Navigation */}
           {isMenuOpen && (
             <div className="md:hidden py-4 border-t border-gray-100 bg-white">
               <nav className="flex flex-col gap-3" aria-label="القائمة الرئيسية (موبايل)">
