@@ -13,6 +13,7 @@ export default function NotFound() {
         </p>
         <Link
           href="/"
+          
           className="inline-block bg-black text-white px-6 py-3 rounded-full hover:bg-gray-800 transition"
         >
           العودة إلى الرئيسية
