@@ -172,7 +172,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden relative">
         {/* الجزء العلوي (الصورة والأزرار) */}
         <div className="relative aspect-square w-full bg-gray-100 overflow-hidden">
-          <Link href={`/product/${product.id}`} className="relative block h-full w-full">
+          <Link href={`/products/${product.id}`} className="relative block h-full w-full">
             <Image
               src={imageSrc}
               alt={product.name}
@@ -262,7 +262,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         
         {/* معلومات المنتج - الجزء السفلي */}
         <div className="p-2 md:p-3">
-          <Link href={`/product/${product.id}`} className="block">
+          <Link href={`/products/${product.id}`} className="block">
             {/* التقييم */}
             {rating > 0 && (
               <div className="flex items-center gap-0.5 mb-1">

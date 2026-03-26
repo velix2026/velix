@@ -85,7 +85,7 @@ if (loading) {
               {favorites.map((product) => (
                 <div key={product.id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition overflow-hidden">
                   {/* صورة المنتج */}
-                  <Link href={`/product/${product.id}`} className="block relative aspect-square bg-gray-100">
+                  <Link href={`/products/${product.id}`} className="block relative aspect-square bg-gray-100">
                     <Image
                       src={product.mainImage}
                       alt={product.name}
@@ -96,7 +96,7 @@ if (loading) {
                   
                   {/* معلومات المنتج */}
                   <div className="p-4">
-                    <Link href={`/product/${product.id}`}>
+                    <Link href={`/products/${product.id}`}>
                       <h3 className="font-bold text-lg mb-1 hover:text-gray-600 transition line-clamp-1">
                         {product.name}
                       </h3>
