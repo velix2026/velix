@@ -7,17 +7,22 @@ interface FeaturedProductsProps {
 }
 
 export default function FeaturedProducts({ products }: FeaturedProductsProps) {
-  // الأكثر مبيعاً (أول 4 منتجات حسب id)
-  const bestSellers = [...products].sort((a, b) => b.id - a.id).slice(0, 4);
+  // الأكثر مبيعاً: حسب salesCount (الأعلى أولاً) و salesCount > 0
+  const bestSellers = [...products]
+    .filter(p => (p.salesCount || 0) > 0)  // ← بس اللي عليه مبيعات
+    .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0))
+    .slice(0, 4);
   
-  // أحدث المنتجات (التاليين 4)
-  const latestProducts = [...products].sort((a, b) => b.id - a.id).slice(4, 8);
+  // أحدث المنتجات: حسب id (الأحدث أولاً)
+  const latestProducts = [...products]
+    .sort((a, b) => b.id - a.id)
+    .slice(0, 4);
 
   return (
     <section className="bg-white py-20 md:py-28">
       <div className="container mx-auto px-4">
         
-        {/* قسم الأكثر مبيعاً */}
+        {/* قسم الأكثر مبيعاً - يظهر بس لو في منتجات اتباعت */}
         {bestSellers.length > 0 && (
           <div className="mb-16">
             <div className="text-center mb-8">
@@ -26,7 +31,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                 الأكثر مبيعاً
               </h2>
               <div className="w-16 h-0.5 bg-gray-300 mx-auto mt-3 mb-4"></div>
-              <p className="text-gray-500 text-sm">أكثر القطع طلباً من عملائنا</p>
+              <p className="text-gray-500 text-sm">المنتجات الأكثر طلباً من عملائنا</p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {bestSellers.map((product) => (
@@ -36,7 +41,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
           </div>
         )}
 
-        {/* قسم أحدث المنتجات */}
+        {/* قسم أحدث المنتجات - يظهر دائماً لو في منتجات */}
         <div className="text-center mb-8">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
             أحدث المنتجات

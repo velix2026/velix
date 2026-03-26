@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
       sizes,
       colors,
       isNew,
+      salesCount: 0, // ✅ بداية المبيعات = 0
       createdAt: new Date().toISOString(),
     };
     

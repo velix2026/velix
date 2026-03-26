@@ -15,6 +15,7 @@ export interface Product {
   discount?: number;
   sizes?: string[];
   colors?: string[];
+  salesCount?: number;  
 }
 
 export async function getProducts(): Promise<Product[]> {

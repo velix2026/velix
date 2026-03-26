@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import ProductCard from "@/components/ProductCard";
@@ -11,23 +11,21 @@ import { create } from 'zustand';
 import { ProductGridSkeleton } from '@/components/Skeleton';
 
 export const dynamic = 'force-dynamic';
+
 // ==================== Zustand Store (Global State) ====================
 interface StoreState {
   favorites: string[];
   cart: string[];
-  recentlyViewed: Product[];
   addToFavorites: (id: string) => void;
   removeFromFavorites: (id: string) => void;
   addToCart: (id: string) => void;
   removeFromCart: (id: string) => void;
-  addToRecentlyViewed: (product: Product) => void;
   loadFromStorage: () => void;
 }
 
 const useStore = create<StoreState>((set) => ({
   favorites: [],
   cart: [],
-  recentlyViewed: [],
   
   addToFavorites: (id) => set((state) => ({ 
     favorites: state.favorites.includes(id) ? state.favorites : [...state.favorites, id] 
@@ -41,20 +39,12 @@ const useStore = create<StoreState>((set) => ({
   removeFromCart: (id) => set((state) => ({ 
     cart: state.cart.filter(i => i !== id) 
   })),
-  addToRecentlyViewed: (product) => set((state) => {
-    const filtered = state.recentlyViewed.filter(p => p.id !== product.id);
-    const updated = [product, ...filtered].slice(0, 10);
-    localStorage.setItem('recentlyViewed', JSON.stringify(updated));
-    return { recentlyViewed: updated };
-  }),
   loadFromStorage: () => {
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
     set({ 
       favorites: favorites.map((p: Product) => p.id.toString()),
       cart: cart.map((p: Product) => p.id.toString()),
-      recentlyViewed
     });
   }
 }));
@@ -79,18 +69,6 @@ const FixedGrid = ({ children, cols = 4, className = "" }: { children: React.Rea
     </div>
   );
 };
-
-// ==================== Skeleton Card ====================
-const SkeletonCard = () => (
-  <div className="bg-gray-100 rounded-xl animate-pulse">
-    <div className="aspect-square bg-gray-200 rounded-t-xl"></div>
-    <div className="p-3 space-y-2">
-      <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-      <div className="h-2 bg-gray-200 rounded w-1/2"></div>
-      <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-    </div>
-  </div>
-);
 
 // ==================== Best Seller Badge ====================
 const BestSellerBadge = () => (
@@ -119,6 +97,16 @@ const sortOptions = [
   { value: 'popular', label: 'الأكثر طلباً' }
 ];
 
+// دالة للخلط العشوائي (Fisher-Yates)
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,7 +122,7 @@ export default function ProductsPage() {
   const [maxPrice, setMaxPrice] = useState(1000);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  const { favorites, cart, recentlyViewed, addToRecentlyViewed, loadFromStorage } = useStore();
+  const { favorites, cart, loadFromStorage } = useStore();
   const { ref: loadMoreRef, inView } = useInView();
 
   // تحميل المنتجات
@@ -143,9 +131,12 @@ export default function ProductsPage() {
       const allProducts = await getProducts();
       setProducts(allProducts);
       
-      // حساب أفضل المبيعات (بناءً على rating)
-      const sortedByPopularity = [...allProducts].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-      setBestSellers(sortedByPopularity.slice(0, 4));
+      // الأكثر مبيعاً: حسب salesCount (المنتجات اللي عليها مبيعات فقط)
+      const sortedBySales = [...allProducts]
+        .filter(p => (p.salesCount || 0) > 0)
+        .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0))
+        .slice(0, 4);
+      setBestSellers(sortedBySales);
       
       const prices = allProducts.map(p => p.price);
       setMinPrice(Math.min(...prices, 0));
@@ -157,6 +148,16 @@ export default function ProductsPage() {
     fetchProducts();
     loadFromStorage();
   }, [loadFromStorage]);
+
+  // المنتجات الموصى بها (عشوائية مع استبعاد الأكثر مبيعاً)
+  const recommended = useMemo(() => {
+    // استبعاد الأكثر مبيعاً
+    const candidates = products.filter(p => !bestSellers.some(b => b.id === p.id));
+    // خلط عشوائي
+    const shuffled = shuffleArray(candidates);
+    // أخذ أول 4
+    return shuffled.slice(0, 4);
+  }, [products, bestSellers]);
 
   // Debounce search
   useEffect(() => {
@@ -190,7 +191,7 @@ export default function ProductsPage() {
     } else if (sortBy === 'price-desc') {
       filtered.sort((a, b) => b.price - a.price);
     } else if (sortBy === 'popular') {
-      filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      filtered.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
     }
     
     setFilteredProducts(filtered);
@@ -213,18 +214,15 @@ export default function ProductsPage() {
     }
   }, [inView, hasMore, loading]);
 
-  const recommended = products.filter(p => !bestSellers.some(b => b.id === p.id)).slice(0, 4);
-
-  // واستخدمه في حالة loading
-if (loading) {
-  return (
-    <div className="bg-white py-16 md:py-24">
-      <div className="container mx-auto px-4">
-        <ProductGridSkeleton count={12} />
+  if (loading) {
+    return (
+      <div className="bg-white py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <ProductGridSkeleton count={12} />
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
     <section className="bg-white py-12 md:py-20">
@@ -248,7 +246,7 @@ if (loading) {
           </p>
         </motion.div>
 
-        {/* Best Sellers Section - Premium */}
+        {/* Best Sellers Section - يظهر بس لو في منتجات اتباعت */}
         {bestSellers.length > 0 && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -262,7 +260,7 @@ if (loading) {
                   <span className="text-2xl animate-pulse">⭐</span>
                   الأكثر مبيعاً
                 </h2>
-                <p className="text-gray-500 text-sm mt-1">أكثر القطع طلباً من عملائنا</p>
+                <p className="text-gray-500 text-sm mt-1">المنتجات الأكثر طلباً من عملائنا</p>
               </div>
             </div>
             <FixedGrid cols={4}>
@@ -362,7 +360,6 @@ if (loading) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.3, delay: (idx % 12) * 0.02 }}
-                  onClick={() => addToRecentlyViewed(product)}
                 >
                   <ProductCard product={product} />
                 </motion.div>
@@ -383,22 +380,16 @@ if (loading) {
         {/* Load More Trigger (Infinite Scroll) */}
         {hasMore && <div ref={loadMoreRef} className="h-10" />}
 
-        {/* Recommended Section */}
+        {/* Recommended Section - عشوائي مع استبعاد الأكثر مبيعاً */}
         {recommended.length > 0 && (
           <div className="mt-16 pt-8 border-t border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center md:text-right">قد يعجبك أيضاً</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center md:text-right">
+              قد يعجبك أيضاً
+            </h2>
             <FixedGrid cols={4}>
-              {recommended.map((product) => <ProductCard key={product.id} product={product} />)}
-            </FixedGrid>
-          </div>
-        )}
-
-        {/* Recently Viewed Section */}
-        {recentlyViewed.length > 0 && (
-          <div className="mt-16 pt-8 border-t border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center md:text-right">سبق وشاهدتها</h2>
-            <FixedGrid cols={4}>
-              {recentlyViewed.map((product) => <ProductCard key={product.id} product={product} />)}
+              {recommended.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
             </FixedGrid>
           </div>
         )}

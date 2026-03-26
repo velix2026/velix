@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
 
 const WHATSAPP_NUMBER = '201500125133';
-const ADMIN_WHATSAPP = '201500125133'; // رقم الـ Admin لتلقي الإشعارات
+const ADMIN_WHATSAPP = '201500125133';
 
 async function getAllOrders() {
   const keys = await kv.keys('order:*');
@@ -25,11 +25,28 @@ async function sendAdminNotification(order: any) {
   adminMessage += `💰 *الإجمالي:* ${order.product.price * order.product.quantity} جنيه\n`;
   
   const adminUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(adminMessage)}`;
-  
-  // يمكن إرسال إشعار داخلي أو تسجيل في console
   console.log('New order notification:', adminUrl);
-  
   return adminUrl;
+}
+
+// تحديث salesCount للمنتج
+async function incrementProductSales(productId: number, quantity: number) {
+  try {
+    const productsKey = 'products';
+    const productsData = await kv.get(productsKey);
+    if (!productsData) return;
+    
+    let products = JSON.parse(productsData as string);
+    const productIndex = products.findIndex((p: any) => p.id === productId);
+    
+    if (productIndex !== -1) {
+      products[productIndex].salesCount = (products[productIndex].salesCount || 0) + quantity;
+      await kv.set(productsKey, JSON.stringify(products));
+      console.log(`✅ Updated salesCount for product ${productId}: +${quantity}`);
+    }
+  } catch (error) {
+    console.error('Error updating salesCount:', error);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -60,10 +77,12 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date().toISOString(),
     });
 
-    // إرسال إشعار للـ Admin
+    // ✅ تحديث عدد المبيعات للمنتج
+    await incrementProductSales(order.product.id, order.product.quantity);
+
     const adminNotification = await sendAdminNotification({ ...order, orderId });
-    
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappMessage)}`;
+    
     return NextResponse.json({ success: true, whatsappUrl, orderId, adminNotification });
   } catch (error) {
     console.error('Error processing order:', error);
