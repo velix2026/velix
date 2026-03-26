@@ -27,7 +27,6 @@ export default function ProductPage() {
       setProduct(found);
       
       if (found) {
-        // منتجات ذات صلة: من نفس القسم واستبعاد المنتج الحالي
         const related = allProducts
           .filter(p => p.category === found.category && p.id !== found.id)
           .slice(0, 8);
@@ -56,6 +55,11 @@ export default function ProductPage() {
   const handleOrder = (selection: { size: string; color: string; quantity: number }) => {
     setOrderSelection(selection);
     setIsOrderModalOpen(true);
+  };
+
+  const handleAddToCart = (selection: { size: string; color: string; quantity: number }) => {
+    console.log('Added to cart:', selection);
+    // يمكن إضافة Toast هنا
   };
 
   const handleOrderSubmit = (orderData: any) => {
@@ -120,7 +124,11 @@ export default function ProductPage() {
             {/* معلومات المنتج */}
             <div>
               <ProductInfo product={product} />
-              <ProductActions product={product} onOrder={handleOrder} />
+              <ProductActions 
+                product={product} 
+                onOrder={handleOrder} 
+                onAddToCart={handleAddToCart} 
+              />
             </div>
           </div>
 
