@@ -116,7 +116,6 @@ export default function ProductActions({ product, onOrder, onAddToCart }: Produc
         console.log('Error sharing:', err);
       }
     } else {
-      // نسخ الرابط للحالات التي لا تدعم Web Share API
       await navigator.clipboard.writeText(url);
       alert('تم نسخ رابط المنتج 📋');
     }
@@ -196,7 +195,7 @@ export default function ProductActions({ product, onOrder, onAddToCart }: Produc
         </div>
       </div>
 
-      {/* الأزرار */}
+      {/* أزرار الإجراءات الرئيسية */}
       <div className="flex gap-3 mb-6">
         <button
           onClick={handleOrder}
@@ -212,9 +211,13 @@ export default function ProductActions({ product, onOrder, onAddToCart }: Produc
         >
           أضف للسلة
         </button>
+      </div>
+
+      {/* أزرار جانبية (المفضلة + المشاركة) */}
+      <div className="flex gap-3 justify-end">
         <button
           onClick={toggleFavorite}
-          className={`p-3 rounded-full border transition ${
+          className={`w-12 h-12 rounded-full border transition flex items-center justify-center ${
             isFavorited
               ? 'bg-red-500 text-white border-red-500'
               : 'bg-white text-gray-700 border-gray-300 hover:border-black'
@@ -225,10 +228,7 @@ export default function ProductActions({ product, onOrder, onAddToCart }: Produc
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
         </button>
-      </div>
-
-      {/* زر المشاركة الدائري */}
-      <div className="flex justify-end">
+        
         <button
           onClick={shareProduct}
           className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition flex items-center justify-center shadow-sm"
