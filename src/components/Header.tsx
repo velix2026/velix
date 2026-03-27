@@ -184,19 +184,19 @@ export default function Header() {
 
             {/* Mobile Menu Button */}
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-full hover:bg-black/5"
-              aria-label={isMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
-              aria-expanded={isMenuOpen}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                {isMenuOpen ? (
-                  <path strokeWidth={1.8} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeWidth={1.8} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="md:hidden p-2 rounded-full hover:bg-black/5 text-black"
+                aria-label={isMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+                aria-expanded={isMenuOpen}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  {isMenuOpen ? (
+                    <path strokeWidth={1.8} d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <path strokeWidth={1.8} d="M4 6h16M4 12h16M4 18h16" />
+                  )}
+                </svg>
+              </button>
           </div>
         </div>
 
