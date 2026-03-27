@@ -125,7 +125,7 @@ export default function Header() {
               aria-live="polite"
             >
               <svg
-                className="w-5 h-5 text-gray-700"
+                className="w-5 h-5 text-black"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -151,7 +151,7 @@ export default function Header() {
               aria-live="polite"
             >
               <svg
-                className="w-5 h-5 text-gray-700"
+                className="w-5 h-5 text-black"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
