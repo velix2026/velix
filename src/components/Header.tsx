@@ -99,7 +99,7 @@ export default function Header() {
                 key={link.href}
                 href={link.href}
                 className={`relative text-sm font-semibold transition-all duration-300 ${
-                  isActive(link.href) ? 'text-black' : 'text-gray-600 hover:text-black'
+                  isActive(link.href) ? 'text-black' : 'text-black hover:text-black'
                 }`}
                 aria-current={isActive(link.href) ? 'page' : undefined}
                 title={link.title}
@@ -213,7 +213,7 @@ export default function Header() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-sm font-semibold text-gray-700 hover:text-black py-2 transition-all"
+                  className="text-sm font-semibold text-black hover:text-black py-2 transition-all"
                 >
                   {link.label}
                 </Link>
