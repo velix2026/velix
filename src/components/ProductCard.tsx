@@ -1,236 +1,337 @@
+// components/ProductCard.tsx
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/lib/products';
-import OrderModal from './OrderModal';
-
-// Helper functions for localStorage
-const getStorage = (key: string) => {
-  try {
-    return JSON.parse(localStorage.getItem(key) || '[]');
-  } catch {
-    return [];
-  }
-};
-
-const setStorage = (key: string, value: any) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.error('Error saving to localStorage:', error);
-  }
-};
+import { useCart } from '@/hooks/useCart';
+import { useFavorites } from '@/hooks/useFavorites';
 
 interface ProductCardProps {
   product: Product;
+  priority?: boolean;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
-  const [currentImage, setCurrentImage] = useState(product.mainImage);
+interface CartItemSelection {
+  size: string;
+  color: string;
+  quantity: number;
+  id: string;
+}
+
+const ProductCard = memo(function ProductCard({ product, priority = false }: ProductCardProps) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imgError, setImgError] = useState(false);
-  const [isFavorited, setIsFavorited] = useState(false);
-  const [isInCart, setIsInCart] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [showSelectionModal, setShowSelectionModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'cart' | 'favorite' | null>(null);
+  const [selections, setSelections] = useState<CartItemSelection[]>([
+    { size: '', color: '', quantity: 1, id: Date.now().toString() }
+  ]);
+  
+  const { addToCart, removeFromCart, isInCart } = useCart();
+  const { isFavorite, toggleFavorite } = useFavorites();
   
   const allImages = [product.mainImage, ...product.subImages];
+  const currentImage = allImages[currentImageIndex];
   const imageSrc = imgError ? '/images/placeholder.jpg' : currentImage;
 
-  // حساب التقييم
+  const isInCartState = isInCart(product.id);
+  const isFavoritedState = isFavorite(product.id);
+
+  const hasSizes = product.sizes && product.sizes.length > 0;
+  const hasColors = product.colors && product.colors.length > 0;
+  
+  const hasValidSelections = () => {
+    for (const selection of selections) {
+      if (hasSizes && !selection.size) return false;
+      if (hasColors && !selection.color) return false;
+      if (selection.quantity < 1) return false;
+    }
+    return selections.length > 0;
+  };
+
   const rating = product.rating || 0;
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;
   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
 
-  // استخدام useRef لمنع التحديثات المتكررة أثناء العرض
-  const isUpdatingRef = useRef(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // تحميل حالة المنتج من localStorage (مع تأخير)
-  const loadState = () => {
-    if (isUpdatingRef.current) return;
-    
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    
-    timeoutRef.current = setTimeout(() => {
-      const favorites = getStorage('favorites');
-      const cart = getStorage('cart');
-      setIsFavorited(favorites.some((item: Product) => item.id === product.id));
-      setIsInCart(cart.some((item: Product) => item.id === product.id));
-    }, 10);
-  };
+  const mountedRef = useRef(true);
+  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    loadState();
-
-    // استقبال التحديثات من الأحداث
-    const handleUpdate = () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        const favorites = getStorage('favorites');
-        const cart = getStorage('cart');
-        setIsFavorited(favorites.some((item: Product) => item.id === product.id));
-        setIsInCart(cart.some((item: Product) => item.id === product.id));
-      }, 20);
-    };
-    
-    window.addEventListener('favoritesUpdated', handleUpdate);
-    window.addEventListener('cartUpdated', handleUpdate);
-
+    mountedRef.current = true;
     return () => {
-      window.removeEventListener('favoritesUpdated', handleUpdate);
-      window.removeEventListener('cartUpdated', handleUpdate);
+      mountedRef.current = false;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
     };
-  }, [product.id]);
+  }, []);
 
-  // Toast auto-hide
   useEffect(() => {
-    if (showToast) {
-      const timer = setTimeout(() => setShowToast(false), 2000);
-      return () => clearTimeout(timer);
+    if (allImages.length > 1 && !showSelectionModal) {
+      autoPlayRef.current = setInterval(() => {
+        if (mountedRef.current) {
+          setCurrentImageIndex(prev => (prev + 1) % allImages.length);
+        }
+      }, 4000);
+      
+      return () => {
+        if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+      };
     }
-  }, [showToast]);
+  }, [allImages.length, showSelectionModal]);
 
-  const updateCounts = () => {
-    const favorites = getStorage('favorites');
-    const cart = getStorage('cart');
-    window.dispatchEvent(new CustomEvent('favoritesUpdated', { detail: favorites.length }));
-    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: cart.length }));
-  };
+  const nextImage = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex(prev => (prev + 1) % allImages.length);
+    if (autoPlayRef.current) {
+      clearInterval(autoPlayRef.current);
+      autoPlayRef.current = setInterval(() => {
+        if (mountedRef.current) {
+          setCurrentImageIndex(prev => (prev + 1) % allImages.length);
+        }
+      }, 4000);
+    }
+  }, [allImages.length]);
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const prevImage = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length);
+    if (autoPlayRef.current) {
+      clearInterval(autoPlayRef.current);
+      autoPlayRef.current = setInterval(() => {
+        if (mountedRef.current) {
+          setCurrentImageIndex(prev => (prev + 1) % allImages.length);
+        }
+      }, 4000);
+    }
+  }, [allImages.length]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    setTouchStart(e.touches[0].clientX);
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    if (touchStart === null) return;
+    
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+    
+    if (Math.abs(diff) > 50 && !showSelectionModal) {
+      if (diff > 0) {
+        setCurrentImageIndex(prev => (prev + 1) % allImages.length);
+      } else {
+        setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length);
+      }
+      
+      if (autoPlayRef.current) {
+        clearInterval(autoPlayRef.current);
+        autoPlayRef.current = setInterval(() => {
+          if (mountedRef.current) {
+            setCurrentImageIndex(prev => (prev + 1) % allImages.length);
+          }
+        }, 4000);
+      }
+    }
+    
+    setTouchStart(null);
+  }, [touchStart, allImages.length, showSelectionModal]);
+
+  const handleFavoriteClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFavorite(product);
+  }, [product, toggleFavorite]);
+
+  const handleCartClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    isUpdatingRef.current = true;
-    
-    const favorites = getStorage('favorites');
-    if (isFavorited) {
-      const newFavorites = favorites.filter((item: Product) => item.id !== product.id);
-      setStorage('favorites', newFavorites);
-      setIsFavorited(false);
-      setToastMessage('تم إزالة من المفضلة ❤️');
+    if (isInCartState) {
+      // If product exists in cart, we need to handle removal
+      // For now, we'll just open the modal
+      setPendingAction('cart');
+      setShowSelectionModal(true);
     } else {
-      favorites.push(product);
-      setStorage('favorites', favorites);
-      setIsFavorited(true);
-      setToastMessage('تم إضافة إلى المفضلة ❤️');
+      setPendingAction('cart');
+      setShowSelectionModal(true);
     }
-    setShowToast(true);
-    updateCounts();
-    window.dispatchEvent(new CustomEvent('favoritesUpdated'));
-    
-    setTimeout(() => {
-      isUpdatingRef.current = false;
-    }, 100);
+  }, [product, isInCartState]);
+
+  const addSelection = () => {
+    setSelections(prev => [
+      ...prev,
+      { size: '', color: '', quantity: 1, id: Date.now().toString() + Math.random() }
+    ]);
   };
 
-  const handleCartClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    isUpdatingRef.current = true;
-    
-    const cart = getStorage('cart');
-    if (isInCart) {
-      const newCart = cart.filter((item: Product) => item.id !== product.id);
-      setStorage('cart', newCart);
-      setIsInCart(false);
-      setToastMessage('تم إزالة من السلة 🛒');
-    } else {
-      cart.push({ ...product, quantity: 1 });
-      setStorage('cart', cart);
-      setIsInCart(true);
-      setToastMessage('تم إضافة إلى السلة 🛒');
+  const removeSelection = (id: string) => {
+    if (selections.length > 1) {
+      setSelections(prev => prev.filter(s => s.id !== id));
     }
-    setShowToast(true);
-    updateCounts();
-    window.dispatchEvent(new CustomEvent('cartUpdated'));
-    
-    setTimeout(() => {
-      isUpdatingRef.current = false;
-    }, 100);
   };
 
-  const handleOrderSubmit = (orderData: any) => {
-    console.log('Order submitted:', orderData);
+  const updateSelection = (id: string, field: keyof CartItemSelection, value: string | number) => {
+    setSelections(prev => prev.map(sel => 
+      sel.id === id ? { ...sel, [field]: value } : sel
+    ));
   };
 
-  // إضافة للمشاهدة مؤخراً
-  useEffect(() => {
-    const recent = getStorage('recentlyViewed');
-    const updated = [product, ...recent.filter((p: Product) => p.id !== product.id)].slice(0, 10);
-    setStorage('recentlyViewed', updated);
-  }, [product]);
+  const confirmSelections = () => {
+    if (hasValidSelections()) {
+      for (const selection of selections) {
+        for (let i = 0; i < selection.quantity; i++) {
+          addToCart(product, selection.size || undefined, selection.color || undefined, 1);
+        }
+      }
+      setShowSelectionModal(false);
+      setSelections([{ size: '', color: '', quantity: 1, id: Date.now().toString() }]);
+    }
+  };
+
+  const cancelSelection = () => {
+    setShowSelectionModal(false);
+    setPendingAction(null);
+    setSelections([{ size: '', color: '', quantity: 1, id: Date.now().toString() }]);
+  };
+
+  const isLowStock = product.stock !== undefined && product.stock <= 5 && product.stock > 0;
+  const isOutOfStock = product.stock === 0;
+
+  const isLightColor = (hex: string): boolean => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 128;
+  };
+
+  const getColorName = (colorCode: string): string => {
+    const colorMap: Record<string, string> = {
+      '#000000': 'أسود',
+      '#FFFFFF': 'أبيض',
+      '#808080': 'رمادي',
+      '#FF0000': 'أحمر',
+      '#0000FF': 'أزرق',
+      '#008000': 'أخضر',
+      '#FFFF00': 'أصفر',
+      '#FFC0CB': 'وردي',
+      '#A52A2A': 'بني',
+      '#800080': 'بنفسجي',
+      '#FFA500': 'برتقالي',
+      '#00FFFF': 'سماوي',
+      '#FF69B4': 'زهري',
+      '#C0C0C0': 'فضي',
+      '#FFD700': 'ذهبي',
+    };
+    return colorMap[colorCode.toUpperCase()] || colorCode;
+  };
+
+  const totalItems = selections.reduce((sum, s) => sum + s.quantity, 0);
+  const totalPrice = totalItems * product.price;
 
   return (
     <>
-      <div className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden relative">
-        {/* الجزء العلوي (الصورة والأزرار) */}
-        <div className="relative aspect-square w-full bg-gray-100 overflow-hidden">
-          <Link href={`/products/${product.id}`} className="relative block h-full w-full">
+      <article className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden relative h-full flex flex-col">
+        <div 
+          className="relative aspect-square w-full bg-linear-to-br from-gray-50 to-gray-100 overflow-hidden cursor-pointer"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          <Link 
+            href={`/products/${product.id}`} 
+            className="relative block h-full w-full focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+            aria-label={`عرض تفاصيل ${product.name}`}
+          >
             <Image
               src={imageSrc}
-              alt={product.name}
+              alt={`${product.name} - صورة ${currentImageIndex + 1}`}
               fill
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               className="object-cover group-hover:scale-105 transition duration-700"
               onError={() => setImgError(true)}
+              priority={priority}
+              loading={priority ? 'eager' : 'lazy'}
             />
           </Link>
           
-          {/* Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none">
+          {allImages.length > 1 && !showSelectionModal && (
+            <>
+              <button
+                onClick={prevImage}
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1.5 shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                aria-label="الصورة السابقة"
+              >
+                <svg className="w-4 h-4 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={nextImage}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1.5 shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                aria-label="الصورة التالية"
+              >
+                <svg className="w-4 h-4 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          )}
+          
+          <div className="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none z-10">
             {product.isNew && (
-              <span className="bg-black text-white text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full font-medium">
+              <span className="bg-black text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-sm">
                 جديد
               </span>
             )}
             {product.discount && product.discount > 0 && (
-              <span className="bg-red-500 text-white text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full font-medium">
+              <span className="bg-linear-to-r from-red-500 to-red-600 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-sm">
                 -{product.discount}%
               </span>
             )}
-            {product.stock !== undefined && product.stock <= 5 && product.stock > 0 && (
-              <span className="bg-orange-500 text-white text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full font-medium animate-pulse">
+            {isLowStock && !isOutOfStock && (
+              <span className="bg-orange-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full animate-pulse shadow-sm">
                 باقي {product.stock} فقط 🔥
               </span>
             )}
-            {product.stock === 0 && (
-              <span className="bg-gray-500 text-white text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full font-medium">
+            {isOutOfStock && (
+              <span className="bg-gray-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-sm">
                 نفذت الكمية
               </span>
             )}
           </div>
           
-          {/* أزرار المفضلة والسلة */}
-          <div className="absolute top-2 right-2 flex flex-col gap-2">
+          <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
             <button
               onClick={handleFavoriteClick}
-              className={`p-1.5 md:p-2 rounded-full shadow-md transition-all duration-300 ${
-                isFavorited 
+              className={`p-1.5 md:p-2 rounded-full shadow-md transition-all duration-300 backdrop-blur-sm ${
+                isFavoritedState 
                   ? 'bg-red-500 text-white hover:bg-red-600 scale-110' 
-                  : 'bg-white text-gray-600 hover:bg-gray-100 hover:scale-110'
+                  : 'bg-white/90 text-gray-600 hover:bg-white hover:scale-110'
               }`}
-              aria-label={isFavorited ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
+              aria-label={isFavoritedState ? `إزالة ${product.name} من المفضلة` : `إضافة ${product.name} إلى المفضلة`}
             >
-              <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill={isFavoritedState ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </button>
             
             <button
               onClick={handleCartClick}
-              className={`p-1.5 md:p-2 rounded-full shadow-md transition-all duration-300 ${
-                isInCart 
+              className={`p-1.5 md:p-2 rounded-full shadow-md transition-all duration-300 backdrop-blur-sm ${
+                isInCartState 
                   ? 'bg-green-600 text-white hover:bg-green-700 scale-110' 
-                  : 'bg-white text-gray-600 hover:bg-gray-100 hover:scale-110'
+                  : 'bg-white/90 text-gray-600 hover:bg-white hover:scale-110'
               }`}
-              aria-label={isInCart ? 'إزالة من السلة' : 'إضافة إلى السلة'}
+              aria-label={isInCartState ? `إزالة ${product.name} من السلة` : `إضافة ${product.name} إلى السلة`}
+              disabled={isOutOfStock}
             >
               <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -238,35 +339,47 @@ export default function ProductCard({ product }: ProductCardProps) {
             </button>
           </div>
           
-          {/* نقاط التنقل بين الصور */}
-          {allImages.length > 1 && (
-            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1 bg-black/50 px-1.5 py-0.5 rounded-full">
-              {allImages.slice(0, 4).map((img, idx) => (
+          {allImages.length > 1 && !showSelectionModal && (
+            <div className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm px-1.5 py-0.5 rounded-full text-white font-bold text-[8px] z-10">
+              {currentImageIndex + 1} / {allImages.length}
+            </div>
+          )}
+          
+          {allImages.length > 1 && !showSelectionModal && (
+            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1.5 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full z-10">
+              {allImages.slice(0, 5).map((_, idx) => (
                 <button
                   key={idx}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    setCurrentImage(img);
-                    setImgError(false);
+                    setCurrentImageIndex(idx);
+                    if (autoPlayRef.current) {
+                      clearInterval(autoPlayRef.current);
+                      autoPlayRef.current = setInterval(() => {
+                        if (mountedRef.current) {
+                          setCurrentImageIndex(prev => (prev + 1) % allImages.length);
+                        }
+                      }, 4000);
+                    }
                   }}
-                  className={`w-1.5 h-1.5 rounded-full transition ${
-                    currentImage === img ? 'bg-white scale-125' : 'bg-white/50'
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                    currentImageIndex === idx 
+                      ? 'bg-white w-3' 
+                      : 'bg-white/50 hover:bg-white/80'
                   }`}
-                  aria-label={`الصورة ${idx + 1}`}
+                  aria-label={`انتقال إلى الصورة ${idx + 1}`}
                 />
               ))}
             </div>
           )}
         </div>
         
-        {/* معلومات المنتج - الجزء السفلي */}
-        <div className="p-2 md:p-3">
-          <Link href={`/products/${product.id}`} className="block">
-            {/* التقييم */}
+        <div className="p-3 md:p-4 flex-1 flex flex-col">
+          <Link href={`/products/${product.id}`} className="block flex-1">
             {rating > 0 && (
-              <div className="flex items-center gap-0.5 mb-1">
-                <div className="flex items-center text-yellow-400 text-[8px] md:text-[10px]">
+              <div className="flex items-center gap-0.5 mb-1.5">
+                <div className="flex items-center text-yellow-400 text-[10px] md:text-xs">
                   {[...Array(fullStars)].map((_, i) => (
                     <span key={i}>★</span>
                   ))}
@@ -275,63 +388,217 @@ export default function ProductCard({ product }: ProductCardProps) {
                     <span key={i} className="text-gray-300">★</span>
                   ))}
                 </div>
-                <span className="text-gray-400 text-[8px]">({rating})</span>
+                <span className="text-gray-400 font-bold text-[9px] md:text-[10px] mr-1">
+                  ({product.salesCount || rating})
+                </span>
               </div>
             )}
             
-            <h3 className="text-[10px] md:text-xs font-bold mb-0.5 line-clamp-1 hover:text-gray-600 transition">
+            <h3 className="text-xs md:text-sm font-bold text-black mb-1 line-clamp-2 hover:text-gray-600 transition">
               {product.name}
             </h3>
-            <p className="text-gray-400 text-[8px] md:text-[10px] mb-0.5">{product.category}</p>
+            <p className="text-gray-400 font-bold text-[10px] md:text-xs mb-2">{product.category}</p>
             
-            {/* السعر مع الخصم */}
-            <div className="flex items-center gap-1 mb-0.5">
-              <span className="text-xs md:text-sm font-bold text-black">{product.price} جنيه</span>
-              {product.oldPrice && (
-                <span className="text-[8px] text-gray-400 line-through">{product.oldPrice} جنيه</span>
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <span className="text-sm md:text-base font-bold text-black">
+                {product.price} جنيه
+              </span>
+              {product.oldPrice && product.oldPrice > product.price && (
+                <span className="text-[10px] md:text-xs text-gray-400 line-through font-bold">
+                  {product.oldPrice} جنيه
+                </span>
               )}
             </div>
             
-            {/* شحن مجاني */}
             {product.price > 500 && (
-              <p className="text-green-600 text-[8px] mb-0.5 font-medium">
-                شحن مجاني
+              <p className="text-green-600 font-bold text-[9px] md:text-[10px]">
+                🚚 شحن مجاني
               </p>
             )}
           </Link>
           
-          {/* زر اطلب الآن */}
-          <button
-            onClick={() => setIsOrderModalOpen(true)}
-            className="block text-center bg-black text-white text-[9px] md:text-[10px] py-1 rounded-full hover:bg-gray-800 transition hover:scale-105 active:scale-95 mt-1 w-full"
+          <Link
+            href={`/products/${product.id}`}
+            className={`block text-center text-white font-bold text-[10px] md:text-xs py-2 rounded-full transition-all mt-2 ${
+              isOutOfStock 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-linear-to-r from-sky-400 via-blue-500 to-indigo-500 hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg'
+            }`}
+            aria-label={`عرض تفاصيل ${product.name}`}
           >
-            اطلب الآن
-          </button>
+            {isOutOfStock ? 'نفذت الكمية' : 'اطلع على المنتج'}
+          </Link>
         </div>
-      </div>
-      
-      {/* Order Modal */}
-      <OrderModal
-        isOpen={isOrderModalOpen}
-        onClose={() => setIsOrderModalOpen(false)}
-        product={{
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          mainImage: product.mainImage,
-          selectedSize: undefined,
-          selectedColor: undefined,
-          quantity: 1,
-        }}
-        onSubmit={handleOrderSubmit}
-      />
-      
-      {/* Toast Notification */}
-      {showToast && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-black/90 text-white px-3 py-1.5 rounded-full text-xs z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
-          {toastMessage}
+      </article>
+
+      {showSelectionModal && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 flex items-center justify-center p-4 transition-all duration-300"
+          onClick={cancelSelection}
+        >
+          <div 
+            className="bg-white rounded-2xl max-w-md w-full max-h-[85vh] overflow-hidden shadow-2xl animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white p-4 border-b border-gray-100 z-10">
+              <h3 className="text-xl font-bold text-black text-center">إضافة إلى السلة</h3>
+              <p className="text-xs text-gray-500 font-bold text-center mt-1">
+                اختر المقاسات والألوان المطلوبة
+              </p>
+            </div>
+            
+            <div className="overflow-y-auto p-4 space-y-4 max-h-[calc(85vh-180px)]">
+              <div className="flex gap-3 pb-3 border-b border-gray-100">
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+                  <Image src={product.mainImage} alt={product.name} fill className="object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-sm text-black line-clamp-2">{product.name}</h4>
+                  <p className="text-sm font-bold text-black mt-1">{product.price} جنيه</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {selections.map((selection, index) => (
+                  <div key={selection.id} className="bg-gray-50 rounded-xl p-3 relative">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-xs font-bold text-gray-500">القطعة {index + 1}</span>
+                      {selections.length > 1 && (
+                        <button
+                          onClick={() => removeSelection(selection.id)}
+                          className="text-red-400 hover:text-red-600 text-xs font-bold flex items-center gap-1"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          إزالة
+                        </button>
+                      )}
+                    </div>
+                    
+                    {hasSizes && (
+                      <div className="mb-3">
+                        <p className="text-xs font-bold text-gray-700 mb-1.5">المقاس <span className="text-red-500">*</span></p>
+                        <div className="flex flex-wrap gap-2">
+                          {product.sizes?.map((size) => (
+                            <button
+                              key={size}
+                              onClick={() => updateSelection(selection.id, 'size', size)}
+                              className={`min-w-10 px-3 py-1 text-sm font-bold rounded-lg transition-all ${
+                                selection.size === size
+                                  ? 'bg-black text-white shadow-md'
+                                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                              }`}
+                            >
+                              {size}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {hasColors && (
+                      <div className="mb-3">
+                        <p className="text-xs font-bold text-gray-700 mb-1.5">اللون <span className="text-red-500">*</span></p>
+                        <div className="flex flex-wrap gap-2">
+                          {product.colors?.map((color) => {
+                            const isSelected = selection.color === color;
+                            const isLight = isLightColor(color);
+                            return (
+                              <button
+                                key={color}
+                                onClick={() => updateSelection(selection.id, 'color', color)}
+                                className={`relative w-8 h-8 rounded-full transition-all duration-200 ring-2 ring-offset-1 ${
+                                  isSelected 
+                                    ? 'ring-black scale-110' 
+                                    : 'ring-gray-200 hover:ring-gray-400'
+                                }`}
+                                style={{ backgroundColor: color }}
+                                title={getColorName(color)}
+                              >
+                                {isSelected && (
+                                  <svg 
+                                    className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 ${isLight ? 'text-black' : 'text-white'}`}
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <p className="text-xs font-bold text-gray-700 mb-1.5">الكمية</p>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => updateSelection(selection.id, 'quantity', Math.max(1, selection.quantity - 1))}
+                          className="w-7 h-7 rounded-full bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-100 transition flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                        <span className="w-10 text-center font-bold text-sm text-black">{selection.quantity}</span>
+                        <button
+                          onClick={() => updateSelection(selection.id, 'quantity', selection.quantity + 1)}
+                          className="w-7 h-7 rounded-full bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-100 transition flex items-center justify-center"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <button
+                onClick={addSelection}
+                className="w-full py-2 rounded-xl border-2 border-dashed border-gray-300 text-gray-500 text-sm font-bold hover:border-gray-400 hover:text-gray-700 transition-all"
+              >
+                + إضافة قطعة أخرى
+              </button>
+              
+              <div className="bg-gray-100 rounded-xl p-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-gray-600">إجمالي القطع:</span>
+                  <span className="text-sm font-bold text-black">{totalItems} قطعة</span>
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-sm font-bold text-gray-600">الإجمالي:</span>
+                  <span className="text-lg font-bold text-black">{totalPrice} جنيه</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="sticky bottom-0 bg-white p-4 border-t border-gray-100 flex gap-3">
+              <button
+                onClick={confirmSelections}
+                disabled={!hasValidSelections()}
+                className={`flex-1 py-2.5 rounded-xl font-bold transition-all ${
+                  hasValidSelections()
+                    ? 'bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white hover:scale-[1.02] shadow-md'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                إضافة ({totalItems}) إلى السلة
+              </button>
+              
+              <button
+                onClick={cancelSelection}
+                className="flex-1 py-2.5 rounded-xl bg-linear-to-r from-red-500 via-rose-500 to-pink-500 text-white font-bold hover:scale-[1.02] transition-all shadow-md"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>
   );
-}
+});
+
+export default ProductCard;

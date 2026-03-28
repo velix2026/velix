@@ -1,7 +1,18 @@
+// app/layout.tsx
 import type { Metadata, Viewport } from "next";
+import { Cairo } from 'next/font/google';
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ToastProvider from "@/components/ToastProvider";
+
+// تحسين الخط للعربية - load faster مع performance
+const cairo = Cairo({
+  subsets: ['arabic'],
+  display: 'swap',
+  variable: '--font-cairo',
+  weight: ['400', '500', '600', '700', '800'],
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://velixstore.vercel.app"),
@@ -64,14 +75,27 @@ export const metadata: Metadata = {
   },
   category: "fashion",
   verification: {
-    google: "your-google-verification-code", // ضع الكود بعد ما تاخده من Google Search Console
+    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "",
+  },
+  // إضافة meta tags محسنة للـ mobile
+  other: {
+    'format-detection': 'telephone=no',
+    'msapplication-tap-highlight': 'no',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'black-translucent',
+    'apple-mobile-web-app-title': 'VELIX',
   },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#000000",
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
 };
 
 export default function RootLayout({
@@ -80,18 +104,39 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" className={cairo.variable}>
       <head>
+        {/* Favicon and Icons */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/logo.png" />
+        
+        {/* Preconnect for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        
+        {/* Preload critical assets */}
+        <link rel="preload" href="/logo.png" as="image" />
+        
+        {/* Sitemap and RSS - for better SEO */}
+        <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+        
+        {/* DNS Prefetch for external resources */}
+        <link rel="dns-prefetch" href="https://wa.me" />
+        <link rel="dns-prefetch" href="https://instagram.com" />
       </head>
-      <body className="flex flex-col min-h-screen bg-white">
+      <body className="flex flex-col min-h-screen bg-white font-sans antialiased">
+        {/* Toast Provider for notifications */}
+        <ToastProvider />
+        
+        {/* Header */}
         <Header />
+        
+        {/* Main Content */}
         <main className="grow">
           {children}
         </main>
+        
+        {/* Footer */}
         <Footer />
       </body>
     </html>

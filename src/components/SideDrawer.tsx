@@ -1,283 +1,142 @@
+// components/SideDrawer.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/lib/products';
+import { useCart, CartItem } from '@/hooks/useCart';
+import { useFavorites } from '@/hooks/useFavorites';
 import OrderModal from './OrderModal';
-import Toast from './Toast';
-
-interface CartItem extends Product {
-  quantity: number;
-  selectedSize?: string;
-  selectedColor?: string;
-}
 
 interface SideDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   type: 'favorites' | 'cart';
-  items: Product[] | CartItem[];
-  onRemove?: (id: number) => void;
-  onUpdateQuantity?: (id: number, quantity: number) => void;
-  onAddToCart?: (product: Product) => void;
 }
 
-export default function SideDrawer({
-  isOpen,
-  onClose,
-  type,
-  items: initialItems,
-  onRemove,
-  onUpdateQuantity,
-  onAddToCart,
-}: SideDrawerProps) {
+// Type Guard للتمييز بين CartItem و Product
+const isCartItem = (item: Product | CartItem): item is CartItem => {
+  return (item as CartItem).cartItemId !== undefined;
+};
+
+export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
   const title = type === 'favorites' ? 'المفضلة' : 'سلة التسوق';
   const emptyMessage = type === 'favorites' 
     ? 'لم تقم بإضافة أي منتجات إلى المفضلة بعد'
     : 'سلة التسوق فارغة';
   
-  const [localItems, setLocalItems] = useState<(Product | CartItem)[]>(initialItems);
+  const { cart, removeFromCart, updateCartQuantity } = useCart();
+  const { favorites, removeFromFavorites } = useFavorites();
+  
+  const items = type === 'cart' ? cart : favorites;
   const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
-  const [orderCartItems, setOrderCartItems] = useState<CartItem[]>([]);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const isMountedRef = useRef(true);
 
-  // دالة عرض رسائل الـ Toast
-  const showToast = (message: string, toastType: 'success' | 'error' | 'info' = 'success') => {
-    setToast({ message, type: toastType });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  // دالة معالجة الأخطاء الموحدة
-  const handleError = (error: any, context: string, showUserMessage: string = 'حدث خطأ، يرجى المحاولة مرة أخرى') => {
-    console.error(`[${context}]`, error);
-    showToast(showUserMessage, 'error');
-  };
-
-  // حساب الإجمالي
   useEffect(() => {
-    try {
-      if (type === 'cart') {
-        const cartItems = localItems as CartItem[];
-        const sum = cartItems.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
-        setTotal(sum);
-      }
-    } catch (error) {
-      handleError(error, 'Total Calculation', 'حدث خطأ في حساب الإجمالي');
+    if (type === 'cart') {
+      const sum = cart.reduce((sum, item) => {
+        const price = item.oldPrice && item.oldPrice > item.price ? item.price : item.price;
+        return sum + price * (item.quantity || 1);
+      }, 0);
+      setTotal(sum);
     }
-  }, [localItems, type]);
-
-  // تحميل البيانات من localStorage مع معالجة الأخطاء
-  const loadFromStorage = () => {
-    if (isLoading) return;
-    setIsLoading(true);
-    
-    setTimeout(() => {
-      try {
-        if (type === 'cart') {
-          const saved = localStorage.getItem('cart');
-          if (saved) {
-            const cartItems = JSON.parse(saved);
-            if (Array.isArray(cartItems)) {
-              const cartWithQuantity = cartItems.map((item: CartItem) => ({ 
-                ...item, 
-                quantity: item.quantity || 1 
-              }));
-              setLocalItems(cartWithQuantity);
-            } else {
-              setLocalItems([]);
-              showToast('تم مسح البيانات غير الصالحة من السلة', 'info');
-            }
-          } else {
-            setLocalItems([]);
-          }
-        } else {
-          const saved = localStorage.getItem('favorites');
-          if (saved) {
-            const favorites = JSON.parse(saved);
-            if (Array.isArray(favorites)) {
-              setLocalItems(favorites);
-            } else {
-              setLocalItems([]);
-              showToast('تم مسح البيانات غير الصالحة من المفضلة', 'info');
-            }
-          } else {
-            setLocalItems([]);
-          }
-        }
-      } catch (error) {
-        handleError(error, 'Loading from storage', 'حدث خطأ في تحميل البيانات');
-        if (type === 'cart') {
-          localStorage.removeItem('cart');
-        } else {
-          localStorage.removeItem('favorites');
-        }
-        setLocalItems([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 0);
-  };
+  }, [cart, type]);
 
   useEffect(() => {
-    if (isOpen) {
-      loadFromStorage();
+    const handleEscKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    
+    window.addEventListener('keydown', handleEscKey);
+    return () => window.removeEventListener('keydown', handleEscKey);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen && closeButtonRef.current) {
+      closeButtonRef.current.focus();
     }
   }, [isOpen]);
 
-  // الاستماع للتحديثات من المكونات الأخرى مع معالجة الأخطاء
-  useEffect(() => {
-    const handleUpdate = () => {
-      try {
-        setTimeout(() => {
-          if (type === 'cart') {
-            const saved = localStorage.getItem('cart');
-            if (saved) {
-              const cartItems = JSON.parse(saved);
-              if (Array.isArray(cartItems)) {
-                const cartWithQuantity = cartItems.map((item: CartItem) => ({ 
-                  ...item, 
-                  quantity: item.quantity || 1 
-                }));
-                setLocalItems(cartWithQuantity);
-              } else {
-                setLocalItems([]);
-              }
-            } else {
-              setLocalItems([]);
-            }
-          } else {
-            const saved = localStorage.getItem('favorites');
-            if (saved) {
-              const favorites = JSON.parse(saved);
-              if (Array.isArray(favorites)) {
-                setLocalItems(favorites);
-              } else {
-                setLocalItems([]);
-              }
-            } else {
-              setLocalItems([]);
-            }
-          }
-        }, 0);
-      } catch (error) {
-        handleError(error, 'Event Update', 'حدث خطأ في تحديث البيانات');
-      }
-    };
-    
-    window.addEventListener('cartUpdated', handleUpdate);
-    window.addEventListener('favoritesUpdated', handleUpdate);
-    return () => {
-      window.removeEventListener('cartUpdated', handleUpdate);
-      window.removeEventListener('favoritesUpdated', handleUpdate);
-    };
-  }, [type]);
-
-  // منع التمرير عند فتح الدراور
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     }
     return () => { 
-      document.body.style.overflow = 'unset'; 
+      document.body.style.overflow = ''; 
     };
   }, [isOpen]);
 
-  // تحديث الكمية مع معالجة الأخطاء
-  const handleUpdateQuantity = (id: number, newQuantity: number) => {
-    try {
-      if (newQuantity < 1) return;
-      
-      // البحث عن المنتج للحصول على اسمه
-      const product = localItems.find(item => item.id === id);
-      const productName = product?.name || 'المنتج';
-      
-      if (onUpdateQuantity) {
-        onUpdateQuantity(id, newQuantity);
-        showToast(`🔄 تم تحديث كمية ${productName}`, 'info');
-      }
-      
-      setLocalItems(prev => 
-        prev.map(item => 
-          item.id === id ? { ...item, quantity: newQuantity } : item
-        )
-      );
-    } catch (error) {
-      handleError(error, 'Update Quantity', 'حدث خطأ في تحديث الكمية');
-    }
-  };
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-  // إضافة إلى السلة مع معالجة الأخطاء
-  const handleAddToCart = (product: Product) => {
-    try {
-      if (onAddToCart) {
-        onAddToCart(product);
-        // استخدام اسم المنتج بدلاً من الـ ID
-        showToast(`✅ تم إضافة "${product.name}" إلى السلة`, 'success');
-      }
-    } catch (error) {
-      handleError(error, 'Add to Cart', `حدث خطأ في إضافة ${product?.name || 'المنتج'} إلى السلة`);
-    }
-  };
+  const handleUpdateQuantity = useCallback((cartItemId: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    updateCartQuantity(cartItemId, newQuantity);
+  }, [updateCartQuantity]);
 
-  // إزالة المنتج مع معالجة الأخطاء
-  const handleRemove = (id: number) => {
-    try {
-      // البحث عن المنتج للحصول على اسمه قبل الإزالة
-      const product = localItems.find(item => item.id === id);
-      const productName = product?.name || 'المنتج';
-      
-      if (onRemove) {
-        onRemove(id);
-        // استخدام اسم المنتج بدلاً من الـ ID
-        showToast(`🗑️ تم إزالة "${productName}" من ${type === 'cart' ? 'السلة' : 'المفضلة'}`, 'info');
+  const handleRemove = useCallback((item: Product | CartItem) => {
+    if (type === 'cart') {
+      if (isCartItem(item)) {
+        removeFromCart(item.cartItemId, item.name);
       }
-    } catch (error) {
-      handleError(error, 'Remove Item', 'حدث خطأ في إزالة المنتج');
+    } else {
+      removeFromFavorites(item.id, item.name);
     }
-  };
+  }, [type, removeFromCart, removeFromFavorites]);
 
-  // فتح نموذج الطلب
-  const openOrderModal = () => {
-    try {
-      const cartItems = localItems as CartItem[];
-      if (cartItems.length === 0) {
-        showToast('سلة التسوق فارغة، أضف منتجات أولاً', 'error');
-        return;
-      }
-      setOrderCartItems(cartItems);
-      setIsOrderModalOpen(true);
-    } catch (error) {
-      handleError(error, 'Open Order Modal', 'حدث خطأ في فتح نموذج الطلب');
+  const openOrderModal = useCallback(() => {
+    if (cart.length === 0) {
+      return;
     }
-  };
+    setIsOrderModalOpen(true);
+  }, [cart.length]);
 
-  // معالجة تقديم الطلب
-  const handleOrderSubmit = async (orderData: any) => {
+  const handleOrderSubmit = useCallback(async (orderData: any) => {
     try {
-      console.log('Order submitted:', orderData);
-      console.log('Cart items:', orderCartItems);
-      console.log('Total amount:', total);
-      
-      // هنا يمكن إضافة API call لإرسال الطلب
-      // await submitOrderToAPI(orderData, orderCartItems, total);
-      
-      // محاكاة نجاح العملية
-      showToast('✅ تم إرسال الطلب بنجاح! سنتواصل معك قريباً', 'success');
-      
-      // تنظيف السلة بعد الطلب الناجح
-      localStorage.removeItem('cart');
-      window.dispatchEvent(new Event('cartUpdated'));
-      
       setIsOrderModalOpen(false);
       onClose();
     } catch (error) {
-      handleError(error, 'Order Submission', 'حدث خطأ في إرسال الطلب، يرجى المحاولة مرة أخرى');
+      console.error('Order submission error:', error);
     }
+  }, [onClose]);
+
+  const getItemKey = (item: Product | CartItem): string => {
+    if (type === 'cart') {
+      if (isCartItem(item)) {
+        return item.cartItemId;
+      }
+      return `${item.id}-${Date.now()}`;
+    }
+    return `fav-${item.id}`;
+  };
+
+  const getColorName = (colorCode: string): string => {
+    const colorMap: Record<string, string> = {
+      '#000000': 'أسود',
+      '#FFFFFF': 'أبيض',
+      '#808080': 'رمادي',
+      '#FF0000': 'أحمر',
+      '#0000FF': 'أزرق',
+      '#008000': 'أخضر',
+      '#FFFF00': 'أصفر',
+      '#FFC0CB': 'وردي',
+      '#A52A2A': 'بني',
+      '#800080': 'بنفسجي',
+    };
+    return colorMap[colorCode] || colorCode;
   };
 
   if (!isOpen) return null;
@@ -285,158 +144,195 @@ export default function SideDrawer({
   return (
     <>
       <div 
-        className="fixed inset-0 bg-black/40 backdrop-blur-md z-50 transition-all duration-300" 
-        onClick={onClose} 
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-all duration-300" 
+        onClick={onClose}
+        aria-hidden="true"
       />
       
-      <div className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl z-50 transform transition-all duration-300 border border-gray-100/50 ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
-        <div className="flex items-center justify-between p-4 border-b border-gray-100/80">
-          <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+      <div
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className={`fixed top-0 left-0 h-full w-full max-w-md bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Header - ثابت في الأعلى */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white z-10">
+          <h2 className="text-lg font-bold text-black">{title}</h2>
           <button 
+            ref={closeButtonRef}
             onClick={onClose} 
-            className="p-1.5 rounded-full transition-all duration-300 hover:bg-gray-100/80" 
+            className="p-2 rounded-full transition-all duration-300 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
             aria-label="إغلاق"
           >
-            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div className="max-h-[60vh] overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-gray-300">
-          {isLoading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-              <p className="text-gray-500 text-sm mt-2">جاري التحميل...</p>
-            </div>
-          ) : localItems.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-5xl mb-3 opacity-70">{type === 'favorites' ? '❤️' : '🛒'}</div>
-              <p className="text-gray-500 text-sm">{emptyMessage}</p>
-              <button 
-                onClick={() => { 
-                  onClose(); 
-                  window.location.href = '/products'; 
-                }} 
-                className="mt-4 text-sm text-black underline-offset-4 hover:underline transition"
-              >
-                مواصلة التسوق
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {localItems.map((item) => (
-                <div key={item.id} className="flex gap-3 border-b border-gray-100/80 pb-3 last:border-0">
-                  <Link 
-                    href={`/products/${item.id}`} 
-                    onClick={onClose} 
-                    className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-50 shrink-0 transition-all hover:scale-105"
-                  >
-                    <Image 
-                      src={item.mainImage} 
-                      alt={item.name} 
-                      fill 
-                      className="object-cover"
-                      onError={() => showToast(`فشل تحميل صورة ${item.name}`, 'error')}
-                    />
-                  </Link>
-                  
-                  <div className="flex-1 min-w-0">
+        {/* محتوى قابل للسكرول - مع padding مناسب وارتفاع محسوب */}
+        <div 
+          ref={contentRef}
+          className="flex-1 overflow-y-auto overflow-x-hidden"
+          style={{ 
+            height: type === 'cart' && items.length > 0 ? 'calc(100% - 73px - 140px)' : 'calc(100% - 73px)',
+            WebkitOverflowScrolling: 'touch' // سكرول سلس على iOS
+          }}
+        >
+          <div className="p-4">
+            {items.length === 0 ? (
+              <div className="flex flex-col items-center justify-center min-h-75 text-center">
+                <div className="text-6xl mb-4 opacity-50">{type === 'favorites' ? '❤️' : '🛒'}</div>
+                <p className="text-gray-500 font-bold text-sm">{emptyMessage}</p>
+                <button 
+                  onClick={() => { 
+                    onClose(); 
+                    window.location.href = '/products'; 
+                  }} 
+                  className="mt-4 text-sm text-black font-bold underline-offset-4 hover:underline transition"
+                >
+                  مواصلة التسوق
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4 pb-4">
+                {items.map((item) => (
+                  <div key={getItemKey(item)} className="flex gap-3">
                     <Link 
                       href={`/products/${item.id}`} 
                       onClick={onClose} 
-                      className="font-semibold text-sm hover:text-gray-600 transition line-clamp-1"
+                      className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-50 shrink-0 transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400"
                     >
-                      {item.name}
+                      <Image 
+                        src={item.mainImage} 
+                        alt={item.name} 
+                        fill 
+                        sizes="80px"
+                        className="object-cover"
+                      />
                     </Link>
-                    <p className="text-gray-400 text-xs mb-1">{item.category}</p>
                     
-                    {/* عرض المقاس واللون */}
-                    {type === 'cart' && (item as CartItem).selectedSize && (
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                        <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[10px]">
-                          مقاس: {(item as CartItem).selectedSize}
-                        </span>
-                      </div>
-                    )}
-                    {type === 'cart' && (item as CartItem).selectedColor && (
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                        <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[10px] flex items-center gap-1">
-                          <span 
-                            className="w-2 h-2 rounded-full" 
-                            style={{ backgroundColor: (item as CartItem).selectedColor }} 
-                          />
-                          لون: {(item as CartItem).selectedColor}
-                        </span>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="font-bold text-sm text-gray-900">
-                        {(item as CartItem).quantity 
-                          ? (item.price * (item as CartItem).quantity).toFixed(0) 
-                          : item.price} جنيه
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <Link 
+                        href={`/products/${item.id}`} 
+                        onClick={onClose} 
+                        className="font-bold text-sm text-black hover:text-gray-600 transition line-clamp-2"
+                      >
+                        {item.name}
+                      </Link>
+                      <p className="text-gray-400 font-bold text-xs mb-2">{item.category}</p>
                       
-                      {type === 'cart' && onUpdateQuantity && (
-                        <div className="flex items-center gap-1">
-                          <button 
-                            onClick={() => handleUpdateQuantity(item.id, (item as CartItem).quantity - 1)} 
-                            className="w-6 h-6 rounded-full border border-gray-200 hover:bg-gray-100 text-sm flex items-center justify-center transition"
-                            aria-label="تقليل الكمية"
-                          >
-                            -
-                          </button>
-                          <span className="w-5 text-center text-xs font-medium">
-                            {(item as CartItem).quantity}
+                      {type === 'cart' && (item as any).selectedSize && (
+                        <div className="inline-flex items-center gap-1 text-xs text-gray-500 font-bold mb-2 ml-2">
+                          <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px]">
+                            مقاس: {(item as any).selectedSize}
                           </span>
-                          <button 
-                            onClick={() => handleUpdateQuantity(item.id, (item as CartItem).quantity + 1)} 
-                            className="w-6 h-6 rounded-full border border-gray-200 hover:bg-gray-100 text-sm flex items-center justify-center transition"
-                            aria-label="زيادة الكمية"
-                          >
-                            +
-                          </button>
+                        </div>
+                      )}
+                      {type === 'cart' && (item as any).selectedColor && (
+                        <div className="inline-flex items-center gap-1 text-xs text-gray-500 font-bold mb-2">
+                          <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px] flex items-center gap-1">
+                            <span 
+                              className="w-2 h-2 rounded-full" 
+                              style={{ backgroundColor: (item as any).selectedColor }} 
+                            />
+                            لون: {getColorName((item as any).selectedColor)}
+                          </span>
                         </div>
                       )}
                       
-                      {type === 'favorites' && onAddToCart && (
-                        <button 
-                          onClick={() => handleAddToCart(item)} 
-                          className="text-xs bg-black text-white px-2 py-1 rounded-full hover:bg-gray-800 transition"
-                        >
-                          إضافة للسلة
-                        </button>
-                      )}
-                      
-                      {onRemove && (
-                        <button 
-                          onClick={() => handleRemove(item.id)} 
-                          className="text-red-400 hover:text-red-600 transition" 
-                          aria-label="حذف"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      )}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-bold text-sm text-black">
+                            {item.oldPrice && item.oldPrice > item.price ? (
+                              <>
+                                <span className="line-through text-gray-400 text-xs ml-1">{item.oldPrice}</span>
+                                {item.price} جنيه
+                              </>
+                            ) : (
+                              `${item.price} جنيه`
+                            )}
+                          </span>
+                          {type === 'cart' && (item as any).quantity > 1 && (
+                            <span className="text-xs text-gray-400 font-bold mr-2">
+                              × {(item as any).quantity}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          {type === 'cart' && isCartItem(item) && (
+                            <div className="flex items-center gap-1 bg-gray-50 rounded-lg px-1">
+                              <button 
+                                onClick={() => handleUpdateQuantity(item.cartItemId, (item as CartItem).quantity - 1)} 
+                                className="w-6 h-6 rounded-full hover:bg-gray-200 text-sm font-bold flex items-center justify-center transition"
+                                aria-label="تقليل الكمية"
+                              >
+                                -
+                              </button>
+                              <span className="w-6 text-center text-xs font-bold text-black">
+                                {(item as CartItem).quantity}
+                              </span>
+                              <button 
+                                onClick={() => handleUpdateQuantity(item.cartItemId, (item as CartItem).quantity + 1)} 
+                                className="w-6 h-6 rounded-full hover:bg-gray-200 text-sm font-bold flex items-center justify-center transition"
+                                aria-label="زيادة الكمية"
+                              >
+                                +
+                              </button>
+                            </div>
+                          )}
+                          
+                          <button 
+                            onClick={() => handleRemove(item)} 
+                            className="text-red-400 hover:text-red-600 transition p-1" 
+                            aria-label="حذف"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {type === 'cart' && localItems.length > 0 && !isLoading && (
-          <div className="border-t border-gray-100/80 p-4 bg-linear-to-b from-white to-gray-50/80 rounded-b-2xl">
-            <div className="flex justify-between font-semibold text-sm mb-3">
-              <span className="text-gray-600">الإجمالي</span>
-              <span className="text-gray-900 text-lg">{total.toFixed(0)} جنيه</span>
+        {/* Footer - ثابت في الأسفل (للسلة فقط) */}
+        {type === 'cart' && items.length > 0 && (
+          <div className="border-t border-gray-100 p-4 bg-white sticky bottom-0 z-10">
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-gray-600 font-bold text-sm">الإجمالي</span>
+              <div className="text-right">
+                {(() => {
+                  const hasDiscount = cart.some(item => item.oldPrice && item.oldPrice > item.price);
+                  const originalTotal = cart.reduce((sum, item) => sum + (item.oldPrice || item.price) * item.quantity, 0);
+                  const savings = originalTotal - total;
+                  
+                  return (
+                    <>
+                      {hasDiscount && savings > 0 && (
+                        <div className="text-xs text-green-600 font-bold mb-1">
+                          وفرت {savings.toFixed(0)} جنيه
+                        </div>
+                      )}
+                      <span className="text-xl font-bold text-black">{total.toFixed(0)}</span>
+                      <span className="text-xs text-gray-400 font-bold mr-1">جنيه</span>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
             <button 
               onClick={openOrderModal} 
-              className="w-full bg-black text-white py-2.5 rounded-full hover:bg-gray-800 transition-all duration-300 text-sm font-medium shadow-md hover:shadow-lg"
+              className="w-full bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white font-bold py-3 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 text-sm shadow-md hover:shadow-lg"
             >
               إتمام الطلب
             </button>
@@ -445,7 +341,7 @@ export default function SideDrawer({
                 onClose(); 
                 window.location.href = '/products'; 
               }} 
-              className="w-full text-center text-xs text-gray-400 mt-3 hover:text-gray-500 transition"
+              className="w-full text-center text-xs text-gray-400 font-bold mt-3 hover:text-gray-500 transition"
             >
               مواصلة التسوق
             </button>
@@ -453,26 +349,18 @@ export default function SideDrawer({
         )}
       </div>
 
-      {isOrderModalOpen && orderCartItems.length > 0 && (
+      {isOrderModalOpen && cart.length > 0 && (
         <OrderModal 
           isOpen={isOrderModalOpen} 
           onClose={() => setIsOrderModalOpen(false)} 
           product={{
             id: 0,
-            name: `طلب متعدد (${orderCartItems.length} منتج)`,
+            name: `طلب متعدد (${cart.length} منتج)`,
             price: total,
-            mainImage: orderCartItems[0]?.mainImage || '',
+            mainImage: cart[0]?.mainImage || '',
             quantity: 1,
           }} 
           onSubmit={handleOrderSubmit} 
-        />
-      )}
-
-      {toast && (
-        <Toast 
-          message={toast.message} 
-          type={toast.type} 
-          onClose={() => setToast(null)} 
         />
       )}
     </>

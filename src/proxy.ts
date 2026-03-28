@@ -1,32 +1,49 @@
+// proxy.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// المسارات المحمية التي تحتاج توثيق
-const protectedPaths = [
-  '/api/products/[id]',
-  '/api/orders',
-  '/api/orders/[id]',
-];
-
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const method = request.method;
   
-  // التحقق من أن المسار محمي
-  const isProtected = protectedPaths.some(path => {
-    const pattern = new RegExp(path.replace(/\[id\]/g, '\\d+'));
-    return pattern.test(pathname);
-  });
+  console.log('🔍 Proxy check:', pathname, method);
   
-  if (isProtected) {
-    // التحقق من وجود session في الـ headers
-    const adminAuth = request.cookies.get('adminAuth')?.value;
-    
-    if (!adminAuth || adminAuth !== 'true') {
-      return NextResponse.json(
-        { error: 'غير مصرح به' },
-        { status: 401 }
-      );
-    }
+  // ✅ المسارات المفتوحة للجميع (العملاء)
+  const publicPaths = [
+    '/api/orders',        // إنشاء طلب جديد
+    '/api/orders-simple', // API بسيط للاختبار
+    '/api/products',      // عرض المنتجات
+    '/api/analytics',     // عرض الإحصائيات
+    '/api/test-db',       // اختبار قاعدة البيانات
+    '/api/test-redis',    // اختبار Redis
+    '/api/test',          // اختبار عام
+  ];
+  
+  // ✅ لو المسار مفتوح للجميع، سمح بالدخول
+  if (publicPaths.includes(pathname)) {
+    console.log('✅ Public path allowed:', pathname);
+    return NextResponse.next();
+  }
+  
+  // ✅ GET للمنتجات مفتوح للجميع
+  if (pathname === '/api/products' && method === 'GET') {
+    return NextResponse.next();
+  }
+  
+  // ✅ POST للطلبات مفتوح للجميع
+  if (pathname === '/api/orders' && method === 'POST') {
+    return NextResponse.next();
+  }
+  
+  // ✅ باقي المسارات تتطلب توثيق للمسؤول
+  const adminAuth = request.cookies.get('adminAuth')?.value;
+  
+  if (!adminAuth || adminAuth !== 'true') {
+    console.log('🔒 Admin auth required for:', pathname);
+    return NextResponse.json(
+      { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
+      { status: 401 }
+    );
   }
   
   return NextResponse.next();

@@ -1,3 +1,4 @@
+// app/admin/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -18,10 +19,19 @@ const colors = [
   { name: 'بيج', value: '#F5F5DC', code: 'beige', border: true },
 ];
 
+interface AnalyticsData {
+  totalOrders: number;
+  totalSales: number;
+  totalCustomers: number;
+  totalReviews: number;
+  averageRating: number;
+}
+
 export default function AdminPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [product, setProduct] = useState({
     name: '',
     price: '',
@@ -45,6 +55,25 @@ export default function AdminPage() {
     }
     return 0;
   };
+
+  // جلب الإحصائيات
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const res = await fetch('/api/analytics');
+        const data = await res.json();
+        if (!data.error) {
+          setAnalytics(data);
+        }
+      } catch (error) {
+        console.error('Error fetching analytics:', error);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchAnalytics();
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const auth = sessionStorage.getItem('adminAuth');
@@ -157,12 +186,13 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-stone-50 to-white pt-24 pb-12">
       <div className="container mx-auto px-4">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
           <div className="text-center sm:text-right">
             <h1 className="text-3xl font-bold text-stone-800">VELIX</h1>
             <p className="text-stone-400 mt-1 font-medium">لوحة التحكم</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap justify-center">
             <Link href="/admin/products" className="px-5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-full text-sm font-medium flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10" /></svg>
               إدارة المنتجات
@@ -178,6 +208,40 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {/* ✅ قسم الإحصائيات - يظهر بس لو في بيانات */}
+        {analytics && (analytics.totalOrders > 0 || analytics.totalSales > 0) && (
+          <div className="mb-8">
+            <h2 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <span className="text-xl">📊</span>
+              الإحصائيات
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white rounded-2xl p-5 shadow-md border border-stone-100">
+                <div className="text-2xl font-black text-stone-800">{analytics.totalOrders.toLocaleString()}</div>
+                <div className="text-stone-400 text-sm font-medium mt-1">إجمالي الطلبات</div>
+              </div>
+              <div className="bg-white rounded-2xl p-5 shadow-md border border-stone-100">
+                <div className="text-2xl font-black text-stone-800">{analytics.totalCustomers.toLocaleString()}</div>
+                <div className="text-stone-400 text-sm font-medium mt-1">إجمالي العملاء</div>
+              </div>
+              {analytics.averageRating > 0 && (
+                <div className="bg-white rounded-2xl p-5 shadow-md border border-stone-100">
+                  <div className="text-2xl font-black text-stone-800 flex items-center gap-1">
+                    {analytics.averageRating}
+                    <span className="text-yellow-500 text-xl">★</span>
+                  </div>
+                  <div className="text-stone-400 text-sm font-medium mt-1">متوسط التقييم</div>
+                </div>
+              )}
+              <div className="bg-white rounded-2xl p-5 shadow-md border border-stone-100">
+                <div className="text-2xl font-black text-stone-800">{Math.floor(analytics.totalSales).toLocaleString()}</div>
+                <div className="text-stone-400 text-sm font-medium mt-1">إجمالي المبيعات (جنيه)</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* نموذج إضافة منتج */}
         <form onSubmit={handleSubmit} className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl border border-stone-100 overflow-hidden">
           <div className="p-6 space-y-5">
             <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">اسم المنتج</label><input type="text" value={product.name} onChange={(e) => setProduct({ ...product, name: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" required dir="rtl" /></div>
