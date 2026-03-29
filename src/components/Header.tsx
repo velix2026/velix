@@ -234,22 +234,16 @@ export default function Header() {
 
       {/* DRAWERS */}
       <SideDrawer
-        isOpen={isFavoritesDrawerOpen}
-        onClose={() => setIsFavoritesDrawerOpen(false)}
-        type="favorites"
-        items={favorites}
-        onRemove={removeFromFavorites}
-        onAddToCart={addToCart}
-      />
+          isOpen={isFavoritesDrawerOpen}
+          onClose={() => setIsFavoritesDrawerOpen(false)}
+          type="favorites"
+        />
 
-      <SideDrawer
-        isOpen={isCartDrawerOpen}
-        onClose={() => setIsCartDrawerOpen(false)}
-        type="cart"
-        items={cart}
-        onRemove={removeFromCart}
-        onUpdateQuantity={updateCartQuantity}
-      />
+        <SideDrawer
+          isOpen={isCartDrawerOpen}
+          onClose={() => setIsCartDrawerOpen(false)}
+          type="cart"
+        />
 
       {/* FLOATING WHATSAPP BUBBLE */}
       <a

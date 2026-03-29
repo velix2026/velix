@@ -35,7 +35,6 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const isMountedRef = useRef(true);
 
   useEffect(() => {
     if (type === 'cart') {
@@ -75,32 +74,21 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
     };
   }, [isOpen]);
 
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
   const handleUpdateQuantity = useCallback((cartItemId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
     updateCartQuantity(cartItemId, newQuantity);
   }, [updateCartQuantity]);
 
   const handleRemove = useCallback((item: Product | CartItem) => {
-    if (type === 'cart') {
-      if (isCartItem(item)) {
-        removeFromCart(item.cartItemId, item.name);
-      }
+    if (type === 'cart' && isCartItem(item)) {
+      removeFromCart(item.cartItemId, item.name);
     } else {
       removeFromFavorites(item.id, item.name);
     }
   }, [type, removeFromCart, removeFromFavorites]);
 
   const openOrderModal = useCallback(() => {
-    if (cart.length === 0) {
-      return;
-    }
+    if (cart.length === 0) return;
     setIsOrderModalOpen(true);
   }, [cart.length]);
 
@@ -114,11 +102,8 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
   }, [onClose]);
 
   const getItemKey = (item: Product | CartItem): string => {
-    if (type === 'cart') {
-      if (isCartItem(item)) {
-        return item.cartItemId;
-      }
-      return `${item.id}-${Date.now()}`;
+    if (type === 'cart' && isCartItem(item)) {
+      return item.cartItemId;
     }
     return `fav-${item.id}`;
   };
@@ -158,7 +143,6 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Header - ثابت في الأعلى */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white z-10">
           <h2 className="text-lg font-bold text-black">{title}</h2>
           <button 
@@ -173,139 +157,135 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
           </button>
         </div>
 
-        {/* محتوى قابل للسكرول - مع padding مناسب وارتفاع محسوب */}
         <div 
           ref={contentRef}
-          className="flex-1 overflow-y-auto overflow-x-hidden"
+          className="flex-1 overflow-y-auto overflow-x-hidden p-4"
           style={{ 
             height: type === 'cart' && items.length > 0 ? 'calc(100% - 73px - 140px)' : 'calc(100% - 73px)',
-            WebkitOverflowScrolling: 'touch' // سكرول سلس على iOS
+            WebkitOverflowScrolling: 'touch'
           }}
         >
-          <div className="p-4">
-            {items.length === 0 ? (
-              <div className="flex flex-col items-center justify-center min-h-75 text-center">
-                <div className="text-6xl mb-4 opacity-50">{type === 'favorites' ? '❤️' : '🛒'}</div>
-                <p className="text-gray-500 font-bold text-sm">{emptyMessage}</p>
-                <button 
-                  onClick={() => { 
-                    onClose(); 
-                    window.location.href = '/products'; 
-                  }} 
-                  className="mt-4 text-sm text-black font-bold underline-offset-4 hover:underline transition"
-                >
-                  مواصلة التسوق
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4 pb-4">
-                {items.map((item) => (
-                  <div key={getItemKey(item)} className="flex gap-3">
+          {items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full min-h-75 text-center">
+              <div className="text-6xl mb-4 opacity-50">{type === 'favorites' ? '❤️' : '🛒'}</div>
+              <p className="text-gray-500 font-bold text-sm">{emptyMessage}</p>
+              <button 
+                onClick={() => { 
+                  onClose(); 
+                  window.location.href = '/products'; 
+                }} 
+                className="mt-4 text-sm text-black font-bold underline-offset-4 hover:underline transition"
+              >
+                مواصلة التسوق
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4 pb-4">
+              {items.map((item) => (
+                <div key={getItemKey(item)} className="flex gap-3">
+                  <Link 
+                    href={`/products/${item.id}`} 
+                    onClick={onClose} 
+                    className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-50 shrink-0 transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  >
+                    <Image 
+                      src={item.mainImage} 
+                      alt={item.name} 
+                      fill 
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  </Link>
+                  
+                  <div className="flex-1 min-w-0">
                     <Link 
                       href={`/products/${item.id}`} 
                       onClick={onClose} 
-                      className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-50 shrink-0 transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                      className="font-bold text-sm text-black hover:text-gray-600 transition line-clamp-2"
                     >
-                      <Image 
-                        src={item.mainImage} 
-                        alt={item.name} 
-                        fill 
-                        sizes="80px"
-                        className="object-cover"
-                      />
+                      {item.name}
                     </Link>
+                    <p className="text-gray-400 font-bold text-xs mb-2">{item.category}</p>
                     
-                    <div className="flex-1 min-w-0">
-                      <Link 
-                        href={`/products/${item.id}`} 
-                        onClick={onClose} 
-                        className="font-bold text-sm text-black hover:text-gray-600 transition line-clamp-2"
-                      >
-                        {item.name}
-                      </Link>
-                      <p className="text-gray-400 font-bold text-xs mb-2">{item.category}</p>
+                    {type === 'cart' && (item as any).selectedSize && (
+                      <div className="inline-flex items-center gap-1 text-xs text-gray-500 font-bold mb-2 ml-2">
+                        <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px]">
+                          مقاس: {(item as any).selectedSize}
+                        </span>
+                      </div>
+                    )}
+                    {type === 'cart' && (item as any).selectedColor && (
+                      <div className="inline-flex items-center gap-1 text-xs text-gray-500 font-bold mb-2">
+                        <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px] flex items-center gap-1">
+                          <span 
+                            className="w-2 h-2 rounded-full" 
+                            style={{ backgroundColor: (item as any).selectedColor }} 
+                          />
+                          لون: {getColorName((item as any).selectedColor)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-sm text-black">
+                          {item.oldPrice && item.oldPrice > item.price ? (
+                            <>
+                              <span className="line-through text-gray-400 text-xs ml-1">{item.oldPrice}</span>
+                              {item.price} جنيه
+                            </>
+                          ) : (
+                            `${item.price} جنيه`
+                          )}
+                        </span>
+                        {type === 'cart' && (item as any).quantity > 1 && (
+                          <span className="text-xs text-gray-400 font-bold mr-2">
+                            × {(item as any).quantity}
+                          </span>
+                        )}
+                      </div>
                       
-                      {type === 'cart' && (item as any).selectedSize && (
-                        <div className="inline-flex items-center gap-1 text-xs text-gray-500 font-bold mb-2 ml-2">
-                          <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px]">
-                            مقاس: {(item as any).selectedSize}
-                          </span>
-                        </div>
-                      )}
-                      {type === 'cart' && (item as any).selectedColor && (
-                        <div className="inline-flex items-center gap-1 text-xs text-gray-500 font-bold mb-2">
-                          <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px] flex items-center gap-1">
-                            <span 
-                              className="w-2 h-2 rounded-full" 
-                              style={{ backgroundColor: (item as any).selectedColor }} 
-                            />
-                            لون: {getColorName((item as any).selectedColor)}
-                          </span>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="font-bold text-sm text-black">
-                            {item.oldPrice && item.oldPrice > item.price ? (
-                              <>
-                                <span className="line-through text-gray-400 text-xs ml-1">{item.oldPrice}</span>
-                                {item.price} جنيه
-                              </>
-                            ) : (
-                              `${item.price} جنيه`
-                            )}
-                          </span>
-                          {type === 'cart' && (item as any).quantity > 1 && (
-                            <span className="text-xs text-gray-400 font-bold mr-2">
-                              × {(item as any).quantity}
+                      <div className="flex items-center gap-2">
+                        {type === 'cart' && isCartItem(item) && (
+                          <div className="flex items-center gap-1 bg-gray-50 rounded-lg px-1">
+                            <button 
+                              onClick={() => handleUpdateQuantity(item.cartItemId, (item as CartItem).quantity - 1)} 
+                              className="w-6 h-6 rounded-full hover:bg-gray-200 text-sm font-bold flex items-center justify-center transition"
+                              aria-label="تقليل الكمية"
+                            >
+                              -
+                            </button>
+                            <span className="w-6 text-center text-xs font-bold text-black">
+                              {(item as CartItem).quantity}
                             </span>
-                          )}
-                        </div>
+                            <button 
+                              onClick={() => handleUpdateQuantity(item.cartItemId, (item as CartItem).quantity + 1)} 
+                              className="w-6 h-6 rounded-full hover:bg-gray-200 text-sm font-bold flex items-center justify-center transition"
+                              aria-label="زيادة الكمية"
+                            >
+                              +
+                            </button>
+                          </div>
+                        )}
                         
-                        <div className="flex items-center gap-2">
-                          {type === 'cart' && isCartItem(item) && (
-                            <div className="flex items-center gap-1 bg-gray-50 rounded-lg px-1">
-                              <button 
-                                onClick={() => handleUpdateQuantity(item.cartItemId, (item as CartItem).quantity - 1)} 
-                                className="w-6 h-6 rounded-full hover:bg-gray-200 text-sm font-bold flex items-center justify-center transition"
-                                aria-label="تقليل الكمية"
-                              >
-                                -
-                              </button>
-                              <span className="w-6 text-center text-xs font-bold text-black">
-                                {(item as CartItem).quantity}
-                              </span>
-                              <button 
-                                onClick={() => handleUpdateQuantity(item.cartItemId, (item as CartItem).quantity + 1)} 
-                                className="w-6 h-6 rounded-full hover:bg-gray-200 text-sm font-bold flex items-center justify-center transition"
-                                aria-label="زيادة الكمية"
-                              >
-                                +
-                              </button>
-                            </div>
-                          )}
-                          
-                          <button 
-                            onClick={() => handleRemove(item)} 
-                            className="text-red-400 hover:text-red-600 transition p-1" 
-                            aria-label="حذف"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
+                        <button 
+                          onClick={() => handleRemove(item)} 
+                          className="text-red-400 hover:text-red-600 transition p-1" 
+                          aria-label="حذف"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Footer - ثابت في الأسفل (للسلة فقط) */}
         {type === 'cart' && items.length > 0 && (
           <div className="border-t border-gray-100 p-4 bg-white sticky bottom-0 z-10">
             <div className="flex justify-between items-center mb-3">
