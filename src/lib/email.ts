@@ -1,4 +1,6 @@
 // lib/email.ts
+export const runtime = 'nodejs';
+
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
@@ -15,7 +17,7 @@ export interface OrderEmailData {
   phone: string;
   altPhone?: string;
   address: string;
-  landmark?: string;        // ✅ إضافة العلامة المميزة
+  landmark?: string;
   productId: number;
   productName: string;
   productPrice: number;
@@ -29,7 +31,6 @@ export interface OrderEmailData {
 export async function sendOrderEmail(order: OrderEmailData) {
   const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
   
-  // ✅ رابط واتساب جاهز للتواصل مع العميل
   const whatsappLink = `https://wa.me/${order.phone}?text=مرحباً ${order.name}، تم استلام طلبك رقم #${order.orderId} ✅%0a%0a📦 تفاصيل الطلب:%0a• المنتج: ${order.productName}%0a• الكمية: ${order.quantity} قطعة%0a• ${order.size ? `المقاس: ${order.size}%0a• ` : ''}${order.color ? `اللون: ${order.color}%0a• ` : ''}💰 الإجمالي: ${order.totalAmount} جنيه%0a%0a📍 العنوان: ${order.address}%0a📍 علامة مميزة: ${order.landmark || 'غير مذكورة'}%0a%0aسيتم التواصل معك لتأكيد الطلب قريباً. شكراً لتسوقك مع VELIX 🚀`;
   
   const htmlContent = `
@@ -70,10 +71,8 @@ export async function sendOrderEmail(order: OrderEmailData) {
           transition: transform 0.2s;
         }
         .whatsapp-btn:hover { transform: scale(1.02); }
-        .badge { display: inline-block; background: #e0e0e0; padding: 4px 8px; border-radius: 8px; font-size: 12px; margin-left: 5px; }
         .contact-card { background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 16px; text-align: center; margin-top: 15px; }
         .phone-number { font-size: 20px; font-weight: bold; color: #25D366; direction: ltr; }
-        .landmark-box { background: #fef9e6; border: 1px solid #fcd34d; border-radius: 12px; padding: 12px; margin-top: 10px; }
       </style>
     </head>
     <body>
@@ -125,10 +124,6 @@ export async function sendOrderEmail(order: OrderEmailData) {
           <div class="section-title">📦 تفاصيل المنتج</div>
           <div class="product-details">
             <div class="product-row">
-              <div class="product-label">🆔 رقم المنتج:</div>
-              <div class="product-value"><strong>${order.productId}</strong></div>
-            </div>
-            <div class="product-row">
               <div class="product-label">📌 اسم المنتج:</div>
               <div class="product-value"><strong>${order.productName}</strong></div>
             </div>
@@ -149,10 +144,7 @@ export async function sendOrderEmail(order: OrderEmailData) {
             ${order.color ? `
             <div class="product-row">
               <div class="product-label">🎨 اللون:</div>
-              <div class="product-value">
-                <span style="display: inline-block; width: 16px; height: 16px; background: ${order.color}; border-radius: 50%; margin-left: 5px; border: 1px solid #ccc;"></span>
-                ${order.color}
-              </div>
+              <div class="product-value">${order.color}</div>
             </div>
             ` : ''}
           </div>
@@ -171,29 +163,17 @@ export async function sendOrderEmail(order: OrderEmailData) {
           💰 الإجمالي الكلي: ${order.totalAmount} جنيه
         </div>
         
-        <!-- ✅ زر التواصل مع العميل عبر واتساب -->
         <div class="section" style="text-align: center; background: #fafafa;">
           <div class="contact-card">
             <p style="margin: 0 0 8px 0; color: #333; font-weight: bold;">📱 تواصل مع العميل</p>
-            <p style="margin: 0 0 12px 0; color: #666; font-size: 13px;">
-              اضغط على الزر لفتح محادثة واتساب مع <strong>${order.name}</strong>
-            </p>
             <a href="${whatsappLink}" class="whatsapp-btn" target="_blank">
               💬 تواصل مع العميل عبر واتساب
             </a>
-            <div style="margin-top: 16px; padding: 12px; background: #fef3c7; border-radius: 12px; border-right: 4px solid #f59e0b;">
-              <p style="margin: 0; font-size: 13px; color: #92400e;">
-                ⚠️ <strong>هام:</strong> عند التواصل مع العميل، اطلب منه إرسال 
-                <strong style="background: #fff; padding: 2px 6px; border-radius: 8px;">📍 "الموقع عبر واتساب"</strong> 
-                لتأكيد العنوان وتسهيل التوصيل.
-              </p>
-            </div>
           </div>
         </div>
         
         <div class="footer">
           <p>تم إرسال هذا الإشعار من متجر VELIX</p>
-          <p style="margin-top: 5px;">للتواصل السريع: <a href="tel:${order.phone}" style="color: #25D366;">اتصال</a> | <a href="${whatsappLink}" style="color: #25D366;">واتساب</a></p>
         </div>
       </div>
     </body>
@@ -203,13 +183,13 @@ export async function sendOrderEmail(order: OrderEmailData) {
   const mailOptions = {
     from: `"VELIX Store" <${process.env.EMAIL_USER}>`,
     to: adminEmail,
-    subject: `🛍️ طلب جديد #${order.orderId} - ${order.productName} - ${order.quantity} قطعة`,
+    subject: `🛍️ طلب جديد #${order.orderId} - ${order.productName}`,
     html: htmlContent,
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent for order ${order.orderId}`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Email sent for order ${order.orderId}`, info.messageId);
     return true;
   } catch (error) {
     console.error('Email sending failed:', error);

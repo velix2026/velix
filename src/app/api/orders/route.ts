@@ -1,4 +1,7 @@
 // app/api/orders/route.ts
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
 import { sql } from '@vercel/postgres';
@@ -67,6 +70,8 @@ export async function POST(request: NextRequest) {
     const totalAmount = order.product.price * order.product.quantity;
     const orderId = Date.now().toString();
 
+    console.log('📝 Processing order:', { orderId, totalAmount });
+
     // ✅ حفظ في Redis
     try {
       await kv.hset(`order:${orderId}`, {
@@ -124,7 +129,8 @@ export async function POST(request: NextRequest) {
 
     // ✅ إرسال إشعار إيميل
     try {
-      await sendOrderEmail({
+      console.log('📧 Attempting to send email...');
+      const emailSent = await sendOrderEmail({
         orderId,
         name: order.name,
         phone: order.phone,
@@ -140,9 +146,13 @@ export async function POST(request: NextRequest) {
         color: order.product.color,
         notes: order.notes,
       });
-      console.log('✅ Email sent');
+      if (emailSent) {
+        console.log('✅ Email sent successfully');
+      } else {
+        console.log('⚠️ Email sending returned false');
+      }
     } catch (emailError) {
-      console.error('Email error (continuing):', emailError);
+      console.error('❌ Email error (continuing):', emailError);
     }
     
     return NextResponse.json({ 
