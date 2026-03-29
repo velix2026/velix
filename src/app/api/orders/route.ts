@@ -170,10 +170,10 @@ export async function GET() {
 // ✅ PATCH - تحديث حالة الطلب (للأدمن)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
     const { status } = await request.json();
     
     await kv.hset(`order:${id}`, { 
