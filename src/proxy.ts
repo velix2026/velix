@@ -18,6 +18,7 @@ export function proxy(request: NextRequest) {
     '/api/test-redis',    // اختبار Redis
     '/api/test',          // اختبار عام
     '/api/newsletter',    // ✅ النشرة البريدية - الاشتراك (POST) مفتوح للجميع
+    '/api/admin/verify', // 🔥 الحل هنا
   ];
   
   // ✅ لو المسار مفتوح للجميع، سمح بالدخول
