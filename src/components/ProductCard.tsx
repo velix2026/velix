@@ -152,8 +152,9 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
       e.nativeEvent.stopImmediatePropagation();
     }
     
-    // إضافة أو إزالة من المفضلة مباشرة
-    toggleFavorite(product);
+    setTimeout(() => {
+      toggleFavorite(product);
+    }, 0);
   }, [product, toggleFavorite]);
 
   // ✅ زر السلة - يحتاج اختيار مقاسات وألوان إذا وجدت
@@ -165,16 +166,17 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
       e.nativeEvent.stopImmediatePropagation();
     }
     
-    if (isInCartState) {
-      removeFromCartByProductId(product.id, product.name);
-    } else {
-      // فقط السلة هي اللي تحتاج اختيار مقاسات وألوان
-      if (hasSizes || hasColors) {
-        setShowSelectionModal(true);
+    setTimeout(() => {
+      if (isInCartState) {
+        removeFromCartByProductId(product.id, product.name);
       } else {
-        addToCart(product);
+        if (hasSizes || hasColors) {
+          setShowSelectionModal(true);
+        } else {
+          addToCart(product);
+        }
       }
-    }
+    }, 0);
   }, [product, isInCartState, addToCart, removeFromCartByProductId, hasSizes, hasColors]);
 
   const addSelection = () => {
@@ -450,11 +452,11 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
       {/* Modal اختيار المقاسات والألوان - فقط للسلة */}
       {showSelectionModal && (
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 flex items-center justify-center p-4 transition-all duration-300"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-60 flex items-center justify-center p-4 transition-all duration-300"
           onClick={cancelSelection}
         >
           <div 
-            className="bg-white rounded-2xl max-w-md w-full max-h-[85vh] overflow-hidden shadow-2xl animate-scale-in"
+            className="bg-white rounded-2xl w-[calc(100%-2rem)] sm:w-120 md:w-130 lg:w-140 xl:w-150 max-h-[85vh] overflow-y-auto shadow-2xl animate-scale-in mx-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white p-4 border-b border-gray-100 z-10">
@@ -464,7 +466,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
               </p>
             </div>
 
-            <div className="overflow-y-auto p-4 space-y-4 max-h-[calc(85vh-180px)]">
+            <div className="p-4 space-y-4">
               <div className="flex gap-3 pb-3 border-b border-gray-100">
                 <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                   <Image src={product.mainImage} alt={product.name} fill className="object-cover" />
@@ -591,7 +593,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-white p-4 border-t border-gray-100 flex gap-3">
+            <div className="sticky bottom-0 bg-white p-4 border-t border-gray-100 flex gap-3 rounded-b-2xl">
               <button
                 onClick={confirmSelections}
                 disabled={!hasValidSelections()}

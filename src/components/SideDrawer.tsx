@@ -108,22 +108,14 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
     setIsOrderModalOpen(true);
   }, [cart, total]);
 
-  // ✅ معالج بعد إتمام الطلب - تفريغ السلة
   const handleOrderSubmit = useCallback(async (orderData: any) => {
     try {
       console.log('Order submitted:', orderData);
-      
-      // ✅ تفريغ السلة
       clearCart();
-      
-      // ✅ مسح التخزين المؤقت
       localStorage.removeItem('tempOrderData');
-      
-      // ✅ إغلاق المودال والدروير
       setIsOrderModalOpen(false);
       onClose();
       
-      // ✅ عرض رسالة نجاح إضافية
       window.dispatchEvent(new CustomEvent('showToast', {
         detail: {
           message: '🛒 تم تفريغ سلة التسوق بنجاح! شكراً لتسوقك مع VELIX',
@@ -162,22 +154,25 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
 
   return (
     <>
+      {/* ✅ خلفية داكنة مع blur */}
       <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-all duration-300" 
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-all duration-300" 
         onClick={onClose}
         aria-hidden="true"
       />
       
+      {/* ✅ الدروير - من 80% في الموبايل و 400px في الديسكتوب */}
       <div
         ref={drawerRef}
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`fixed top-0 left-0 h-full w-full max-w-md bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out ${
+        className={`fixed top-0 left-0 h-full bg-white shadow-2xl z-50 transform transition-all duration-300 ease-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        } w-full sm:w-112.5 md:w-125 lg:w-137.5ax-w-[85vw]`}
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white z-10">
+        {/* ✅ Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white sticky top-0 z-10">
           <h2 className="text-lg font-bold text-black">{title}</h2>
           <button 
             ref={closeButtonRef}
@@ -191,6 +186,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
           </button>
         </div>
 
+        {/* ✅ Content */}
         <div 
           ref={contentRef}
           className="flex-1 overflow-y-auto overflow-x-hidden p-4"
@@ -200,7 +196,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
           }}
         >
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full min-h-75 text-center">
+            <div className="flex flex-col items-center justify-center h-full min-h-100 text-center">
               <div className="text-6xl mb-4 opacity-50">{type === 'favorites' ? '❤️' : '🛒'}</div>
               <p className="text-black font-bold text-sm opacity-70">{emptyMessage}</p>
               <button 
@@ -216,11 +212,11 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
           ) : (
             <div className="space-y-4 pb-4">
               {items.map((item) => (
-                <div key={getItemKey(item)} className="flex gap-3">
+                <div key={getItemKey(item)} className="flex gap-3 bg-gray-50 rounded-xl p-3 hover:shadow-md transition-all duration-300">
                   <Link 
                     href={`/products/${item.id}`} 
                     onClick={onClose} 
-                    className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-50 shrink-0 transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                    className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400"
                   >
                     <Image 
                       src={item.mainImage} 
@@ -260,7 +256,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                       </div>
                     )}
                     
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mt-2">
                       <div>
                         {item.oldPrice && item.oldPrice > item.price ? (
                           <div className="flex items-center gap-1">
@@ -285,10 +281,10 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                       
                       <div className="flex items-center gap-2">
                         {type === 'cart' && isCartItem(item) && (
-                          <div className="flex items-center gap-1 bg-gray-100 rounded-lg px-1">
+                          <div className="flex items-center gap-1 bg-white rounded-lg px-1 shadow-sm">
                             <button 
                               onClick={() => handleUpdateQuantity(item.cartItemId, (item as CartItem).quantity - 1)} 
-                              className="w-6 h-6 rounded-full hover:bg-gray-200 text-sm font-bold flex items-center justify-center transition text-black"
+                              className="w-6 h-6 rounded-full hover:bg-gray-100 text-sm font-bold flex items-center justify-center transition text-black"
                               aria-label="تقليل الكمية"
                             >
                               -
@@ -298,7 +294,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                             </span>
                             <button 
                               onClick={() => handleUpdateQuantity(item.cartItemId, (item as CartItem).quantity + 1)} 
-                              className="w-6 h-6 rounded-full hover:bg-gray-200 text-sm font-bold flex items-center justify-center transition text-black"
+                              className="w-6 h-6 rounded-full hover:bg-gray-100 text-sm font-bold flex items-center justify-center transition text-black"
                               aria-label="زيادة الكمية"
                             >
                               +
@@ -308,7 +304,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                         
                         <button 
                           onClick={() => handleRemove(item)} 
-                          className="text-red-500 hover:text-red-700 transition p-1" 
+                          className="text-red-400 hover:text-red-600 transition p-1" 
                           aria-label="حذف"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,8 +320,9 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
           )}
         </div>
 
+        {/* ✅ Footer - للسلة فقط */}
         {type === 'cart' && items.length > 0 && (
-          <div className="border-t border-gray-100 p-4 bg-white sticky bottom-0 z-10">
+          <div className="border-t border-gray-100 p-4 bg-white sticky bottom-0 z-10 shadow-lg rounded-t-2xl">
             <div className="flex justify-between items-center mb-3">
               <span className="text-black font-bold text-sm">الإجمالي</span>
               <div className="text-right">

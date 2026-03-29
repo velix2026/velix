@@ -16,28 +16,36 @@ export function useFavorites() {
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
   const isMountedRef = useRef(true);
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadFavorites = useCallback(() => {
-    if (!isMountedRef.current) return;
-
-    try {
-      const saved = localStorage.getItem('favorites');
-      if (saved) {
-        const favs = JSON.parse(saved);
-        setFavorites(favs);
-        setFavoritesCount(favs.length);
-        setFavoriteIds(new Set(favs.map((p: Product) => p.id)));
-      } else {
+    // ✅ استخدام requestAnimationFrame بدل setTimeout لتجنب الـ race conditions
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    
+    updateTimeoutRef.current = setTimeout(() => {
+      if (!isMountedRef.current) return;
+      
+      try {
+        const saved = localStorage.getItem('favorites');
+        if (saved) {
+          const favs = JSON.parse(saved);
+          setFavorites(favs);
+          setFavoritesCount(favs.length);
+          setFavoriteIds(new Set(favs.map((p: Product) => p.id)));
+        } else {
+          setFavorites([]);
+          setFavoritesCount(0);
+          setFavoriteIds(new Set());
+        }
+      } catch (error) {
+        console.error('Error loading favorites:', error);
         setFavorites([]);
         setFavoritesCount(0);
         setFavoriteIds(new Set());
       }
-    } catch (error) {
-      console.error('Error loading favorites:', error);
-      setFavorites([]);
-      setFavoritesCount(0);
-      setFavoriteIds(new Set());
-    }
+    }, 0);
   }, []);
 
   const addToFavorites = useCallback((product: Product) => {
@@ -48,7 +56,11 @@ export function useFavorites() {
         localStorage.setItem('favorites', JSON.stringify(newFavorites));
         setFavoritesCount(newFavorites.length);
         setFavoriteIds(new Set(newFavorites.map(p => p.id)));
-        window.dispatchEvent(new CustomEvent('favoritesUpdated'));
+        
+        // ✅ استخدام setTimeout لتأجيل الـ event
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('favoritesUpdated'));
+        }, 0);
         
         trackFavoriteEvent('add_to_favorites', {
           productId: product.id,
@@ -56,29 +68,42 @@ export function useFavorites() {
           favoritesCount: newFavorites.length
         });
         
-        window.dispatchEvent(new CustomEvent('showToast', {
-          detail: {
-            message: `❤️ تم إضافة "${product.name}" إلى المفضلة`,
-            type: 'success'
-          }
-        }));
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('showToast', {
+            detail: {
+              message: `❤️ تم إضافة "${product.name}" إلى المفضلة`,
+              type: 'success'
+            }
+          }));
+        }, 0);
         
         return newFavorites;
+      } else {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('showToast', {
+            detail: {
+              message: `⚠️ "${product.name}" موجود بالفعل في المفضلة`,
+              type: 'info'
+            }
+          }));
+        }, 0);
+        
+        return prev;
       }
-      return prev;
     });
   }, []);
 
   const removeFromFavorites = useCallback((productId: number, productName?: string) => {
     setFavorites(prev => {
       const removedItem = prev.find(p => p.id === productId);
-      if (!removedItem) return prev;
-      
       const newFavorites = prev.filter(p => p.id !== productId);
       localStorage.setItem('favorites', JSON.stringify(newFavorites));
       setFavoritesCount(newFavorites.length);
       setFavoriteIds(new Set(newFavorites.map(p => p.id)));
-      window.dispatchEvent(new CustomEvent('favoritesUpdated'));
+      
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('favoritesUpdated'));
+      }, 0);
       
       trackFavoriteEvent('remove_from_favorites', {
         productId,
@@ -86,17 +111,19 @@ export function useFavorites() {
         favoritesCount: newFavorites.length
       });
       
-      window.dispatchEvent(new CustomEvent('showToast', {
-        detail: {
-          message: `🗑️ تم إزالة "${productName || removedItem?.name || 'المنتج'}" من المفضلة`,
-          type: 'info'
-        }
-      }));
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('showToast', {
+          detail: {
+            message: `🗑️ تم إزالة "${productName || removedItem?.name || 'المنتج'}" من المفضلة`,
+            type: 'info'
+          }
+        }));
+      }, 0);
       
       return newFavorites;
     });
   }, []);
-
+  
   const isFavorite = useCallback((productId: number) => {
     return favoriteIds.has(productId);
   }, [favoriteIds]);
@@ -112,22 +139,25 @@ export function useFavorites() {
   useEffect(() => {
     isMountedRef.current = true;
     loadFavorites();
-
+    
     const handleFavoritesUpdate = () => {
       loadFavorites();
     };
-
+    
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'favorites') {
         loadFavorites();
       }
     };
-
+    
     window.addEventListener('favoritesUpdated', handleFavoritesUpdate);
     window.addEventListener('storage', handleStorageChange);
-
+    
     return () => {
       isMountedRef.current = false;
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
       window.removeEventListener('favoritesUpdated', handleFavoritesUpdate);
       window.removeEventListener('storage', handleStorageChange);
     };

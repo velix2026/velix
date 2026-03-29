@@ -28,7 +28,7 @@ interface OrderModalProps {
     quantity: number;
   };
   onSubmit: (orderData: any) => void;
-  onCartCleared?: () => void; // ✅ كول باك لتفريغ السلة
+  onCartCleared?: () => void;
 }
 
 export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartCleared }: OrderModalProps) {
@@ -49,7 +49,6 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
   const modalRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  // ✅ تحميل بيانات العميل المحفوظة من localStorage
   const loadSavedCustomerData = useCallback(() => {
     try {
       const savedData = localStorage.getItem('velix_customer_data');
@@ -69,7 +68,6 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
     }
   }, []);
 
-  // ✅ حفظ بيانات العميل في localStorage
   const saveCustomerData = useCallback((data: typeof formData) => {
     try {
       const customerData = {
@@ -86,10 +84,8 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
     }
   }, []);
 
-  // تحميل بيانات الطلب المتعدد من localStorage
   useEffect(() => {
     if (isOpen) {
-      // تحميل بيانات العميل المحفوظة
       loadSavedCustomerData();
       
       try {
@@ -100,7 +96,6 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
           setTotalAmount(data.totalAmount);
           setIsMultiOrder(true);
         } else if (product.id !== 0) {
-          // طلب عادي (منتج واحد)
           setCartItems([{
             id: product.id,
             name: product.name,
@@ -164,8 +159,6 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
     if (!validateForm()) return;
 
     setLoading(true);
-
-    // حفظ بيانات العميل قبل الإرسال
     saveCustomerData(formData);
 
     const orderData = {
@@ -199,22 +192,15 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
         }));
 
         onSubmit(orderData);
-        
-        // ✅ تفريغ السلة بعد الطلب بنجاح
         localStorage.removeItem('cart');
         localStorage.removeItem('tempOrderData');
-        
-        // ✅ إشعار بتفريغ السلة
         window.dispatchEvent(new CustomEvent('cartUpdated'));
         
-        // ✅ استدعاء كول باك إذا وجد
         if (onCartCleared) {
           onCartCleared();
         }
         
         onClose();
-        
-        // تنظيف الفورم
         setFormData({ name: '', phone: '', altPhone: '', address: '', landmark: '', notes: '' });
       } else {
         throw new Error(data.error || 'فشل إرسال الطلب');
@@ -258,7 +244,11 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-hidden shadow-2xl animate-scale-in" onClick={(e) => e.stopPropagation()}>
+      <div 
+        className="bg-white rounded-2xl w-[calc(100%-2rem)] sm:w-120 md:w-130 lg:w-140 xl:w-150 h-auto max-h-[85vh] overflow-y-auto shadow-2xl animate-scale-in mx-auto" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header - ثابت */}
         <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex justify-between items-center z-20">
           <h2 className="text-xl font-bold text-black">
             {isMultiOrder ? `طلب متعدد (${cartItems.length} منتج)` : 'طلب المنتج'}
@@ -270,8 +260,8 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
           </button>
         </div>
 
-        {/* عرض المنتجات في الـ Modal */}
-        <div className="p-4 border-b border-gray-100 bg-gray-50 max-h-64 overflow-y-auto">
+        {/* ✅ قسم المنتجات - منغير سكرول منفصل */}
+        <div className="p-4 border-b border-gray-100 bg-gray-50">
           {cartItems.map((item, idx) => (
             <div key={idx} className="flex gap-3 mb-3 last:mb-0 pb-3 last:pb-0 border-b last:border-b-0 border-gray-200">
               <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-gray-100 shrink-0">
@@ -300,7 +290,8 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4 overflow-y-auto max-h-[calc(90vh-320px)]">
+        {/* ✅ الفورم - منغير سكرول منفصل */}
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-bold text-black mb-1">الاسم الكامل <span className="text-red-500">*</span></label>
             <input 
@@ -383,6 +374,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
           </div>
         </form>
 
+        {/* Footer - ثابت في الآخر */}
         <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4">
           <div className="flex gap-3">
             <button type="submit" onClick={handleSubmit} disabled={loading} className="flex-1 bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white font-bold py-2.5 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 shadow-md">

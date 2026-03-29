@@ -31,7 +31,7 @@ const trackCartEvent = (eventName: string, data: any) => {
       event_label: data.productName || 'cart_interaction'
     });
   }
-
+  
   try {
     const cartEvents = JSON.parse(localStorage.getItem('cart_events') || '[]');
     cartEvents.push({ event: eventName, data, timestamp: new Date().toISOString() });
@@ -50,16 +50,16 @@ export function useCart() {
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
   const isMountedRef = useRef(true);
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const updateCartSchema = (cartItems: CartItem[]) => {
     if (typeof document === 'undefined') return;
-
+    
     const existingScript = document.getElementById('cart-schema');
     if (existingScript) existingScript.remove();
-
+    
     if (cartItems.length === 0) return;
-
-    // تحسين بيانات الـ Schema لجوجل
+    
     const cartSchema = {
       '@context': 'https://schema.org',
       '@type': 'Cart',
@@ -86,7 +86,7 @@ export function useCart() {
         }
       }))
     };
-
+    
     const script = document.createElement('script');
     script.id = 'cart-schema';
     script.type = 'application/ld+json';
@@ -94,74 +94,85 @@ export function useCart() {
     document.head.appendChild(script);
   };
 
+  // ✅ تحسين loadCart لمنع التحديث أثناء الـ render
   const loadCart = useCallback(() => {
-    if (!isMountedRef.current) return;
-
-    try {
-      const saved = localStorage.getItem('cart');
-      if (saved) {
-        const cartItems = JSON.parse(saved);
-        const totalQuantity = cartItems.reduce((sum: number, item: CartItem) => {
-          return sum + (item.quantity || 1);
-        }, 0);
-        setCartCount(totalQuantity);
-
-        const total = cartItems.reduce((sum: number, item: CartItem) => {
-          const price = getEffectivePrice(item);
-          return sum + (price * (item.quantity || 1));
-        }, 0);
-        setCartTotal(total);
-
-        const cartWithQuantity = cartItems.map((item: CartItem) => ({
-          ...item,
-          quantity: item.quantity || 1
-        }));
-        setCart(cartWithQuantity);
-
-        updateCartSchema(cartWithQuantity);
-      } else {
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    
+    updateTimeoutRef.current = setTimeout(() => {
+      if (!isMountedRef.current) return;
+      
+      try {
+        const saved = localStorage.getItem('cart');
+        if (saved) {
+          const cartItems = JSON.parse(saved);
+          const totalQuantity = cartItems.reduce((sum: number, item: CartItem) => {
+            return sum + (item.quantity || 1);
+          }, 0);
+          setCartCount(totalQuantity);
+          
+          const total = cartItems.reduce((sum: number, item: CartItem) => {
+            const price = getEffectivePrice(item);
+            return sum + (price * (item.quantity || 1));
+          }, 0);
+          setCartTotal(total);
+          
+          const cartWithQuantity = cartItems.map((item: CartItem) => ({ 
+            ...item, 
+            quantity: item.quantity || 1 
+          }));
+          setCart(cartWithQuantity);
+          
+          updateCartSchema(cartWithQuantity);
+        } else {
+          setCart([]);
+          setCartCount(0);
+          setCartTotal(0);
+        }
+      } catch (error) {
+        console.error('Error loading cart:', error);
         setCart([]);
         setCartCount(0);
         setCartTotal(0);
       }
-    } catch (error) {
-      console.error('Error loading cart:', error);
-      setCart([]);
-      setCartCount(0);
-      setCartTotal(0);
-    }
+    }, 0);
   }, []);
 
   const updateCartQuantity = useCallback((cartItemId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
-
+    
     setCart(prevCart => {
       const updatedCart = prevCart.map(item =>
         item.cartItemId === cartItemId ? { ...item, quantity: newQuantity } : item
       );
-
+      
       const totalQuantity = updatedCart.reduce((sum, item) => sum + item.quantity, 0);
       const total = updatedCart.reduce((sum, item) => {
         const price = getEffectivePrice(item);
         return sum + (price * item.quantity);
       }, 0);
-
+      
       setCartCount(totalQuantity);
       setCartTotal(total);
-
+      
       const toSave = updatedCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
       localStorage.setItem('cart', JSON.stringify(toSave));
-      window.dispatchEvent(new CustomEvent('cartUpdated'));
-
+      
+      // ✅ تأجيل الـ event
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+      }, 0);
+      
       trackCartEvent('update_quantity', {
         cartItemId,
         quantity: newQuantity,
         cartTotal: total,
         cartCount: totalQuantity
       });
-
+      
       updateCartSchema(updatedCart);
-
+      
       return updatedCart;
     });
   }, []);
@@ -175,42 +186,47 @@ export function useCart() {
         const price = getEffectivePrice(item);
         return sum + (price * item.quantity);
       }, 0);
-
+      
       setCartCount(totalQuantity);
       setCartTotal(total);
-
+      
       const toSave = newCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
       localStorage.setItem('cart', JSON.stringify(toSave));
-      window.dispatchEvent(new CustomEvent('cartUpdated'));
-
+      
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+      }, 0);
+      
       trackCartEvent('remove_from_cart', {
         cartItemId,
         productName: productName || removedItem?.name,
         cartTotal: total,
         cartCount: totalQuantity
       });
-
+      
       updateCartSchema(newCart);
-
-      window.dispatchEvent(new CustomEvent('showToast', {
-        detail: {
-          message: `🗑️ تم إزالة "${productName || removedItem?.name || 'المنتج'}" من السلة`,
-          type: 'info'
-        }
-      }));
-
+      
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('showToast', {
+          detail: {
+            message: `🗑️ تم إزالة "${productName || removedItem?.name || 'المنتج'}" من السلة`,
+            type: 'info'
+          }
+        }));
+      }, 0);
+      
       return newCart;
     });
   }, []);
 
   const removeFromCartByProductId = useCallback((productId: number, productName?: string) => {
     const itemToRemove = cart.find(item => item.id === productId);
-
+    
     if (itemToRemove) {
       removeFromCart(itemToRemove.cartItemId, productName);
       return true;
     }
-
+    
     console.warn(`Product with id ${productId} not found in cart`);
     return false;
   }, [cart, removeFromCart]);
@@ -224,22 +240,25 @@ export function useCart() {
         selectedSize,
         selectedColor
       };
-
+      
       const newCart = [...prevCart, newCartItem];
-
+      
       const totalQuantity = newCart.reduce((sum, item) => sum + item.quantity, 0);
       const total = newCart.reduce((sum, item) => {
         const price = getEffectivePrice(item);
         return sum + (price * item.quantity);
       }, 0);
-
+      
       setCartCount(totalQuantity);
       setCartTotal(total);
-
+      
       const toSave = newCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
       localStorage.setItem('cart', JSON.stringify(toSave));
-      window.dispatchEvent(new CustomEvent('cartUpdated'));
-
+      
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+      }, 0);
+      
       trackCartEvent('add_to_cart', {
         productId: product.id,
         productName: product.name,
@@ -249,62 +268,69 @@ export function useCart() {
         cartTotal: total,
         cartCount: totalQuantity
       });
-
+      
       updateCartSchema(newCart);
-
-      window.dispatchEvent(new CustomEvent('showToast', {
-        detail: {
-          message: `✅ تم إضافة ${quantity} × "${product.name}"${selectedSize ? ` (مقاس ${selectedSize})` : ''}${selectedColor ? ` (لون ${selectedColor})` : ''} إلى السلة`,
-          type: 'success'
-        }
-      }));
-
+      
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('showToast', {
+          detail: {
+            message: `✅ تم إضافة ${quantity} × "${product.name}"${selectedSize ? ` (مقاس ${selectedSize})` : ''}${selectedColor ? ` (لون ${selectedColor})` : ''} إلى السلة`,
+            type: 'success'
+          }
+        }));
+      }, 0);
+      
       return newCart;
     });
   }, []);
-
-  // hooks/useCart.ts (تأكد من وجود هذه الدالة)
+  
   const clearCart = useCallback(() => {
     setCart([]);
     setCartCount(0);
     setCartTotal(0);
     localStorage.removeItem('cart');
-    window.dispatchEvent(new CustomEvent('cartUpdated'));
+    
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('cartUpdated'));
+    }, 0);
     
     trackCartEvent('cart_cleared', {
       timestamp: new Date().toISOString()
     });
     
-  const existingScript = document.getElementById('cart-schema');
+    const existingScript = document.getElementById('cart-schema');
     if (existingScript) existingScript.remove();
   }, []);
-
+  
   const isInCart = useCallback((productId: number) => {
     return cart.some(item => item.id === productId);
   }, [cart]);
-
+  
   const uniqueItemsCount = cart.length;
   const totalSavings = cart.reduce((sum, item) => sum + getSavingsForCartItem(item), 0);
 
   useEffect(() => {
     isMountedRef.current = true;
     loadCart();
-
+    
     const handleCartUpdate = () => {
       loadCart();
     };
-
+    
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'cart') {
         loadCart();
       }
     };
-
+    
     window.addEventListener('cartUpdated', handleCartUpdate);
     window.addEventListener('storage', handleStorageChange);
-
+    
     return () => {
       isMountedRef.current = false;
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
       window.removeEventListener('cartUpdated', handleCartUpdate);
       window.removeEventListener('storage', handleStorageChange);
     };
