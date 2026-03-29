@@ -201,6 +201,11 @@ export default function AdminPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
               إدارة الطلبات
             </Link>
+            {/* ✅ قسم المشتركين - جديد */}
+            <Link href="/admin/newsletter" className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-sm font-medium flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+              المشتركين
+            </Link>
             <button onClick={handleLogout} className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm font-medium flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
               تسجيل خروج
@@ -241,25 +246,55 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* ✅ كاردز سريعة للوصول (Dashboard Cards) */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+          {/* بطاقة إدارة المنتجات */}
+          <Link href="/admin/products" className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition border border-stone-100 group">
+            <div className="text-3xl mb-2 group-hover:scale-110 transition-transform duration-300 inline-block">📦</div>
+            <h3 className="font-bold text-black">المنتجات</h3>
+            <p className="text-gray-500 text-sm">إدارة وعرض وتعديل المنتجات</p>
+          </Link>
+
+          {/* بطاقة إدارة الطلبات */}
+          <Link href="/admin/orders" className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition border border-stone-100 group">
+            <div className="text-3xl mb-2 group-hover:scale-110 transition-transform duration-300 inline-block">🛒</div>
+            <h3 className="font-bold text-black">الطلبات</h3>
+            <p className="text-gray-500 text-sm">متابعة وتحديث حالة الطلبات</p>
+          </Link>
+
+          {/* ✅ بطاقة المشتركين في النشرة البريدية */}
+          <Link href="/admin/newsletter" className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition border border-stone-100 group">
+            <div className="text-3xl mb-2 group-hover:scale-110 transition-transform duration-300 inline-block">📧</div>
+            <h3 className="font-bold text-black">المشتركين</h3>
+            <p className="text-gray-500 text-sm">إدارة النشرة البريدية وإرسال العروض</p>
+          </Link>
+        </div>
+
         {/* نموذج إضافة منتج */}
-        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl border border-stone-100 overflow-hidden">
-          <div className="p-6 space-y-5">
-            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">اسم المنتج</label><input type="text" value={product.name} onChange={(e) => setProduct({ ...product, name: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" required dir="rtl" /></div>
-            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">السعر (جنيه)</label><input type="number" value={product.price} onChange={(e) => setProduct({ ...product, price: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" required /></div>
-            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">السعر القديم (للخصم - اختياري)</label><input type="number" value={product.oldPrice} onChange={(e) => setProduct({ ...product, oldPrice: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" placeholder="اتركه فارغ إذا لا يوجد خصم" />
-            {discount > 0 && <p className="text-xs text-green-600 mt-1 font-medium">✓ نسبة الخصم: {discount}%</p>}</div>
-            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">عدد القطع المتاحة</label><input type="number" min="0" value={product.stock} onChange={(e) => setProduct({ ...product, stock: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" required /></div>
-            <div className="flex items-center gap-3"><input type="checkbox" id="isNew" checked={product.isNew} onChange={(e) => setProduct({ ...product, isNew: e.target.checked })} /><label htmlFor="isNew" className="text-sm font-medium text-stone-700">منتج جديد</label></div>
-            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">القسم</label><select value={product.category} onChange={(e) => setProduct({ ...product, category: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" required><option value="">اختر القسم</option><option value="تيشرتات">تيشرتات</option><option value="هوديز">هوديز</option><option value="شروال">شروال</option></select></div>
-            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">المقاسات المتاحة</label><div className="flex flex-wrap gap-2">{sizes.map(size => <button type="button" key={size} onClick={() => handleSizeToggle(size)} className={`px-4 py-2 rounded-full text-sm font-medium ${selectedSizes.includes(size) ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>{size}</button>)}</div></div>
-            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">الألوان المتاحة</label><div className="flex flex-wrap gap-3">{colors.map(color => <button type="button" key={color.code} onClick={() => handleColorToggle(color.code)} className={`w-10 h-10 rounded-full transition ${selectedColors.includes(color.code) ? 'ring-2 ring-offset-2 ring-stone-800 scale-110' : 'hover:scale-105'}`} style={{ backgroundColor: color.value, border: color.border ? '1px solid #e5e7eb' : 'none' }} title={color.name} />)}</div></div>
-            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">وصف المنتج</label><textarea value={product.description} onChange={(e) => setProduct({ ...product, description: e.target.value })} rows={4} className="w-full p-3 bg-stone-50 border rounded-xl" required dir="rtl" /></div>
-            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">الصورة الرئيسية</label><input type="file" accept="image/*" onChange={handleMainImageChange} className="w-full p-2 bg-stone-50 border rounded-xl" required /></div>
-            <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">صور إضافية (اختياري)</label><input type="file" accept="image/*" multiple onChange={handleSubImagesChange} className="w-full p-2 bg-stone-50 border rounded-xl" /></div>
-            <button type="submit" disabled={uploading} className="w-full bg-stone-800 text-white py-3 rounded-xl hover:bg-stone-700 transition disabled:opacity-50 font-bold tracking-wide">{uploading ? 'جاري الرفع...' : '+ إضافة المنتج'}</button>
-            {status && <p className={`text-center text-sm font-medium ${status.includes('✅') ? 'text-green-600' : 'text-red-500'}`}>{status}</p>}
-          </div>
-        </form>
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-xl font-bold text-stone-800 mb-4 flex items-center gap-2">
+            <span className="text-xl">➕</span>
+            إضافة منتج جديد
+          </h2>
+          <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl border border-stone-100 overflow-hidden">
+            <div className="p-6 space-y-5">
+              <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">اسم المنتج</label><input type="text" value={product.name} onChange={(e) => setProduct({ ...product, name: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" required dir="rtl" /></div>
+              <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">السعر (جنيه)</label><input type="number" value={product.price} onChange={(e) => setProduct({ ...product, price: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" required /></div>
+              <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">السعر القديم (للخصم - اختياري)</label><input type="number" value={product.oldPrice} onChange={(e) => setProduct({ ...product, oldPrice: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" placeholder="اتركه فارغ إذا لا يوجد خصم" />
+              {discount > 0 && <p className="text-xs text-green-600 mt-1 font-medium">✓ نسبة الخصم: {discount}%</p>}</div>
+              <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">عدد القطع المتاحة</label><input type="number" min="0" value={product.stock} onChange={(e) => setProduct({ ...product, stock: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" required /></div>
+              <div className="flex items-center gap-3"><input type="checkbox" id="isNew" checked={product.isNew} onChange={(e) => setProduct({ ...product, isNew: e.target.checked })} /><label htmlFor="isNew" className="text-sm font-medium text-stone-700">منتج جديد</label></div>
+              <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">القسم</label><select value={product.category} onChange={(e) => setProduct({ ...product, category: e.target.value })} className="w-full p-3 bg-stone-50 border rounded-xl" required><option value="">اختر القسم</option><option value="تيشرتات">تيشرتات</option><option value="هوديز">هوديز</option><option value="شروال">شروال</option></select></div>
+              <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">المقاسات المتاحة</label><div className="flex flex-wrap gap-2">{sizes.map(size => <button type="button" key={size} onClick={() => handleSizeToggle(size)} className={`px-4 py-2 rounded-full text-sm font-medium ${selectedSizes.includes(size) ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>{size}</button>)}</div></div>
+              <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">الألوان المتاحة</label><div className="flex flex-wrap gap-3">{colors.map(color => <button type="button" key={color.code} onClick={() => handleColorToggle(color.code)} className={`w-10 h-10 rounded-full transition ${selectedColors.includes(color.code) ? 'ring-2 ring-offset-2 ring-stone-800 scale-110' : 'hover:scale-105'}`} style={{ backgroundColor: color.value, border: color.border ? '1px solid #e5e7eb' : 'none' }} title={color.name} />)}</div></div>
+              <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">وصف المنتج</label><textarea value={product.description} onChange={(e) => setProduct({ ...product, description: e.target.value })} rows={4} className="w-full p-3 bg-stone-50 border rounded-xl" required dir="rtl" /></div>
+              <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">الصورة الرئيسية</label><input type="file" accept="image/*" onChange={handleMainImageChange} className="w-full p-2 bg-stone-50 border rounded-xl" required /></div>
+              <div><label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">صور إضافية (اختياري)</label><input type="file" accept="image/*" multiple onChange={handleSubImagesChange} className="w-full p-2 bg-stone-50 border rounded-xl" /></div>
+              <button type="submit" disabled={uploading} className="w-full bg-stone-800 text-white py-3 rounded-xl hover:bg-stone-700 transition disabled:opacity-50 font-bold tracking-wide">{uploading ? 'جاري الرفع...' : '+ إضافة المنتج'}</button>
+              {status && <p className={`text-center text-sm font-medium ${status.includes('✅') ? 'text-green-600' : 'text-red-500'}`}>{status}</p>}
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

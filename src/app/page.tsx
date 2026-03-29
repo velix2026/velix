@@ -2,7 +2,7 @@
 import Hero from '@/components/Hero';
 import BrandFeatures from '@/components/BrandFeatures';
 import FeaturedProducts from '@/components/FeaturedProducts';
-import AnalyticsStats from '@/components/AnalyticsStats';
+import Newsletter from '@/components/Newsletter';
 import { getProducts } from '@/lib/products';
 
 export default async function Home() {
@@ -12,8 +12,8 @@ export default async function Home() {
     <>
       <Hero />
       <BrandFeatures />
-      <AnalyticsStats />
       <FeaturedProducts products={products} />
+      <Newsletter />
     </>
   );
 }

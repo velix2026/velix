@@ -17,6 +17,7 @@ export function proxy(request: NextRequest) {
     '/api/test-db',       // اختبار قاعدة البيانات
     '/api/test-redis',    // اختبار Redis
     '/api/test',          // اختبار عام
+    '/api/newsletter',    // ✅ النشرة البريدية - الاشتراك (POST) مفتوح للجميع
   ];
   
   // ✅ لو المسار مفتوح للجميع، سمح بالدخول
@@ -32,6 +33,12 @@ export function proxy(request: NextRequest) {
   
   // ✅ POST للطلبات مفتوح للجميع
   if (pathname === '/api/orders' && method === 'POST') {
+    return NextResponse.next();
+  }
+  
+  // ✅ POST للنشرة البريدية (اشتراك) مفتوح للجميع
+  if (pathname === '/api/newsletter' && method === 'POST') {
+    console.log('✅ Newsletter POST allowed (public)');
     return NextResponse.next();
   }
   
