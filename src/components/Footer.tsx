@@ -216,7 +216,7 @@ export default function Footer() {
                       href="mailto:velix2026@gmail.com"
                       className="text-gray-600 hover:text-red-600 text-sm transition-colors"
                     >
-                      velix2026@gmail.com
+                      البريد الإلكتروني
                     </a>
                   </li>
                 </ul>
