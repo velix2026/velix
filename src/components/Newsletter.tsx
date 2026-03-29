@@ -40,17 +40,13 @@ export default function Newsletter() {
     setMessage('');
     
     try {
-      console.log('Sending email:', email);
-      
       const response = await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
 
-      console.log('Response status:', response.status);
       const data = await response.json();
-      console.log('Response data:', data);
 
       if (response.ok) {
         localStorage.setItem('velix_newsletter_email', email);
@@ -74,7 +70,6 @@ export default function Newsletter() {
         setTimeout(() => setMessage(''), 3000);
       }
     } catch (error) {
-      console.error('Fetch error:', error);
       setMessageType('error');
       setMessage('❌ حدث خطأ في الاتصال، حاول مرة أخرى');
       setTimeout(() => setMessage(''), 3000);
@@ -140,7 +135,7 @@ export default function Newsletter() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl transition-all duration-300 disabled:opacity-50 min-w-35 cursor-pointer shadow-md hover:shadow-lg"
+                  className="px-8 py-4 bg-linear-to-r from-sky-400 via-blue-500 to-indigo-500 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 min-w-35 cursor-pointer shadow-md hover:shadow-lg"
                 >
                   {loading ? (
                     <div className="flex items-center justify-center gap-2">
