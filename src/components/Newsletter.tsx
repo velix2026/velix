@@ -140,7 +140,7 @@ export default function Newsletter() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl transition-all duration-300 disabled:opacity-50 min-w-[140px] cursor-pointer shadow-md hover:shadow-lg"
+                  className="px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl transition-all duration-300 disabled:opacity-50 min-w-35 cursor-pointer shadow-md hover:shadow-lg"
                 >
                   {loading ? (
                     <div className="flex items-center justify-center gap-2">
