@@ -18,21 +18,62 @@ export interface OrderEmailData {
   altPhone?: string;
   address: string;
   landmark?: string;
-  productId: number;
-  productName: string;
-  productPrice: number;
-  quantity: number;
+  items: Array<{
+    id: number;
+    name: string;
+    price: number;
+    quantity: number;
+    selectedSize?: string;
+    selectedColor?: string;
+  }>;
   totalAmount: number;
-  size?: string;
-  color?: string;
   notes?: string;
 }
 
 export async function sendOrderEmail(order: OrderEmailData) {
   const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
   
-  const whatsappLink = `https://wa.me/${order.phone}?text=مرحباً ${order.name}، تم استلام طلبك رقم #${order.orderId} ✅%0a%0a📦 تفاصيل الطلب:%0a• المنتج: ${order.productName}%0a• الكمية: ${order.quantity} قطعة%0a• ${order.size ? `المقاس: ${order.size}%0a• ` : ''}${order.color ? `اللون: ${order.color}%0a• ` : ''}💰 الإجمالي: ${order.totalAmount} جنيه%0a%0a📍 العنوان: ${order.address}%0a📍 علامة مميزة: ${order.landmark || 'غير مذكورة'}%0a%0aسيتم التواصل معك لتأكيد الطلب قريباً. شكراً لتسوقك مع VELIX 🚀`;
+  // ✅ إضافة 20+ لرقم العميل للواتساب
+  const formatPhoneForWhatsApp = (phone: string) => {
+    let cleaned = phone.replace(/\D/g, '');
+    if (cleaned.startsWith('0')) {
+      cleaned = '20' + cleaned.substring(1);
+    } else if (!cleaned.startsWith('20')) {
+      cleaned = '20' + cleaned;
+    }
+    return cleaned;
+  };
+
+  const customerPhoneFormatted = formatPhoneForWhatsApp(order.phone);
   
+  // ✅ رسالة واتساب احترافية باللهجة المصرية
+  const generateWhatsAppMessage = () => {
+    let productsList = '';
+    order.items.forEach((item, idx) => {
+      productsList += `%0a• ${idx + 1}- ${item.name} (${item.quantity} قطعة)`;
+      if (item.selectedSize) productsList += ` - مقاس ${item.selectedSize}`;
+      if (item.selectedColor) productsList += ` - لون ${item.selectedColor}`;
+    });
+
+    return `مرحباً يا فندم ${order.name}، عامل إيه؟ 😊%0a%0a✅ تم استلام طلبك رقم #${order.orderId} من متجر VELIX%0a%0a📦 تفاصيل طلبك:${productsList}%0a%0a💰 الإجمالي: ${order.totalAmount} جنيه%0a%0a📍 عنوان التوصيل: ${order.address}%0a📍 علامة مميزة: ${order.landmark || 'غير مذكورة'}%0a%0a⏳ هنتواصل معاك خلال 24 ساعة عشان نأكد الطلب وننسق معاك التوصيل.%0a%0aشكراً لتسوقك مع VELIX - بنتمنى الطلب يعجبك يا رب ❤️🚀`;
+  };
+
+  const whatsappLink = `https://wa.me/${customerPhoneFormatted}?text=${generateWhatsAppMessage()}`;
+  
+  // ✅ بناء HTML الإيميل
+  const itemsHtml = order.items.map((item, idx) => `
+    <div style="background: #f9f9f9; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-weight: bold;">${idx + 1}. ${item.name}</span>
+        <span style="font-weight: bold;">${item.price} جنيه × ${item.quantity}</span>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 5px;">
+        ${item.selectedSize ? `<span style="background: #e0e0e0; padding: 4px 8px; border-radius: 8px; font-size: 12px;">📏 مقاس: ${item.selectedSize}</span>` : ''}
+        ${item.selectedColor ? `<span style="background: #e0e0e0; padding: 4px 8px; border-radius: 8px; font-size: 12px;">🎨 لون: ${item.selectedColor}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+
   const htmlContent = `
     <!DOCTYPE html>
     <html dir="rtl">
@@ -52,10 +93,6 @@ export async function sendOrderEmail(order: OrderEmailData) {
         .info-row { display: flex; margin-bottom: 10px; padding: 8px 0; border-bottom: 1px dashed #eee; }
         .info-label { width: 120px; font-weight: bold; color: #666; }
         .info-value { flex: 1; color: #333; }
-        .product-details { background: #f9f9f9; border-radius: 12px; padding: 15px; margin-top: 10px; }
-        .product-row { display: flex; margin-bottom: 8px; }
-        .product-label { width: 100px; font-weight: bold; color: #666; }
-        .product-value { flex: 1; color: #333; }
         .total { background: #000; color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; }
         .footer { background: #f5f5f5; padding: 15px; text-align: center; color: #999; font-size: 12px; }
         .whatsapp-btn { 
@@ -73,6 +110,7 @@ export async function sendOrderEmail(order: OrderEmailData) {
         .whatsapp-btn:hover { transform: scale(1.02); }
         .contact-card { background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 16px; text-align: center; margin-top: 15px; }
         .phone-number { font-size: 20px; font-weight: bold; color: #25D366; direction: ltr; }
+        .items-container { margin-top: 10px; }
       </style>
     </head>
     <body>
@@ -96,6 +134,7 @@ export async function sendOrderEmail(order: OrderEmailData) {
             <div class="info-label">رقم الهاتف:</div>
             <div class="info-value">
               <span class="phone-number">${order.phone}</span>
+              <span style="color: green; font-size: 12px; margin-right: 10px;">+20</span>
             </div>
           </div>
           ${order.altPhone ? `
@@ -121,32 +160,9 @@ export async function sendOrderEmail(order: OrderEmailData) {
         </div>
         
         <div class="section">
-          <div class="section-title">📦 تفاصيل المنتج</div>
-          <div class="product-details">
-            <div class="product-row">
-              <div class="product-label">📌 اسم المنتج:</div>
-              <div class="product-value"><strong>${order.productName}</strong></div>
-            </div>
-            <div class="product-row">
-              <div class="product-label">💰 سعر القطعة:</div>
-              <div class="product-value">${order.productPrice} جنيه</div>
-            </div>
-            <div class="product-row">
-              <div class="product-label">🔢 الكمية:</div>
-              <div class="product-value">${order.quantity} قطعة</div>
-            </div>
-            ${order.size ? `
-            <div class="product-row">
-              <div class="product-label">📏 المقاس:</div>
-              <div class="product-value">${order.size}</div>
-            </div>
-            ` : ''}
-            ${order.color ? `
-            <div class="product-row">
-              <div class="product-label">🎨 اللون:</div>
-              <div class="product-value">${order.color}</div>
-            </div>
-            ` : ''}
+          <div class="section-title">📦 تفاصيل المنتجات</div>
+          <div class="items-container">
+            ${itemsHtml}
           </div>
         </div>
         
@@ -166,6 +182,9 @@ export async function sendOrderEmail(order: OrderEmailData) {
         <div class="section" style="text-align: center; background: #fafafa;">
           <div class="contact-card">
             <p style="margin: 0 0 8px 0; color: #333; font-weight: bold;">📱 تواصل مع العميل</p>
+            <p style="margin: 0 0 12px 0; color: #666; font-size: 13px;">
+              اضغط على الزر لفتح محادثة واتساب مع <strong>${order.name}</strong>
+            </p>
             <a href="${whatsappLink}" class="whatsapp-btn" target="_blank">
               💬 تواصل مع العميل عبر واتساب
             </a>
@@ -174,6 +193,7 @@ export async function sendOrderEmail(order: OrderEmailData) {
         
         <div class="footer">
           <p>تم إرسال هذا الإشعار من متجر VELIX</p>
+          <p style="margin-top: 5px;">للتواصل السريع: <a href="tel:${order.phone}" style="color: #25D366;">اتصال</a> | <a href="${whatsappLink}" style="color: #25D366;">واتساب</a></p>
         </div>
       </div>
     </body>
@@ -183,7 +203,7 @@ export async function sendOrderEmail(order: OrderEmailData) {
   const mailOptions = {
     from: `"VELIX Store" <${process.env.EMAIL_USER}>`,
     to: adminEmail,
-    subject: `🛍️ طلب جديد #${order.orderId} - ${order.productName}`,
+    subject: `🛍️ طلب جديد #${order.orderId} - ${order.items.length} منتج - ${order.totalAmount} جنيه`,
     html: htmlContent,
   };
 

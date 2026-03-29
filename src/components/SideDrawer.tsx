@@ -86,15 +86,40 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
     }
   }, [type, removeFromCart, removeFromFavorites]);
 
+  // ✅ دالة فتح مودال الطلب
   const openOrderModal = useCallback(() => {
     if (cart.length === 0) return;
+    
+    // ✅ تجهيز بيانات الطلب المتعدد بشكل صحيح
+    const orderData = {
+      items: cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        oldPrice: item.oldPrice,
+        quantity: item.quantity,
+        selectedSize: item.selectedSize,
+        selectedColor: item.selectedColor,
+        mainImage: item.mainImage,
+      })),
+      totalAmount: total,
+      totalItems: cart.reduce((sum, item) => sum + item.quantity, 0),
+    };
+    
+    // تخزين البيانات في localStorage عشان تستخدمها في الـ Modal
+    localStorage.setItem('tempOrderData', JSON.stringify(orderData));
     setIsOrderModalOpen(true);
-  }, [cart.length]);
+  }, [cart, total]);
 
+  // ✅ تعديل handleOrderSubmit
   const handleOrderSubmit = useCallback(async (orderData: any) => {
     try {
+      console.log('Order submitted:', orderData);
       setIsOrderModalOpen(false);
       onClose();
+      
+      // مسح التخزين المؤقت
+      localStorage.removeItem('tempOrderData');
     } catch (error) {
       console.error('Order submission error:', error);
     }

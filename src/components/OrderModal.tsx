@@ -4,6 +4,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 
+interface OrderItem {
+  id: number;
+  name: string;
+  price: number;
+  oldPrice?: number;
+  quantity: number;
+  selectedSize?: string;
+  selectedColor?: string;
+  mainImage: string;
+}
+
 interface OrderModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -30,8 +41,42 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [cartItems, setCartItems] = useState<OrderItem[]>([]);
+  const [isMultiOrder, setIsMultiOrder] = useState(false);
+  const [totalAmount, setTotalAmount] = useState(0);
+  
   const modalRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // تحميل بيانات الطلب المتعدد من localStorage
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const tempData = localStorage.getItem('tempOrderData');
+        if (tempData) {
+          const data = JSON.parse(tempData);
+          setCartItems(data.items);
+          setTotalAmount(data.totalAmount);
+          setIsMultiOrder(true);
+        } else if (product.id !== 0) {
+          // طلب عادي (منتج واحد)
+          setCartItems([{
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            quantity: product.quantity,
+            selectedSize: product.selectedSize,
+            selectedColor: product.selectedColor,
+            mainImage: product.mainImage,
+          }]);
+          setTotalAmount(product.price * product.quantity);
+          setIsMultiOrder(false);
+        }
+      } catch (error) {
+        console.error('Error loading order data:', error);
+      }
+    }
+  }, [isOpen, product]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -51,7 +96,6 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
   }, [isOpen, onClose]);
 
   const validatePhone = (phone: string): boolean => {
-    // دعم 010, 011, 012, 015
     const phoneRegex = /^(010|011|012|015)[0-9]{8}$/;
     return phoneRegex.test(phone);
   };
@@ -80,6 +124,17 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
 
     setLoading(true);
 
+    // إضافة 20+ لأرقام الهواتف المصرية
+    const formatPhoneForWhatsApp = (phone: string) => {
+      let cleaned = phone.replace(/\D/g, '');
+      if (cleaned.startsWith('0')) {
+        cleaned = '20' + cleaned.substring(1);
+      } else if (!cleaned.startsWith('20')) {
+        cleaned = '20' + cleaned;
+      }
+      return cleaned;
+    };
+
     const orderData = {
       name: formData.name.trim(),
       phone: formData.phone.trim(),
@@ -87,14 +142,10 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
       address: formData.address.trim(),
       landmark: formData.landmark.trim(),
       notes: formData.notes.trim(),
-      product: {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        quantity: product.quantity,
-        size: product.selectedSize,
-        color: product.selectedColor,
-      }
+      items: cartItems,
+      totalAmount: totalAmount,
+      isMultiOrder: isMultiOrder,
+      orderId: Date.now().toString(),
     };
 
     try {
@@ -117,6 +168,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
         onSubmit(orderData);
         onClose();
         setFormData({ name: '', phone: '', altPhone: '', address: '', landmark: '', notes: '' });
+        localStorage.removeItem('tempOrderData');
       } else {
         throw new Error(data.error || 'فشل إرسال الطلب');
       }
@@ -137,7 +189,23 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
     if (errors[field]) setErrors(prev => { const newErrors = { ...prev }; delete newErrors[field]; return newErrors; });
   };
 
-  const total = product.price * product.quantity;
+  const getColorName = (colorCode: string): string => {
+    const colorMap: Record<string, string> = {
+      '#000000': 'أسود',
+      '#FFFFFF': 'أبيض',
+      '#808080': 'رمادي',
+      '#FF0000': 'أحمر',
+      '#0000FF': 'أزرق',
+      '#008000': 'أخضر',
+      '#FFFF00': 'أصفر',
+      '#FFC0CB': 'وردي',
+      '#A52A2A': 'بني',
+      '#800080': 'بنفسجي',
+      '#FFA500': 'برتقالي',
+      '#00FFFF': 'سماوي',
+    };
+    return colorMap[colorCode] || colorCode;
+  };
 
   if (!isOpen) return null;
 
@@ -145,7 +213,9 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-hidden shadow-2xl animate-scale-in" onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex justify-between items-center z-20">
-          <h2 className="text-xl font-bold text-black">طلب المنتج</h2>
+          <h2 className="text-xl font-bold text-black">
+            {isMultiOrder ? `طلب متعدد (${cartItems.length} منتج)` : 'طلب المنتج'}
+          </h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition" aria-label="إغلاق">
             <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -153,27 +223,38 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
           </button>
         </div>
 
-        <div className="p-4 border-b border-gray-100 bg-gray-50">
-          <div className="flex gap-3">
-            <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
-              <Image src={product.mainImage} alt={product.name} fill className="object-cover" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-black line-clamp-2">{product.name}</h3>
-              <div className="flex flex-wrap gap-2 mt-1">
-                <p className="text-sm font-bold text-black">{product.price} جنيه × {product.quantity}</p>
-                {product.selectedSize && <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full font-bold text-black">مقاس: {product.selectedSize}</span>}
-                {product.selectedColor && <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full font-bold text-black flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: product.selectedColor }} />{product.selectedColor}</span>}
+        {/* عرض المنتجات في الـ Modal */}
+        <div className="p-4 border-b border-gray-100 bg-gray-50 max-h-64 overflow-y-auto">
+          {cartItems.map((item, idx) => (
+            <div key={idx} className="flex gap-3 mb-3 last:mb-0 pb-3 last:pb-0 border-b last:border-b-0 border-gray-200">
+              <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                <Image src={item.mainImage} alt={item.name} fill className="object-cover" />
               </div>
-              <div className="mt-2 pt-1 border-t border-gray-200">
-                <p className="text-sm font-bold text-black">الإجمالي: <span className="text-lg">{total}</span> جنيه</p>
-                {total > 500 && <p className="text-xs font-bold text-green-700 mt-0.5">🚚 شامل الشحن المجاني</p>}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-sm text-black line-clamp-2">{item.name}</h3>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  <p className="text-xs font-bold text-black">{item.price} جنيه × {item.quantity}</p>
+                  {item.selectedSize && (
+                    <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full font-bold text-black">مقاس: {item.selectedSize}</span>
+                  )}
+                  {item.selectedColor && (
+                    <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full font-bold text-black flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.selectedColor }} />
+                      لون: {getColorName(item.selectedColor)}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
+          ))}
+          <div className="mt-2 pt-2 border-t border-gray-200">
+            <p className="text-sm font-bold text-black">الإجمالي: <span className="text-lg">{totalAmount}</span> جنيه</p>
+            {totalAmount > 500 && <p className="text-xs font-bold text-green-700 mt-0.5">🚚 شامل الشحن المجاني</p>}
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4 overflow-y-auto max-h-[calc(90vh-280px)]">
+        <form onSubmit={handleSubmit} className="p-4 space-y-4 overflow-y-auto max-h-[calc(90vh-320px)]">
+          {/* نفس حقول الفورم اللي كانت موجودة */}
           <div>
             <label className="block text-sm font-bold text-black mb-1">الاسم الكامل <span className="text-red-500">*</span></label>
             <input ref={nameInputRef} type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.name ? 'border-red-500' : 'border-gray-300'}`} placeholder="أدخل اسمك الكامل" disabled={loading} autoComplete="name" />
@@ -193,31 +274,13 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
 
           <div>
             <label className="block text-sm font-bold text-black mb-1">العنوان بالتفصيل <span className="text-red-500">*</span></label>
-            <textarea 
-              rows={3} 
-              value={formData.address} 
-              onChange={(e) => handleInputChange('address', e.target.value)} 
-              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black resize-none ${errors.address ? 'border-red-500' : 'border-gray-300'}`} 
-              placeholder="المحافظة - المنطقة - الشارع - رقم المنزل" 
-              disabled={loading} 
-              autoComplete="address-line1"
-            />
+            <textarea rows={3} value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black resize-none ${errors.address ? 'border-red-500' : 'border-gray-300'}`} placeholder="المحافظة - المنطقة - الشارع - رقم المنزل" disabled={loading} autoComplete="address-line1" />
             {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-black mb-1">
-              علامة مميزة <span className="text-red-500">*</span>
-              <span className="text-xs font-bold text-black mr-2">(مثل: بجوار مسجد النور، أمام مدرسة العبور، بجنيني)</span>
-            </label>
-            <input 
-              type="text" 
-              value={formData.landmark} 
-              onChange={(e) => handleInputChange('landmark', e.target.value)} 
-              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.landmark ? 'border-red-500' : 'border-gray-300'}`} 
-              placeholder="مثال: بجوار مسجد النور، أمام مدرسة العبور" 
-              disabled={loading} 
-            />
+            <label className="block text-sm font-bold text-black mb-1">علامة مميزة <span className="text-red-500">*</span></label>
+            <input type="text" value={formData.landmark} onChange={(e) => handleInputChange('landmark', e.target.value)} className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.landmark ? 'border-red-500' : 'border-gray-300'}`} placeholder="مثال: بجوار مسجد النور، أمام مدرسة العبور" disabled={loading} />
             {errors.landmark && <p className="text-red-500 text-xs mt-1">{errors.landmark}</p>}
           </div>
 

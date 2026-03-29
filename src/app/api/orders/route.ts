@@ -10,7 +10,6 @@ import { sendOrderEmail } from '@/lib/email';
 const WHATSAPP_NUMBER = '201500125133';
 const ADMIN_WHATSAPP = '201500125133';
 
-// ✅ دالة لتحديث الإحصائيات
 async function updateAnalyticsPostgres(orderTotal: number) {
   try {
     await sql`
@@ -63,21 +62,18 @@ async function incrementProductSales(productId: number, quantity: number) {
   }
 }
 
-// ✅ POST - إنشاء طلب جديد
 export async function POST(request: NextRequest) {
   try {
-    const order = await request.json();
-    const totalAmount = order.product.price * order.product.quantity;
+    const orderData = await request.json();
     const orderId = Date.now().toString();
 
-    console.log('📝 Processing order:', { orderId, totalAmount });
+    console.log('📝 Processing order:', { orderId, isMultiOrder: orderData.isMultiOrder });
 
-    // ✅ حفظ في Redis
+    // حفظ في Redis
     try {
       await kv.hset(`order:${orderId}`, {
-        ...order,
+        ...orderData,
         orderId,
-        totalAmount,
         status: 'pending',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -87,72 +83,51 @@ export async function POST(request: NextRequest) {
       console.error('Redis save failed (continuing):', redisError);
     }
 
-    // ✅ حفظ في Postgres
+    // حفظ في Postgres (الطلب الرئيسي)
     await sql`
       INSERT INTO orders (
-        order_id, 
-        customer_name, 
-        customer_phone, 
-        customer_alt_phone,
-        customer_address, 
-        landmark,
-        notes, 
-        total_amount
-      )
-      VALUES (
-        ${orderId}, 
-        ${order.name}, 
-        ${order.phone}, 
-        ${order.altPhone || null},
-        ${order.address}, 
-        ${order.landmark || null},
-        ${order.notes || null}, 
-        ${totalAmount}
+        order_id, customer_name, customer_phone, customer_alt_phone,
+        customer_address, landmark, notes, total_amount
+      ) VALUES (
+        ${orderId}, ${orderData.name}, ${orderData.phone}, ${orderData.altPhone || null},
+        ${orderData.address}, ${orderData.landmark || null}, ${orderData.notes || null}, ${orderData.totalAmount}
       )
     `;
 
-    await sql`
-      INSERT INTO order_items (order_id, product_id, product_name, quantity, price, selected_size, selected_color)
-      VALUES (${orderId}, ${order.product.id}, ${order.product.name}, ${order.product.quantity}, ${order.product.price}, ${order.product.size || null}, ${order.product.color || null})
-    `;
+    // حفظ كل منتج في order_items
+    for (const item of orderData.items) {
+      await sql`
+        INSERT INTO order_items (order_id, product_id, product_name, quantity, price, selected_size, selected_color)
+        VALUES (${orderId}, ${item.id}, ${item.name}, ${item.quantity}, ${item.price}, ${item.selectedSize || null}, ${item.selectedColor || null})
+      `;
+      await incrementProductSales(item.id, item.quantity);
+    }
     console.log('✅ Saved to Postgres');
 
-    // ✅ تحديث الإحصائيات
-    await updateAnalyticsPostgres(totalAmount);
+    await updateAnalyticsPostgres(orderData.totalAmount);
 
-    // ✅ تحديث عدد المبيعات
-    try {
-      await incrementProductSales(order.product.id, order.product.quantity);
-    } catch (salesError) {
-      console.error('Sales update failed:', salesError);
-    }
-
-    // ✅ إرسال إشعار إيميل
+    // إرسال الإيميل
     try {
       console.log('📧 Attempting to send email...');
       const emailSent = await sendOrderEmail({
         orderId,
-        name: order.name,
-        phone: order.phone,
-        altPhone: order.altPhone,
-        address: order.address,
-        landmark: order.landmark,
-        productId: order.product.id,
-        productName: order.product.name,
-        productPrice: order.product.price,
-        quantity: order.product.quantity,
-        totalAmount,
-        size: order.product.size,
-        color: order.product.color,
-        notes: order.notes,
+        name: orderData.name,
+        phone: orderData.phone,
+        altPhone: orderData.altPhone,
+        address: orderData.address,
+        landmark: orderData.landmark,
+        items: orderData.items,
+        totalAmount: orderData.totalAmount,
+        notes: orderData.notes,
       });
+      
       if (emailSent) {
-        console.log('✅ Email sent successfully');
+        console.log('✅ Email sent successfully for order', orderId);
       } else {
         console.log('⚠️ Email sending returned false');
       }
     } catch (emailError) {
-      console.error('❌ Email error (continuing):', emailError);
+      console.error('❌ Email error:', emailError);
     }
     
     return NextResponse.json({ 
@@ -166,7 +141,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// ✅ GET - جلب جميع الطلبات
 export async function GET() {
   try {
     const orders = await getAllOrders();
