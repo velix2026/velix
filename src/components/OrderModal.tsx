@@ -28,9 +28,10 @@ interface OrderModalProps {
     quantity: number;
   };
   onSubmit: (orderData: any) => void;
+  onCartCleared?: () => void; // ✅ كول باك لتفريغ السلة
 }
 
-export default function OrderModal({ isOpen, onClose, product, onSubmit }: OrderModalProps) {
+export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartCleared }: OrderModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -48,9 +49,49 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
   const modalRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
+  // ✅ تحميل بيانات العميل المحفوظة من localStorage
+  const loadSavedCustomerData = useCallback(() => {
+    try {
+      const savedData = localStorage.getItem('velix_customer_data');
+      if (savedData) {
+        const customerData = JSON.parse(savedData);
+        setFormData(prev => ({
+          ...prev,
+          name: customerData.name || '',
+          phone: customerData.phone || '',
+          altPhone: customerData.altPhone || '',
+          address: customerData.address || '',
+          landmark: customerData.landmark || '',
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading saved customer data:', error);
+    }
+  }, []);
+
+  // ✅ حفظ بيانات العميل في localStorage
+  const saveCustomerData = useCallback((data: typeof formData) => {
+    try {
+      const customerData = {
+        name: data.name,
+        phone: data.phone,
+        altPhone: data.altPhone,
+        address: data.address,
+        landmark: data.landmark,
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem('velix_customer_data', JSON.stringify(customerData));
+    } catch (error) {
+      console.error('Error saving customer data:', error);
+    }
+  }, []);
+
   // تحميل بيانات الطلب المتعدد من localStorage
   useEffect(() => {
     if (isOpen) {
+      // تحميل بيانات العميل المحفوظة
+      loadSavedCustomerData();
+      
       try {
         const tempData = localStorage.getItem('tempOrderData');
         if (tempData) {
@@ -76,7 +117,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
         console.error('Error loading order data:', error);
       }
     }
-  }, [isOpen, product]);
+  }, [isOpen, product, loadSavedCustomerData]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -124,16 +165,8 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
 
     setLoading(true);
 
-    // إضافة 20+ لأرقام الهواتف المصرية
-    const formatPhoneForWhatsApp = (phone: string) => {
-      let cleaned = phone.replace(/\D/g, '');
-      if (cleaned.startsWith('0')) {
-        cleaned = '20' + cleaned.substring(1);
-      } else if (!cleaned.startsWith('20')) {
-        cleaned = '20' + cleaned;
-      }
-      return cleaned;
-    };
+    // حفظ بيانات العميل قبل الإرسال
+    saveCustomerData(formData);
 
     const orderData = {
       name: formData.name.trim(),
@@ -166,9 +199,23 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
         }));
 
         onSubmit(orderData);
-        onClose();
-        setFormData({ name: '', phone: '', altPhone: '', address: '', landmark: '', notes: '' });
+        
+        // ✅ تفريغ السلة بعد الطلب بنجاح
+        localStorage.removeItem('cart');
         localStorage.removeItem('tempOrderData');
+        
+        // ✅ إشعار بتفريغ السلة
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+        
+        // ✅ استدعاء كول باك إذا وجد
+        if (onCartCleared) {
+          onCartCleared();
+        }
+        
+        onClose();
+        
+        // تنظيف الفورم
+        setFormData({ name: '', phone: '', altPhone: '', address: '', landmark: '', notes: '' });
       } else {
         throw new Error(data.error || 'فشل إرسال الطلب');
       }
@@ -254,39 +301,85 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit }: Order
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4 overflow-y-auto max-h-[calc(90vh-320px)]">
-          {/* نفس حقول الفورم اللي كانت موجودة */}
           <div>
             <label className="block text-sm font-bold text-black mb-1">الاسم الكامل <span className="text-red-500">*</span></label>
-            <input ref={nameInputRef} type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.name ? 'border-red-500' : 'border-gray-300'}`} placeholder="أدخل اسمك الكامل" disabled={loading} autoComplete="name" />
+            <input 
+              ref={nameInputRef} 
+              type="text" 
+              value={formData.name} 
+              onChange={(e) => handleInputChange('name', e.target.value)} 
+              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.name ? 'border-red-500' : 'border-gray-300'}`} 
+              placeholder="أدخل اسمك الكامل" 
+              disabled={loading} 
+              autoComplete="name"
+            />
             {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
           </div>
 
           <div>
             <label className="block text-sm font-bold text-black mb-1">رقم الهاتف <span className="text-red-500">*</span></label>
-            <input type="tel" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.phone ? 'border-red-500' : 'border-gray-300'}`} placeholder="مثال: 01012345678" disabled={loading} autoComplete="tel" />
+            <input 
+              type="tel" 
+              value={formData.phone} 
+              onChange={(e) => handleInputChange('phone', e.target.value)} 
+              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.phone ? 'border-red-500' : 'border-gray-300'}`} 
+              placeholder="مثال: 01012345678" 
+              disabled={loading} 
+              autoComplete="tel"
+            />
             {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
           </div>
 
           <div>
             <label className="block text-sm font-bold text-black mb-1">رقم هاتف آخر (اختياري)</label>
-            <input type="tel" value={formData.altPhone} onChange={(e) => handleInputChange('altPhone', e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black" placeholder="رقم آخر للتواصل" disabled={loading} autoComplete="tel" />
+            <input 
+              type="tel" 
+              value={formData.altPhone} 
+              onChange={(e) => handleInputChange('altPhone', e.target.value)} 
+              className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black" 
+              placeholder="رقم آخر للتواصل" 
+              disabled={loading} 
+              autoComplete="tel"
+            />
           </div>
 
           <div>
             <label className="block text-sm font-bold text-black mb-1">العنوان بالتفصيل <span className="text-red-500">*</span></label>
-            <textarea rows={3} value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black resize-none ${errors.address ? 'border-red-500' : 'border-gray-300'}`} placeholder="المحافظة - المنطقة - الشارع - رقم المنزل" disabled={loading} autoComplete="address-line1" />
+            <textarea 
+              rows={3} 
+              value={formData.address} 
+              onChange={(e) => handleInputChange('address', e.target.value)} 
+              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black resize-none ${errors.address ? 'border-red-500' : 'border-gray-300'}`} 
+              placeholder="المحافظة - المنطقة - الشارع - رقم المنزل" 
+              disabled={loading} 
+              autoComplete="address-line1"
+            />
             {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
           </div>
 
           <div>
             <label className="block text-sm font-bold text-black mb-1">علامة مميزة <span className="text-red-500">*</span></label>
-            <input type="text" value={formData.landmark} onChange={(e) => handleInputChange('landmark', e.target.value)} className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.landmark ? 'border-red-500' : 'border-gray-300'}`} placeholder="مثال: بجوار مسجد النور، أمام مدرسة العبور" disabled={loading} />
+            <input 
+              type="text" 
+              value={formData.landmark} 
+              onChange={(e) => handleInputChange('landmark', e.target.value)} 
+              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.landmark ? 'border-red-500' : 'border-gray-300'}`} 
+              placeholder="مثال: بجوار مسجد النور، أمام مدرسة العبور" 
+              disabled={loading} 
+            />
             {errors.landmark && <p className="text-red-500 text-xs mt-1">{errors.landmark}</p>}
           </div>
 
           <div>
             <label className="block text-sm font-bold text-black mb-1">ملاحظات إضافية (اختياري)</label>
-            <textarea rows={2} value={formData.notes} onChange={(e) => handleInputChange('notes', e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black resize-none" placeholder="أي تفاصيل إضافية لتوصيل الطلب" disabled={loading} />
+            <textarea 
+              rows={2} 
+              value={formData.notes} 
+              onChange={(e) => handleInputChange('notes', e.target.value)} 
+              className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black resize-none" 
+              placeholder="أي تفاصيل إضافية لتوصيل الطلب" 
+              disabled={loading} 
+            />
           </div>
         </form>
 

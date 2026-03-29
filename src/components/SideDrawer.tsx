@@ -25,7 +25,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
     ? 'لم تقم بإضافة أي منتجات إلى المفضلة بعد'
     : 'سلة التسوق فارغة';
   
-  const { cart, removeFromCart, updateCartQuantity } = useCart();
+  const { cart, removeFromCart, updateCartQuantity, clearCart } = useCart();
   const { favorites, removeFromFavorites } = useFavorites();
   
   const items = type === 'cart' ? cart : favorites;
@@ -86,11 +86,9 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
     }
   }, [type, removeFromCart, removeFromFavorites]);
 
-  // ✅ دالة فتح مودال الطلب
   const openOrderModal = useCallback(() => {
     if (cart.length === 0) return;
     
-    // ✅ تجهيز بيانات الطلب المتعدد بشكل صحيح
     const orderData = {
       items: cart.map(item => ({
         id: item.id,
@@ -106,24 +104,36 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
       totalItems: cart.reduce((sum, item) => sum + item.quantity, 0),
     };
     
-    // تخزين البيانات في localStorage عشان تستخدمها في الـ Modal
     localStorage.setItem('tempOrderData', JSON.stringify(orderData));
     setIsOrderModalOpen(true);
   }, [cart, total]);
 
-  // ✅ تعديل handleOrderSubmit
+  // ✅ معالج بعد إتمام الطلب - تفريغ السلة
   const handleOrderSubmit = useCallback(async (orderData: any) => {
     try {
       console.log('Order submitted:', orderData);
+      
+      // ✅ تفريغ السلة
+      clearCart();
+      
+      // ✅ مسح التخزين المؤقت
+      localStorage.removeItem('tempOrderData');
+      
+      // ✅ إغلاق المودال والدروير
       setIsOrderModalOpen(false);
       onClose();
       
-      // مسح التخزين المؤقت
-      localStorage.removeItem('tempOrderData');
+      // ✅ عرض رسالة نجاح إضافية
+      window.dispatchEvent(new CustomEvent('showToast', {
+        detail: {
+          message: '🛒 تم تفريغ سلة التسوق بنجاح! شكراً لتسوقك مع VELIX',
+          type: 'success'
+        }
+      }));
     } catch (error) {
       console.error('Order submission error:', error);
     }
-  }, [onClose]);
+  }, [clearCart, onClose]);
 
   const getItemKey = (item: Product | CartItem): string => {
     if (type === 'cart' && isCartItem(item)) {
@@ -368,7 +378,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
             mainImage: cart[0]?.mainImage || '',
             quantity: 1,
           }} 
-          onSubmit={handleOrderSubmit} 
+          onSubmit={handleOrderSubmit}
         />
       )}
     </>

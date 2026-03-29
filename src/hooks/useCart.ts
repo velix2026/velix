@@ -263,18 +263,19 @@ export function useCart() {
     });
   }, []);
 
+  // hooks/useCart.ts (تأكد من وجود هذه الدالة)
   const clearCart = useCallback(() => {
     setCart([]);
     setCartCount(0);
     setCartTotal(0);
     localStorage.removeItem('cart');
     window.dispatchEvent(new CustomEvent('cartUpdated'));
-
+    
     trackCartEvent('cart_cleared', {
       timestamp: new Date().toISOString()
     });
-
-    const existingScript = document.getElementById('cart-schema');
+    
+  const existingScript = document.getElementById('cart-schema');
     if (existingScript) existingScript.remove();
   }, []);
 

@@ -46,19 +46,44 @@ export async function sendOrderEmail(order: OrderEmailData) {
 
   const customerPhoneFormatted = formatPhoneForWhatsApp(order.phone);
   
-  // ✅ رسالة واتساب احترافية باللهجة المصرية
+  // ✅ رسالة واتساب احترافية بالشكل المطلوب
   const generateWhatsAppMessage = () => {
+    // بناء تفاصيل المنتجات
     let productsList = '';
     order.items.forEach((item, idx) => {
-      productsList += `%0a• ${idx + 1}- ${item.name} (${item.quantity} قطعة)`;
-      if (item.selectedSize) productsList += ` - مقاس ${item.selectedSize}`;
-      if (item.selectedColor) productsList += ` - لون ${item.selectedColor}`;
+      productsList += `\n📦 ${idx + 1}- ${item.name}`;
+      productsList += `\n   • الكمية: ${item.quantity} قطعة`;
+      productsList += `\n   • السعر: ${item.price} جنيه`;
+      if (item.selectedSize) productsList += `\n   • المقاس: ${item.selectedSize}`;
+      if (item.selectedColor) productsList += `\n   • اللون: ${item.selectedColor}`;
+      if (idx < order.items.length - 1) productsList += `\n   ━━━━━━━━━━━━━━━━━━━`;
     });
+    
+    return `اهلاً وسهلاً استاذ ${order.name}، اخبار حضرتك ايه؟ 😊
 
-    return `مرحباً يا فندم ${order.name}، عامل إيه؟ 😊%0a%0a✅ تم استلام طلبك رقم #${order.orderId} من متجر VELIX%0a%0a📦 تفاصيل طلبك:${productsList}%0a%0a💰 الإجمالي: ${order.totalAmount} جنيه%0a%0a📍 عنوان التوصيل: ${order.address}%0a📍 علامة مميزة: ${order.landmark || 'غير مذكورة'}%0a%0a⏳ هنتواصل معاك خلال 24 ساعة عشان نأكد الطلب وننسق معاك التوصيل.%0a%0aشكراً لتسوقك مع VELIX - بنتمنى الطلب يعجبك يا رب ❤️🚀`;
+✨ تم استلام طلبك رقم #${order.orderId} من متجر VELIX
+
+📋 تفاصيل طلبك:
+${productsList}
+
+💰 إجمالي المبلغ: ${order.totalAmount} جنيه
+
+🚚 سياسة التوصيل:
+• التسليم بيتم خلال 2 - 5 أيام عمل
+• الدفع عند الاستلام (كاش)
+
+📍 مهم جداً:
+برجاء إرسال موقعك (لوكيشن) على الواتساب من العنوان المدون لتسهيل عملية التوصيل وشكراً
+
+🏆 شكراً لثقتك في VELIX
+نشكرك إنك اخترت تتسوق معانا، احنا بنقدرك جداً. بنتمنى طلبك يعجبك ويكون عند حسن ظنك يا رب ❤️
+
+للتواصل السريع: رد على هذه الرسالة
+
+VELIX - فخامة تسوق تستحقها ✨🚀`;
   };
 
-  const whatsappLink = `https://wa.me/${customerPhoneFormatted}?text=${generateWhatsAppMessage()}`;
+  const whatsappLink = `https://wa.me/${customerPhoneFormatted}?text=${encodeURIComponent(generateWhatsAppMessage())}`;
   
   // ✅ بناء HTML الإيميل
   const itemsHtml = order.items.map((item, idx) => `
@@ -111,6 +136,7 @@ export async function sendOrderEmail(order: OrderEmailData) {
         .contact-card { background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 16px; text-align: center; margin-top: 15px; }
         .phone-number { font-size: 20px; font-weight: bold; color: #25D366; direction: ltr; }
         .items-container { margin-top: 10px; }
+        .delivery-info { background: #e0f2fe; border-radius: 12px; padding: 12px; margin-top: 15px; }
       </style>
     </head>
     <body>
@@ -180,6 +206,12 @@ export async function sendOrderEmail(order: OrderEmailData) {
         </div>
         
         <div class="section" style="text-align: center; background: #fafafa;">
+          <div class="delivery-info">
+            <p style="margin: 0 0 8px 0; font-weight: bold;">🚚 سياسة التوصيل</p>
+            <p style="margin: 0; font-size: 13px;">• التسليم خلال 2 - 5 أيام عمل</p>
+            <p style="margin: 5px 0 0; font-size: 13px;">• الدفع عند الاستلام (كاش)</p>
+          </div>
+          
           <div class="contact-card">
             <p style="margin: 0 0 8px 0; color: #333; font-weight: bold;">📱 تواصل مع العميل</p>
             <p style="margin: 0 0 12px 0; color: #666; font-size: 13px;">
@@ -193,7 +225,7 @@ export async function sendOrderEmail(order: OrderEmailData) {
         
         <div class="footer">
           <p>تم إرسال هذا الإشعار من متجر VELIX</p>
-          <p style="margin-top: 5px;">للتواصل السريع: <a href="tel:${order.phone}" style="color: #25D366;">اتصال</a> | <a href="${whatsappLink}" style="color: #25D366;">واتساب</a></p>
+          <p style="margin-top: 5px;">VELIX - فخامة تسوق تستحقها ✨🚀</p>
         </div>
       </div>
     </body>
