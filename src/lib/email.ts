@@ -46,20 +46,20 @@ export async function sendOrderEmail(order: OrderEmailData) {
 
   const customerPhoneFormatted = formatPhoneForWhatsApp(order.phone);
   
-  // ✅ رسالة واتساب احترافية بالشكل المطلوب
+  // ✅ رسالة واتساب احترافية - بدون إيموجي في الرابط
   const generateWhatsAppMessage = () => {
     // بناء تفاصيل المنتجات
     let productsList = '';
     order.items.forEach((item, idx) => {
-      productsList += `\n📦 ${idx + 1}- ${item.name}`;
-      productsList += `\n   • الكمية: ${item.quantity} قطعة`;
-      productsList += `\n   • السعر: ${item.price} جنيه`;
-      if (item.selectedSize) productsList += `\n   • المقاس: ${item.selectedSize}`;
-      if (item.selectedColor) productsList += `\n   • اللون: ${item.selectedColor}`;
-      if (idx < order.items.length - 1) productsList += `\n   ━━━━━━━━━━━━━━━━━━━`;
+      productsList += `\n- ${item.name}`;
+      productsList += `\n   الكمية: ${item.quantity} قطعة`;
+      productsList += `\n   السعر: ${item.price} جنيه`;
+      if (item.selectedSize) productsList += `\n   المقاس: ${item.selectedSize}`;
+      if (item.selectedColor) productsList += `\n   اللون: ${item.selectedColor}`;
+      if (idx < order.items.length - 1) productsList += `\n   --------------------`;
     });
     
-    return `اهلاً وسهلاً استاذ ${order.name}، اخبار حضرتك ايه؟ 😊
+    return `اهلاً وسهلاً استاذ ${order.name}، اخبار حضرتك ايه؟
 
 ✨ تم استلام طلبك رقم #${order.orderId} من متجر VELIX
 
@@ -69,20 +69,21 @@ ${productsList}
 💰 إجمالي المبلغ: ${order.totalAmount} جنيه
 
 🚚 سياسة التوصيل:
-• التسليم بيتم خلال 2 - 5 أيام عمل
+• التسليم بيتم خلال 2 - 5 ايام عمل
 • الدفع عند الاستلام (كاش)
 
 📍 مهم جداً:
-برجاء إرسال موقعك (لوكيشن) على الواتساب من العنوان المدون لتسهيل عملية التوصيل وشكراً
+برجاء ارسال موقعك (لوكيشن) على الواتساب من العنوان المدون لتسهيل عملية التوصيل وشكراً
 
 🏆 شكراً لثقتك في VELIX
-نشكرك إنك اخترت تتسوق معانا، احنا بنقدرك جداً. بنتمنى طلبك يعجبك ويكون عند حسن ظنك يا رب ❤️
+نشكرك انك اخترت تتسوق معانا، احنا بنقدرك جداً. بنتمنى طلبك يعجبك ويكون عند حسن ظنك يا رب ❤️
 
 للتواصل السريع: رد على هذه الرسالة
 
-VELIX - فخامة تسوق تستحقها ✨🚀`;
+VELIX - فخامة تسوق تستحقها`;
   };
 
+  // ✅ استخدام encodeURIComponent عادي (الإيموجي هيتحول صح)
   const whatsappLink = `https://wa.me/${customerPhoneFormatted}?text=${encodeURIComponent(generateWhatsAppMessage())}`;
   
   // ✅ بناء HTML الإيميل
@@ -208,7 +209,7 @@ VELIX - فخامة تسوق تستحقها ✨🚀`;
         <div class="section" style="text-align: center; background: #fafafa;">
           <div class="delivery-info">
             <p style="margin: 0 0 8px 0; font-weight: bold;">🚚 سياسة التوصيل</p>
-            <p style="margin: 0; font-size: 13px;">• التسليم خلال 2 - 5 أيام عمل</p>
+            <p style="margin: 0; font-size: 13px;">• التسليم خلال 2 - 5 ايام عمل</p>
             <p style="margin: 5px 0 0; font-size: 13px;">• الدفع عند الاستلام (كاش)</p>
           </div>
           
