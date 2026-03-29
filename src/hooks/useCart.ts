@@ -199,6 +199,19 @@ export function useCart() {
     });
   }, []);
 
+  // ✅ دالة جديدة: إزالة منتج من السلة باستخدام productId
+  const removeFromCartByProductId = useCallback((productId: number, productName?: string) => {
+    const itemToRemove = cart.find(item => item.id === productId);
+    
+    if (itemToRemove) {
+      removeFromCart(itemToRemove.cartItemId, productName);
+      return true;
+    }
+    
+    console.warn(`Product with id ${productId} not found in cart`);
+    return false;
+  }, [cart, removeFromCart]);
+
   const addToCart = useCallback((product: Product, selectedSize?: string, selectedColor?: string, quantity: number = 1) => {
     setCart(prevCart => {
       const newCartItem: CartItem = {
@@ -303,6 +316,7 @@ export function useCart() {
     totalSavings,
     updateCartQuantity,
     removeFromCart,
+    removeFromCartByProductId, // ✅ الدالة الجديدة
     addToCart,
     clearCart,
     isInCart,

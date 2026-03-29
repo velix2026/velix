@@ -30,7 +30,8 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     { size: '', color: '', quantity: 1, id: Date.now().toString() }
   ]);
   
-  const { addToCart, removeFromCart, isInCart } = useCart();
+  // ✅ استخدام الدالة الجديدة removeFromCartByProductId
+  const { addToCart, removeFromCartByProductId, isInCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
   
   const allImages = [product.mainImage, ...product.subImages];
@@ -144,26 +145,38 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     setTouchStart(null);
   }, [touchStart, allImages.length, showSelectionModal]);
 
-  const handleFavoriteClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleFavorite(product);
-  }, [product, toggleFavorite]);
-
-  const handleCartClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  // ✅ دالة المفضلة
+  const handleFavoriteClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    if (e.stopPropagation) e.stopPropagation();
+    if (e.preventDefault) e.preventDefault();
+    e.nativeEvent?.stopImmediatePropagation();
     
-    if (isInCartState) {
-      // If product exists in cart, we need to handle removal
-      // For now, we'll just open the modal
-      setPendingAction('cart');
+    if (hasSizes || hasColors) {
+      setPendingAction('favorite');
       setShowSelectionModal(true);
     } else {
-      setPendingAction('cart');
-      setShowSelectionModal(true);
+      toggleFavorite(product);
     }
-  }, [product, isInCartState]);
+  }, [product, toggleFavorite, hasSizes, hasColors]);
+
+  // ✅ دالة السلة - باستخدام removeFromCartByProductId
+  const handleCartClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    if (e.stopPropagation) e.stopPropagation();
+    if (e.preventDefault) e.preventDefault();
+    e.nativeEvent?.stopImmediatePropagation();
+    
+    if (isInCartState) {
+      // ✅ استخدام الدالة الجديدة للإزالة
+      removeFromCartByProductId(product.id, product.name);
+    } else {
+      if (hasSizes || hasColors) {
+        setPendingAction('cart');
+        setShowSelectionModal(true);
+      } else {
+        addToCart(product);
+      }
+    }
+  }, [product, isInCartState, addToCart, removeFromCartByProductId, hasSizes, hasColors]);
 
   const addSelection = () => {
     setSelections(prev => [
@@ -308,9 +321,10 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             )}
           </div>
           
-          <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
+          <div className="absolute top-2 right-2 flex flex-col gap-2 z-20">
             <button
               onClick={handleFavoriteClick}
+              onTouchStart={handleFavoriteClick}
               className={`p-1.5 md:p-2 rounded-full shadow-md transition-all duration-300 backdrop-blur-sm ${
                 isFavoritedState 
                   ? 'bg-red-500 text-white hover:bg-red-600 scale-110' 
@@ -325,6 +339,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             
             <button
               onClick={handleCartClick}
+              onTouchStart={handleCartClick}
               className={`p-1.5 md:p-2 rounded-full shadow-md transition-all duration-300 backdrop-blur-sm ${
                 isInCartState 
                   ? 'bg-green-600 text-white hover:bg-green-700 scale-110' 
