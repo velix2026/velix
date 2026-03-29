@@ -48,6 +48,7 @@ export default function Toast({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     onClose();
   };
+  
   const bgColor = {
     success: 'bg-linear-to-r from-emerald-500 via-green-500 to-lime-400',
     error: 'bg-linear-to-r from-red-500 via-rose-500 to-pink-500',
@@ -109,7 +110,7 @@ export default function Toast({
           items-center 
           gap-3 
           text-sm 
-          font-medium
+          font-bold
           backdrop-blur-sm
           border
           ${borderColor}
@@ -125,7 +126,7 @@ export default function Toast({
           <div className="shrink-0">
             {icons}
           </div>
-          <span className="wrap-break-word text-center">{message}</span>
+          <span className="wrap-break-word text-center font-bold">{message}</span>
           <button
             onClick={(e) => {
               e.stopPropagation();

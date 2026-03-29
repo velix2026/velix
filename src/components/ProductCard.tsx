@@ -25,15 +25,13 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   const [imgError, setImgError] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [showSelectionModal, setShowSelectionModal] = useState(false);
-  const [pendingAction, setPendingAction] = useState<'cart' | 'favorite' | null>(null);
   const [selections, setSelections] = useState<CartItemSelection[]>([
     { size: '', color: '', quantity: 1, id: Date.now().toString() }
   ]);
-  
-  // ✅ استخدام الدالة الجديدة removeFromCartByProductId
+
   const { addToCart, removeFromCartByProductId, isInCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
-  
+
   const allImages = [product.mainImage, ...product.subImages];
   const currentImage = allImages[currentImageIndex];
   const imageSrc = imgError ? '/images/placeholder.jpg' : currentImage;
@@ -43,7 +41,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
   const hasSizes = product.sizes && product.sizes.length > 0;
   const hasColors = product.colors && product.colors.length > 0;
-  
+
   const hasValidSelections = () => {
     for (const selection of selections) {
       if (hasSizes && !selection.size) return false;
@@ -78,7 +76,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           setCurrentImageIndex(prev => (prev + 1) % allImages.length);
         }
       }, 4000);
-      
+
       return () => {
         if (autoPlayRef.current) clearInterval(autoPlayRef.current);
       };
@@ -121,17 +119,17 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
     if (touchStart === null) return;
-    
+
     const touchEnd = e.changedTouches[0].clientX;
     const diff = touchStart - touchEnd;
-    
+
     if (Math.abs(diff) > 50 && !showSelectionModal) {
       if (diff > 0) {
         setCurrentImageIndex(prev => (prev + 1) % allImages.length);
       } else {
         setCurrentImageIndex(prev => (prev - 1 + allImages.length) % allImages.length);
       }
-      
+
       if (autoPlayRef.current) {
         clearInterval(autoPlayRef.current);
         autoPlayRef.current = setInterval(() => {
@@ -141,36 +139,37 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
         }, 4000);
       }
     }
-    
+
     setTouchStart(null);
   }, [touchStart, allImages.length, showSelectionModal]);
 
-  // ✅ دالة المفضلة
+  // ✅ زر المفضلة - يضيف مباشرة بدون اختيار مقاسات أو ألوان
   const handleFavoriteClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    if (e.stopPropagation) e.stopPropagation();
-    if (e.preventDefault) e.preventDefault();
-    e.nativeEvent?.stopImmediatePropagation();
+    e.stopPropagation();
+    e.preventDefault();
     
-    if (hasSizes || hasColors) {
-      setPendingAction('favorite');
-      setShowSelectionModal(true);
-    } else {
-      toggleFavorite(product);
+    if (e.nativeEvent) {
+      e.nativeEvent.stopImmediatePropagation();
     }
-  }, [product, toggleFavorite, hasSizes, hasColors]);
+    
+    // إضافة أو إزالة من المفضلة مباشرة
+    toggleFavorite(product);
+  }, [product, toggleFavorite]);
 
-  // ✅ دالة السلة - باستخدام removeFromCartByProductId
+  // ✅ زر السلة - يحتاج اختيار مقاسات وألوان إذا وجدت
   const handleCartClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    if (e.stopPropagation) e.stopPropagation();
-    if (e.preventDefault) e.preventDefault();
-    e.nativeEvent?.stopImmediatePropagation();
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (e.nativeEvent) {
+      e.nativeEvent.stopImmediatePropagation();
+    }
     
     if (isInCartState) {
-      // ✅ استخدام الدالة الجديدة للإزالة
       removeFromCartByProductId(product.id, product.name);
     } else {
+      // فقط السلة هي اللي تحتاج اختيار مقاسات وألوان
       if (hasSizes || hasColors) {
-        setPendingAction('cart');
         setShowSelectionModal(true);
       } else {
         addToCart(product);
@@ -192,7 +191,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   };
 
   const updateSelection = (id: string, field: keyof CartItemSelection, value: string | number) => {
-    setSelections(prev => prev.map(sel => 
+    setSelections(prev => prev.map(sel =>
       sel.id === id ? { ...sel, [field]: value } : sel
     ));
   };
@@ -211,7 +210,6 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
   const cancelSelection = () => {
     setShowSelectionModal(false);
-    setPendingAction(null);
     setSelections([{ size: '', color: '', quantity: 1, id: Date.now().toString() }]);
   };
 
@@ -271,10 +269,11 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
               className="object-cover group-hover:scale-105 transition duration-700"
               onError={() => setImgError(true)}
               priority={priority}
+              fetchPriority={priority ? "high" : "auto"}
               loading={priority ? 'eager' : 'lazy'}
             />
           </Link>
-          
+
           {allImages.length > 1 && !showSelectionModal && (
             <>
               <button
@@ -282,7 +281,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                 className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1.5 shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
                 aria-label="الصورة السابقة"
               >
-                <svg className="w-4 h-4 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
@@ -291,13 +290,13 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1.5 shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
                 aria-label="الصورة التالية"
               >
-                <svg className="w-4 h-4 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
             </>
           )}
-          
+
           <div className="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none z-10">
             {product.isNew && (
               <span className="bg-black text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-sm">
@@ -320,15 +319,16 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
               </span>
             )}
           </div>
-          
+
           <div className="absolute top-2 right-2 flex flex-col gap-2 z-20">
+            {/* زر المفضلة - يضيف مباشرة */}
             <button
               onClick={handleFavoriteClick}
               onTouchStart={handleFavoriteClick}
               className={`p-1.5 md:p-2 rounded-full shadow-md transition-all duration-300 backdrop-blur-sm ${
                 isFavoritedState 
                   ? 'bg-red-500 text-white hover:bg-red-600 scale-110' 
-                  : 'bg-white/90 text-gray-600 hover:bg-white hover:scale-110'
+                  : 'bg-white/90 text-black hover:bg-white hover:scale-110'
               }`}
               aria-label={isFavoritedState ? `إزالة ${product.name} من المفضلة` : `إضافة ${product.name} إلى المفضلة`}
             >
@@ -336,14 +336,15 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </button>
-            
+
+            {/* زر السلة - فقط هو اللي يحتاج اختيار مقاسات وألوان */}
             <button
               onClick={handleCartClick}
               onTouchStart={handleCartClick}
               className={`p-1.5 md:p-2 rounded-full shadow-md transition-all duration-300 backdrop-blur-sm ${
                 isInCartState 
                   ? 'bg-green-600 text-white hover:bg-green-700 scale-110' 
-                  : 'bg-white/90 text-gray-600 hover:bg-white hover:scale-110'
+                  : 'bg-white/90 text-black hover:bg-white hover:scale-110'
               }`}
               aria-label={isInCartState ? `إزالة ${product.name} من السلة` : `إضافة ${product.name} إلى السلة`}
               disabled={isOutOfStock}
@@ -353,13 +354,13 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
               </svg>
             </button>
           </div>
-          
+
           {allImages.length > 1 && !showSelectionModal && (
             <div className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm px-1.5 py-0.5 rounded-full text-white font-bold text-[8px] z-10">
               {currentImageIndex + 1} / {allImages.length}
             </div>
           )}
-          
+
           {allImages.length > 1 && !showSelectionModal && (
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1.5 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full z-10">
               {allImages.slice(0, 5).map((_, idx) => (
@@ -389,7 +390,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             </div>
           )}
         </div>
-        
+
         <div className="p-3 md:p-4 flex-1 flex flex-col">
           <Link href={`/products/${product.id}`} className="block flex-1">
             {rating > 0 && (
@@ -403,35 +404,35 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                     <span key={i} className="text-gray-300">★</span>
                   ))}
                 </div>
-                <span className="text-gray-400 font-bold text-[9px] md:text-[10px] mr-1">
+                <span className="text-black font-bold text-[9px] md:text-[10px] mr-1">
                   ({product.salesCount || rating})
                 </span>
               </div>
             )}
-            
+
             <h3 className="text-xs md:text-sm font-bold text-black mb-1 line-clamp-2 hover:text-gray-600 transition">
               {product.name}
             </h3>
-            <p className="text-gray-400 font-bold text-[10px] md:text-xs mb-2">{product.category}</p>
-            
+            <p className="text-black font-bold text-[10px] md:text-xs mb-2 opacity-70">{product.category}</p>
+
             <div className="flex items-center gap-1.5 mb-1.5">
               <span className="text-sm md:text-base font-bold text-black">
                 {product.price} جنيه
               </span>
               {product.oldPrice && product.oldPrice > product.price && (
-                <span className="text-[10px] md:text-xs text-gray-400 line-through font-bold">
+                <span className="text-[10px] md:text-xs text-gray-500 line-through font-bold">
                   {product.oldPrice} جنيه
                 </span>
               )}
             </div>
-            
+
             {product.price > 500 && (
-              <p className="text-green-600 font-bold text-[9px] md:text-[10px]">
+              <p className="text-green-700 font-bold text-[9px] md:text-[10px]">
                 🚚 شحن مجاني
               </p>
             )}
           </Link>
-          
+
           <Link
             href={`/products/${product.id}`}
             className={`block text-center text-white font-bold text-[10px] md:text-xs py-2 rounded-full transition-all mt-2 ${
@@ -446,6 +447,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
         </div>
       </article>
 
+      {/* Modal اختيار المقاسات والألوان - فقط للسلة */}
       {showSelectionModal && (
         <div 
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 flex items-center justify-center p-4 transition-all duration-300"
@@ -457,11 +459,11 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           >
             <div className="sticky top-0 bg-white p-4 border-b border-gray-100 z-10">
               <h3 className="text-xl font-bold text-black text-center">إضافة إلى السلة</h3>
-              <p className="text-xs text-gray-500 font-bold text-center mt-1">
+              <p className="text-xs font-bold text-black text-center mt-1 opacity-70">
                 اختر المقاسات والألوان المطلوبة
               </p>
             </div>
-            
+
             <div className="overflow-y-auto p-4 space-y-4 max-h-[calc(85vh-180px)]">
               <div className="flex gap-3 pb-3 border-b border-gray-100">
                 <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 shrink-0">
@@ -472,16 +474,16 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                   <p className="text-sm font-bold text-black mt-1">{product.price} جنيه</p>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 {selections.map((selection, index) => (
                   <div key={selection.id} className="bg-gray-50 rounded-xl p-3 relative">
                     <div className="flex justify-between items-center mb-3">
-                      <span className="text-xs font-bold text-gray-500">القطعة {index + 1}</span>
+                      <span className="text-xs font-bold text-black opacity-70">القطعة {index + 1}</span>
                       {selections.length > 1 && (
                         <button
                           onClick={() => removeSelection(selection.id)}
-                          className="text-red-400 hover:text-red-600 text-xs font-bold flex items-center gap-1"
+                          className="text-red-500 hover:text-red-700 text-xs font-bold flex items-center gap-1"
                         >
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -490,10 +492,10 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                         </button>
                       )}
                     </div>
-                    
+
                     {hasSizes && (
                       <div className="mb-3">
-                        <p className="text-xs font-bold text-gray-700 mb-1.5">المقاس <span className="text-red-500">*</span></p>
+                        <p className="text-xs font-bold text-black mb-1.5">المقاس <span className="text-red-500">*</span></p>
                         <div className="flex flex-wrap gap-2">
                           {product.sizes?.map((size) => (
                             <button
@@ -502,7 +504,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                               className={`min-w-10 px-3 py-1 text-sm font-bold rounded-lg transition-all ${
                                 selection.size === size
                                   ? 'bg-black text-white shadow-md'
-                                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                                  : 'bg-white text-black hover:bg-gray-100 border border-gray-300'
                               }`}
                             >
                               {size}
@@ -511,10 +513,10 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                         </div>
                       </div>
                     )}
-                    
+
                     {hasColors && (
                       <div className="mb-3">
-                        <p className="text-xs font-bold text-gray-700 mb-1.5">اللون <span className="text-red-500">*</span></p>
+                        <p className="text-xs font-bold text-black mb-1.5">اللون <span className="text-red-500">*</span></p>
                         <div className="flex flex-wrap gap-2">
                           {product.colors?.map((color) => {
                             const isSelected = selection.color === color;
@@ -526,7 +528,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                                 className={`relative w-8 h-8 rounded-full transition-all duration-200 ring-2 ring-offset-1 ${
                                   isSelected 
                                     ? 'ring-black scale-110' 
-                                    : 'ring-gray-200 hover:ring-gray-400'
+                                    : 'ring-gray-300 hover:ring-gray-500'
                                 }`}
                                 style={{ backgroundColor: color }}
                                 title={getColorName(color)}
@@ -547,20 +549,20 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                         </div>
                       </div>
                     )}
-                    
+
                     <div>
-                      <p className="text-xs font-bold text-gray-700 mb-1.5">الكمية</p>
+                      <p className="text-xs font-bold text-black mb-1.5">الكمية</p>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => updateSelection(selection.id, 'quantity', Math.max(1, selection.quantity - 1))}
-                          className="w-7 h-7 rounded-full bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-100 transition flex items-center justify-center"
+                          className="w-7 h-7 rounded-full bg-white border border-gray-300 text-black font-bold hover:bg-gray-100 transition flex items-center justify-center"
                         >
                           -
                         </button>
                         <span className="w-10 text-center font-bold text-sm text-black">{selection.quantity}</span>
                         <button
                           onClick={() => updateSelection(selection.id, 'quantity', selection.quantity + 1)}
-                          className="w-7 h-7 rounded-full bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-100 transition flex items-center justify-center"
+                          className="w-7 h-7 rounded-full bg-white border border-gray-300 text-black font-bold hover:bg-gray-100 transition flex items-center justify-center"
                         >
                           +
                         </button>
@@ -569,26 +571,26 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                   </div>
                 ))}
               </div>
-              
+
               <button
                 onClick={addSelection}
-                className="w-full py-2 rounded-xl border-2 border-dashed border-gray-300 text-gray-500 text-sm font-bold hover:border-gray-400 hover:text-gray-700 transition-all"
+                className="w-full py-2 rounded-xl border-2 border-dashed border-gray-400 text-black text-sm font-bold hover:border-gray-600 hover:text-black transition-all opacity-70 hover:opacity-100"
               >
                 + إضافة قطعة أخرى
               </button>
-              
+
               <div className="bg-gray-100 rounded-xl p-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-bold text-gray-600">إجمالي القطع:</span>
+                  <span className="text-sm font-bold text-black opacity-70">إجمالي القطع:</span>
                   <span className="text-sm font-bold text-black">{totalItems} قطعة</span>
                 </div>
                 <div className="flex justify-between items-center mt-1">
-                  <span className="text-sm font-bold text-gray-600">الإجمالي:</span>
+                  <span className="text-sm font-bold text-black opacity-70">الإجمالي:</span>
                   <span className="text-lg font-bold text-black">{totalPrice} جنيه</span>
                 </div>
               </div>
             </div>
-            
+
             <div className="sticky bottom-0 bg-white p-4 border-t border-gray-100 flex gap-3">
               <button
                 onClick={confirmSelections}
@@ -601,7 +603,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
               >
                 إضافة ({totalItems}) إلى السلة
               </button>
-              
+
               <button
                 onClick={cancelSelection}
                 className="flex-1 py-2.5 rounded-xl bg-linear-to-r from-red-500 via-rose-500 to-pink-500 text-white font-bold hover:scale-[1.02] transition-all shadow-md"

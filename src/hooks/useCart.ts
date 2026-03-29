@@ -31,7 +31,7 @@ const trackCartEvent = (eventName: string, data: any) => {
       event_label: data.productName || 'cart_interaction'
     });
   }
-  
+
   try {
     const cartEvents = JSON.parse(localStorage.getItem('cart_events') || '[]');
     cartEvents.push({ event: eventName, data, timestamp: new Date().toISOString() });
@@ -53,32 +53,40 @@ export function useCart() {
 
   const updateCartSchema = (cartItems: CartItem[]) => {
     if (typeof document === 'undefined') return;
-    
+
     const existingScript = document.getElementById('cart-schema');
     if (existingScript) existingScript.remove();
-    
+
     if (cartItems.length === 0) return;
-    
+
+    // تحسين بيانات الـ Schema لجوجل
     const cartSchema = {
       '@context': 'https://schema.org',
-      '@type': 'Order',
-      'potentialAction': {
-        '@type': 'CheckoutAction',
-        'target': `${window.location.origin}/checkout`
+      '@type': 'Cart',
+      'name': 'سلة تسوق Velix',
+      'totalItems': cartItems.reduce((acc, item) => acc + item.quantity, 0),
+      'totalPrice': {
+        '@type': 'PriceSpecification',
+        'price': cartItems.reduce((acc, item) => acc + (getEffectivePrice(item) * item.quantity), 0).toFixed(2),
+        'priceCurrency': 'EGP'
       },
-      'acceptedOffer': cartItems.map(item => ({
-        '@type': 'Offer',
-        'itemOffered': {
+      'containsPlacement': cartItems.map(item => ({
+        '@type': 'Placement',
+        'quantity': item.quantity,
+        'hasProduct': {
           '@type': 'Product',
           'name': `${item.name}${item.selectedSize ? ` - مقاس ${item.selectedSize}` : ''}${item.selectedColor ? ` - لون ${item.selectedColor}` : ''}`,
           'sku': `VELIX-${item.id}`,
-          'price': getEffectivePrice(item),
-          'priceCurrency': 'EGP',
-        },
-        'quantity': item.quantity
+          'offers': {
+            '@type': 'Offer',
+            'price': getEffectivePrice(item),
+            'priceCurrency': 'EGP',
+            'availability': item.stock && item.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+          }
+        }
       }))
     };
-    
+
     const script = document.createElement('script');
     script.id = 'cart-schema';
     script.type = 'application/ld+json';
@@ -87,75 +95,73 @@ export function useCart() {
   };
 
   const loadCart = useCallback(() => {
-    requestAnimationFrame(() => {
-      if (!isMountedRef.current) return;
-      
-      try {
-        const saved = localStorage.getItem('cart');
-        if (saved) {
-          const cartItems = JSON.parse(saved);
-          const totalQuantity = cartItems.reduce((sum: number, item: CartItem) => {
-            return sum + (item.quantity || 1);
-          }, 0);
-          setCartCount(totalQuantity);
-          
-          const total = cartItems.reduce((sum: number, item: CartItem) => {
-            const price = getEffectivePrice(item);
-            return sum + (price * (item.quantity || 1));
-          }, 0);
-          setCartTotal(total);
-          
-          const cartWithQuantity = cartItems.map((item: CartItem) => ({ 
-            ...item, 
-            quantity: item.quantity || 1 
-          }));
-          setCart(cartWithQuantity);
-          
-          updateCartSchema(cartWithQuantity);
-        } else {
-          setCart([]);
-          setCartCount(0);
-          setCartTotal(0);
-        }
-      } catch (error) {
-        console.error('Error loading cart:', error);
+    if (!isMountedRef.current) return;
+
+    try {
+      const saved = localStorage.getItem('cart');
+      if (saved) {
+        const cartItems = JSON.parse(saved);
+        const totalQuantity = cartItems.reduce((sum: number, item: CartItem) => {
+          return sum + (item.quantity || 1);
+        }, 0);
+        setCartCount(totalQuantity);
+
+        const total = cartItems.reduce((sum: number, item: CartItem) => {
+          const price = getEffectivePrice(item);
+          return sum + (price * (item.quantity || 1));
+        }, 0);
+        setCartTotal(total);
+
+        const cartWithQuantity = cartItems.map((item: CartItem) => ({
+          ...item,
+          quantity: item.quantity || 1
+        }));
+        setCart(cartWithQuantity);
+
+        updateCartSchema(cartWithQuantity);
+      } else {
         setCart([]);
         setCartCount(0);
         setCartTotal(0);
       }
-    });
+    } catch (error) {
+      console.error('Error loading cart:', error);
+      setCart([]);
+      setCartCount(0);
+      setCartTotal(0);
+    }
   }, []);
 
   const updateCartQuantity = useCallback((cartItemId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
-    
+
     setCart(prevCart => {
       const updatedCart = prevCart.map(item =>
         item.cartItemId === cartItemId ? { ...item, quantity: newQuantity } : item
       );
-      
+
       const totalQuantity = updatedCart.reduce((sum, item) => sum + item.quantity, 0);
       const total = updatedCart.reduce((sum, item) => {
         const price = getEffectivePrice(item);
         return sum + (price * item.quantity);
       }, 0);
-      
+
       setCartCount(totalQuantity);
       setCartTotal(total);
-      
+
       const toSave = updatedCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
       localStorage.setItem('cart', JSON.stringify(toSave));
       window.dispatchEvent(new CustomEvent('cartUpdated'));
-      
+
       trackCartEvent('update_quantity', {
         cartItemId,
         quantity: newQuantity,
         cartTotal: total,
         cartCount: totalQuantity
       });
-      
+
       updateCartSchema(updatedCart);
-      
+
       return updatedCart;
     });
   }, []);
@@ -169,45 +175,42 @@ export function useCart() {
         const price = getEffectivePrice(item);
         return sum + (price * item.quantity);
       }, 0);
-      
+
       setCartCount(totalQuantity);
       setCartTotal(total);
-      
+
       const toSave = newCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
       localStorage.setItem('cart', JSON.stringify(toSave));
       window.dispatchEvent(new CustomEvent('cartUpdated'));
-      
+
       trackCartEvent('remove_from_cart', {
         cartItemId,
         productName: productName || removedItem?.name,
         cartTotal: total,
         cartCount: totalQuantity
       });
-      
+
       updateCartSchema(newCart);
-      
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('showToast', {
-          detail: {
-            message: `🗑️ تم إزالة "${productName || removedItem?.name || 'المنتج'}" من السلة`,
-            type: 'info'
-          }
-        }));
-      }, 0);
-      
+
+      window.dispatchEvent(new CustomEvent('showToast', {
+        detail: {
+          message: `🗑️ تم إزالة "${productName || removedItem?.name || 'المنتج'}" من السلة`,
+          type: 'info'
+        }
+      }));
+
       return newCart;
     });
   }, []);
 
-  // ✅ دالة جديدة: إزالة منتج من السلة باستخدام productId
   const removeFromCartByProductId = useCallback((productId: number, productName?: string) => {
     const itemToRemove = cart.find(item => item.id === productId);
-    
+
     if (itemToRemove) {
       removeFromCart(itemToRemove.cartItemId, productName);
       return true;
     }
-    
+
     console.warn(`Product with id ${productId} not found in cart`);
     return false;
   }, [cart, removeFromCart]);
@@ -221,22 +224,22 @@ export function useCart() {
         selectedSize,
         selectedColor
       };
-      
+
       const newCart = [...prevCart, newCartItem];
-      
+
       const totalQuantity = newCart.reduce((sum, item) => sum + item.quantity, 0);
       const total = newCart.reduce((sum, item) => {
         const price = getEffectivePrice(item);
         return sum + (price * item.quantity);
       }, 0);
-      
+
       setCartCount(totalQuantity);
       setCartTotal(total);
-      
+
       const toSave = newCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
       localStorage.setItem('cart', JSON.stringify(toSave));
       window.dispatchEvent(new CustomEvent('cartUpdated'));
-      
+
       trackCartEvent('add_to_cart', {
         productId: product.id,
         productName: product.name,
@@ -246,61 +249,59 @@ export function useCart() {
         cartTotal: total,
         cartCount: totalQuantity
       });
-      
+
       updateCartSchema(newCart);
-      
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('showToast', {
-          detail: {
-            message: `✅ تم إضافة ${quantity} × "${product.name}"${selectedSize ? ` (مقاس ${selectedSize})` : ''}${selectedColor ? ` (لون ${selectedColor})` : ''} إلى السلة`,
-            type: 'success'
-          }
-        }));
-      }, 0);
-      
+
+      window.dispatchEvent(new CustomEvent('showToast', {
+        detail: {
+          message: `✅ تم إضافة ${quantity} × "${product.name}"${selectedSize ? ` (مقاس ${selectedSize})` : ''}${selectedColor ? ` (لون ${selectedColor})` : ''} إلى السلة`,
+          type: 'success'
+        }
+      }));
+
       return newCart;
     });
   }, []);
-  
+
   const clearCart = useCallback(() => {
     setCart([]);
     setCartCount(0);
     setCartTotal(0);
     localStorage.removeItem('cart');
     window.dispatchEvent(new CustomEvent('cartUpdated'));
-    
+
     trackCartEvent('cart_cleared', {
       timestamp: new Date().toISOString()
     });
-    
+
     const existingScript = document.getElementById('cart-schema');
     if (existingScript) existingScript.remove();
   }, []);
-  
+
   const isInCart = useCallback((productId: number) => {
     return cart.some(item => item.id === productId);
   }, [cart]);
-  
+
   const uniqueItemsCount = cart.length;
   const totalSavings = cart.reduce((sum, item) => sum + getSavingsForCartItem(item), 0);
 
   useEffect(() => {
     isMountedRef.current = true;
     loadCart();
-    
+
     const handleCartUpdate = () => {
       loadCart();
     };
-    
+
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'cart') {
         loadCart();
       }
     };
-    
+
     window.addEventListener('cartUpdated', handleCartUpdate);
     window.addEventListener('storage', handleStorageChange);
-    
+
     return () => {
       isMountedRef.current = false;
       window.removeEventListener('cartUpdated', handleCartUpdate);
@@ -316,7 +317,7 @@ export function useCart() {
     totalSavings,
     updateCartQuantity,
     removeFromCart,
-    removeFromCartByProductId, // ✅ الدالة الجديدة
+    removeFromCartByProductId,
     addToCart,
     clearCart,
     isInCart,

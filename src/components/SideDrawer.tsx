@@ -15,7 +15,6 @@ interface SideDrawerProps {
   type: 'favorites' | 'cart';
 }
 
-// Type Guard للتمييز بين CartItem و Product
 const isCartItem = (item: Product | CartItem): item is CartItem => {
   return (item as CartItem).cartItemId !== undefined;
 };
@@ -151,7 +150,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
             className="p-2 rounded-full transition-all duration-300 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
             aria-label="إغلاق"
           >
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -168,7 +167,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full min-h-75 text-center">
               <div className="text-6xl mb-4 opacity-50">{type === 'favorites' ? '❤️' : '🛒'}</div>
-              <p className="text-gray-500 font-bold text-sm">{emptyMessage}</p>
+              <p className="text-black font-bold text-sm opacity-70">{emptyMessage}</p>
               <button 
                 onClick={() => { 
                   onClose(); 
@@ -205,18 +204,18 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                     >
                       {item.name}
                     </Link>
-                    <p className="text-gray-400 font-bold text-xs mb-2">{item.category}</p>
+                    <p className="text-black font-bold text-xs mb-2 opacity-70">{item.category}</p>
                     
                     {type === 'cart' && (item as any).selectedSize && (
-                      <div className="inline-flex items-center gap-1 text-xs text-gray-500 font-bold mb-2 ml-2">
-                        <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px]">
+                      <div className="inline-flex items-center gap-1 text-xs font-bold mb-2 ml-2">
+                        <span className="bg-gray-200 px-2 py-0.5 rounded text-[10px] text-black">
                           مقاس: {(item as any).selectedSize}
                         </span>
                       </div>
                     )}
                     {type === 'cart' && (item as any).selectedColor && (
-                      <div className="inline-flex items-center gap-1 text-xs text-gray-500 font-bold mb-2">
-                        <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px] flex items-center gap-1">
+                      <div className="inline-flex items-center gap-1 text-xs font-bold mb-2">
+                        <span className="bg-gray-200 px-2 py-0.5 rounded text-[10px] text-black flex items-center gap-1">
                           <span 
                             className="w-2 h-2 rounded-full" 
                             style={{ backgroundColor: (item as any).selectedColor }} 
@@ -228,18 +227,22 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="font-bold text-sm text-black">
-                          {item.oldPrice && item.oldPrice > item.price ? (
-                            <>
-                              <span className="line-through text-gray-400 text-xs ml-1">{item.oldPrice}</span>
+                        {item.oldPrice && item.oldPrice > item.price ? (
+                          <div className="flex items-center gap-1">
+                            <span className="font-bold text-sm text-black">
                               {item.price} جنيه
-                            </>
-                          ) : (
-                            `${item.price} جنيه`
-                          )}
-                        </span>
+                            </span>
+                            <span className="line-through text-black text-xs opacity-50 mr-1">
+                              {item.oldPrice}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="font-bold text-sm text-black">
+                            {item.price} جنيه
+                          </span>
+                        )}
                         {type === 'cart' && (item as any).quantity > 1 && (
-                          <span className="text-xs text-gray-400 font-bold mr-2">
+                          <span className="text-xs font-bold text-black opacity-70 mr-2">
                             × {(item as any).quantity}
                           </span>
                         )}
@@ -247,10 +250,10 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                       
                       <div className="flex items-center gap-2">
                         {type === 'cart' && isCartItem(item) && (
-                          <div className="flex items-center gap-1 bg-gray-50 rounded-lg px-1">
+                          <div className="flex items-center gap-1 bg-gray-100 rounded-lg px-1">
                             <button 
                               onClick={() => handleUpdateQuantity(item.cartItemId, (item as CartItem).quantity - 1)} 
-                              className="w-6 h-6 rounded-full hover:bg-gray-200 text-sm font-bold flex items-center justify-center transition"
+                              className="w-6 h-6 rounded-full hover:bg-gray-200 text-sm font-bold flex items-center justify-center transition text-black"
                               aria-label="تقليل الكمية"
                             >
                               -
@@ -260,7 +263,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                             </span>
                             <button 
                               onClick={() => handleUpdateQuantity(item.cartItemId, (item as CartItem).quantity + 1)} 
-                              className="w-6 h-6 rounded-full hover:bg-gray-200 text-sm font-bold flex items-center justify-center transition"
+                              className="w-6 h-6 rounded-full hover:bg-gray-200 text-sm font-bold flex items-center justify-center transition text-black"
                               aria-label="زيادة الكمية"
                             >
                               +
@@ -270,7 +273,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                         
                         <button 
                           onClick={() => handleRemove(item)} 
-                          className="text-red-400 hover:text-red-600 transition p-1" 
+                          className="text-red-500 hover:text-red-700 transition p-1" 
                           aria-label="حذف"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -289,7 +292,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
         {type === 'cart' && items.length > 0 && (
           <div className="border-t border-gray-100 p-4 bg-white sticky bottom-0 z-10">
             <div className="flex justify-between items-center mb-3">
-              <span className="text-gray-600 font-bold text-sm">الإجمالي</span>
+              <span className="text-black font-bold text-sm">الإجمالي</span>
               <div className="text-right">
                 {(() => {
                   const hasDiscount = cart.some(item => item.oldPrice && item.oldPrice > item.price);
@@ -299,12 +302,12 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                   return (
                     <>
                       {hasDiscount && savings > 0 && (
-                        <div className="text-xs text-green-600 font-bold mb-1">
+                        <div className="text-xs font-bold text-green-700 mb-1">
                           وفرت {savings.toFixed(0)} جنيه
                         </div>
                       )}
                       <span className="text-xl font-bold text-black">{total.toFixed(0)}</span>
-                      <span className="text-xs text-gray-400 font-bold mr-1">جنيه</span>
+                      <span className="text-xs font-bold text-black mr-1">جنيه</span>
                     </>
                   );
                 })()}
@@ -321,7 +324,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                 onClose(); 
                 window.location.href = '/products'; 
               }} 
-              className="w-full text-center text-xs text-gray-400 font-bold mt-3 hover:text-gray-500 transition"
+              className="w-full text-center text-xs font-bold text-black opacity-50 mt-3 hover:opacity-70 transition"
             >
               مواصلة التسوق
             </button>
