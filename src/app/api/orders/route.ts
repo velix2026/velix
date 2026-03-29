@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       console.error('Redis save failed (continuing):', redisError);
     }
 
-    // ✅ حفظ في Postgres (مع landmark و altPhone)
+    // ✅ حفظ في Postgres
     await sql`
       INSERT INTO orders (
         order_id, 
