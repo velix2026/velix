@@ -93,6 +93,8 @@ export default function Hero() {
                     fill
                     sizes="(max-width: 768px) 33vw, 25vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    loading="eager"  // ✅ أضف ده عشان الصورة تظهر فوراً
+                    priority={false}
                   />
                 </div>
                 <div className="relative aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group">
@@ -102,6 +104,8 @@ export default function Hero() {
                     fill
                     sizes="(max-width: 768px) 33vw, 25vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    loading="eager"  // ✅ أضف ده عشان الصورة تظهر فوراً
+                    priority={false}
                   />
                 </div>
                 <div className="relative aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group">
@@ -111,6 +115,8 @@ export default function Hero() {
                     fill
                     sizes="(max-width: 768px) 33vw, 25vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    loading="eager"  // ✅ أضف ده عشان الصورة تظهر فوراً
+                    priority={false}
                   />
                 </div>
               </div>

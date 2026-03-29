@@ -12,7 +12,7 @@ export default async function Home() {
     <>
       <Hero />
       <BrandFeatures />
-      <FeaturedProducts products={products} />
+      <FeaturedProducts key={products.length} products={products} />
       <Newsletter />
     </>
   );

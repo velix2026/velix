@@ -265,7 +265,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
               src={imageSrc}
               alt={`${product.name} - صورة ${currentImageIndex + 1}`}
               fill
-              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              sizes=" (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               className="object-cover group-hover:scale-105 transition duration-700"
               onError={() => setImgError(true)}
               priority={priority}
