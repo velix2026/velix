@@ -1,11 +1,15 @@
+// components/product/ProductActions.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useCart } from '@/hooks/useCart';
+import { useFavorites } from '@/hooks/useFavorites';
+import { toArabicNumber } from '@/lib/utils';
 
 interface ProductActionsProps {
   product: any;
   onOrder: (data: { size: string; color: string; quantity: number }) => void;
-  onAddToCart?: (data: { size: string; color: string; quantity: number }) => void;
 }
 
 const allColors = [
@@ -18,230 +22,252 @@ const allColors = [
   { name: 'بيج', value: '#F5F5DC', code: 'beige', border: true },
 ];
 
-export default function ProductActions({ product, onOrder, onAddToCart }: ProductActionsProps) {
+export default function ProductActions({ product, onOrder }: ProductActionsProps) {
   const [selection, setSelection] = useState({
-    size: product.sizes?.[0] || '',
-    color: product.colors?.[0] || '',
+    size: '',
+    color: '',
     quantity: 1,
   });
-  const [isFavorited, setIsFavorited] = useState(false);
+  
+  const { addToCart, removeFromCartByProductId, isInCart } = useCart();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const stock = product.stock || 0;
   const sizes: string[] = product.sizes || [];
   const colors: string[] = product.colors || [];
+  const isInCartState = isInCart(product.id);
+  const isFavoritedState = isFavorite(product.id);
 
-  // تحميل حالة المفضلة
   useEffect(() => {
-    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    setIsFavorited(favorites.some((p: any) => p.id === product.id));
-  }, [product.id]);
+    setSelection(prev => ({
+      ...prev,
+      size: sizes[0] || '',
+      color: colors[0] || '',
+    }));
+  }, [sizes, colors]);
 
   const updateSelection = (key: string, value: any) => {
     setSelection(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleOrder = () => {
+  const validateSelection = () => {
     if (sizes.length > 0 && !selection.size) {
       alert('الرجاء اختيار المقاس');
-      return;
+      return false;
     }
     if (colors.length > 0 && !selection.color) {
       alert('الرجاء اختيار اللون');
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const handleOrder = () => {
+    if (!validateSelection()) return;
     onOrder(selection);
   };
 
   const handleAddToCart = () => {
-    if (sizes.length > 0 && !selection.size) {
-      alert('الرجاء اختيار المقاس');
-      return;
-    }
-    if (colors.length > 0 && !selection.color) {
-      alert('الرجاء اختيار اللون');
-      return;
-    }
-    
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const existingIndex = cart.findIndex(
-      (item: any) => item.id === product.id && item.size === selection.size && item.color === selection.color
-    );
-    
-    if (existingIndex !== -1) {
-      cart[existingIndex].quantity += selection.quantity;
-    } else {
-      cart.push({
-        ...product,
-        quantity: selection.quantity,
-        selectedSize: selection.size,
-        selectedColor: selection.color,
-      });
-    }
-    
-    localStorage.setItem('cart', JSON.stringify(cart));
-    window.dispatchEvent(new CustomEvent('cartUpdated'));
-    alert('✅ تم إضافة المنتج إلى السلة');
-    
-    if (onAddToCart) onAddToCart(selection);
-  };
-
-  const toggleFavorite = () => {
-    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    if (isFavorited) {
-      const newFavorites = favorites.filter((p: any) => p.id !== product.id);
-      localStorage.setItem('favorites', JSON.stringify(newFavorites));
-      setIsFavorited(false);
-    } else {
-      favorites.push(product);
-      localStorage.setItem('favorites', JSON.stringify(favorites));
-      setIsFavorited(true);
-    }
-    window.dispatchEvent(new CustomEvent('favoritesUpdated'));
-  };
-
-  // مشاركة المنتج
-  const shareProduct = async () => {
-    const url = window.location.href;
-    const title = `VELIX - ${product.name}`;
-    const text = `شوف منتج ${product.name} من VELIX`;
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title,
-          text,
-          url,
-        });
-      } catch (err) {
-        console.log('Error sharing:', err);
+      if (!validateSelection()) return;
+      
+      // ✅ التحقق من الكمية المطلوبة مع المخزون
+      if (selection.quantity > stock) {
+        alert(`⚠️ الكمية المطلوبة (${selection.quantity}) تتجاوز المتاح (${stock})`);
+        return;
       }
-    } else {
-      await navigator.clipboard.writeText(url);
-      alert('تم نسخ رابط المنتج 📋');
-    }
+      
+      setTimeout(() => {
+        addToCart(product, selection.size || undefined, selection.color || undefined, selection.quantity);
+      }, 0);
+    };
+
+  const handleRemoveFromCart = () => {
+    setTimeout(() => {
+      removeFromCartByProductId(product.id, product.name);
+    }, 0);
+  };
+
+  const handleToggleFavorite = () => {
+    setTimeout(() => {
+      toggleFavorite(product);
+    }, 0);
+  };
+
+  const getColorDetails = (colorCode: string) => {
+    return allColors.find(c => c.code === colorCode) || { name: colorCode, value: colorCode, code: colorCode };
   };
 
   return (
-    <>
-      {/* أزرار المفضلة والمشاركة - ستظهر في Breadcrumb عبر الـ Portal */}
-<div className="flex items-center gap-3" id="product-actions-portal">
-  <button
-    onClick={toggleFavorite}
-    className={`p-2 rounded-full border transition flex items-center justify-center ${
-      isFavorited
-        ? 'bg-red-500 text-white border-red-500'
-        : 'bg-white text-gray-700 border-gray-300 hover:border-black'
-    }`}
-    aria-label={isFavorited ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
-  >
-    <svg className="w-5 h-5" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-    </svg>
-  </button>
-  
-  <button
-    onClick={shareProduct}
-    className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition flex items-center justify-center"
-    aria-label="مشاركة المنتج"
-  >
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-    </svg>
-  </button>
-</div>
-
-      {/* باقي محتوى المنتج */}
-      <div>
-        {/* المقاسات */}
-        {sizes.length > 0 && (
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">المقاس:</label>
-            <div className="flex flex-wrap gap-2">
-              {sizes.map((size) => (
-                <button
-                  key={size}
-                  onClick={() => updateSelection('size', size)}
-                  className={`px-4 py-2 rounded-full border transition-all ${
-                    selection.size === size
-                      ? 'bg-black text-white border-black'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-black'
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* الألوان */}
-        {colors.length > 0 && (
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">اللون:</label>
-            <div className="flex flex-wrap gap-3">
-              {colors.map((colorCode) => {
-                const color = allColors.find(c => c.code === colorCode);
-                return (
-                  <button
-                    key={colorCode}
-                    onClick={() => updateSelection('color', colorCode)}
-                    className={`w-10 h-10 rounded-full transition-all ${
-                      selection.color === colorCode
-                        ? 'ring-2 ring-offset-2 ring-black scale-110'
-                        : 'hover:scale-105'
-                    }`}
-                    style={{
-                      backgroundColor: color?.value || colorCode,
-                      border: color?.border ? '1px solid #e5e7eb' : 'none',
-                    }}
-                    title={color?.name}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* الكمية */}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.1 }}
+      className="mt-6"
+    >
+      {/* المقاسات */}
+      {sizes.length > 0 && (
         <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">الكمية:</label>
-          <div className="flex items-center gap-2">
+          <label className="block text-sm font-bold text-black mb-3 items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+            </svg>
+            اختر المقاس:
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {sizes.map((size) => (
+              <button
+                key={size}
+                onClick={() => updateSelection('size', size)}
+                className={`px-4 py-2 rounded-full border-2 transition-all duration-200 font-bold ${
+                  selection.size === size
+                    ? 'bg-black text-white border-black shadow-lg scale-105'
+                    : 'bg-white text-black border-black/20 hover:border-black hover:scale-105'
+                }`}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* الألوان */}
+      {colors.length > 0 && (
+        <div className="mb-6">
+          <label className="block text-sm font-bold text-black mb-3 items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+            </svg>
+            اختر اللون:
+          </label>
+          <div className="flex flex-wrap gap-3">
+            {colors.map((colorCode) => {
+              const color = getColorDetails(colorCode);
+              const isSelected = selection.color === colorCode;
+              return (
+                <button
+                  key={colorCode}
+                  onClick={() => updateSelection('color', colorCode)}
+                  className={`relative w-10 h-10 rounded-full transition-all duration-200 ${
+                    isSelected ? 'ring-2 ring-offset-2 ring-black scale-110 shadow-lg' : 'hover:scale-110'
+                  }`}
+                  style={{
+                    backgroundColor: color.value,
+                    border: color.border ? '1px solid #e5e7eb' : 'none',
+                  }}
+                  title={color.name}
+                >
+                  {isSelected && (
+                    <svg 
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 text-white drop-shadow-md"
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* الكمية */}
+      <div className="mb-8">
+        <label className="block text-sm font-bold text-black mb-3">الكمية:</label>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-black/5 rounded-full">
             <button
               onClick={() => updateSelection('quantity', Math.max(1, selection.quantity - 1))}
-              className="w-10 h-10 rounded-full border border-gray-300 hover:bg-gray-100 transition"
+              className="w-10 h-10 rounded-full hover:bg-black/10 transition flex items-center justify-center text-lg font-bold text-black"
             >
               -
             </button>
-            <span className="w-12 text-center text-lg font-medium">{selection.quantity}</span>
+            <span className="w-12 text-center text-xl font-black text-black">{toArabicNumber(selection.quantity)}</span>
             <button
               onClick={() => updateSelection('quantity', Math.min(stock, selection.quantity + 1))}
               disabled={selection.quantity >= stock}
-              className="w-10 h-10 rounded-full border border-gray-300 hover:bg-gray-100 transition disabled:opacity-50"
+              className="w-10 h-10 rounded-full hover:bg-black/10 transition flex items-center justify-center text-lg font-bold text-black disabled:opacity-40 disabled:cursor-not-allowed"
             >
               +
             </button>
-            <span className="text-sm text-gray-500 mr-2">متاح: {stock} قطعة</span>
           </div>
+          <span className="text-sm font-bold text-black opacity-60">
+            <span className="font-black text-black">{toArabicNumber(stock)}</span> قطعة متاحة
+          </span>
         </div>
+      </div>
 
-        {/* أزرار الإجراءات الرئيسية */}
-        <div className="flex gap-3 mb-6">
+      {/* أزرار الإجراءات */}
+      <div className="flex gap-3 mb-4">
+        <button
+          onClick={handleOrder}
+          disabled={stock === 0}
+          className="flex-1 bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white font-bold py-3.5 rounded-full hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-base"
+        >
+          اطلب الآن
+        </button>
+        
+        {isInCartState ? (
           <button
-            onClick={handleOrder}
-            disabled={stock === 0}
-            className="flex-1 bg-black text-white py-3 rounded-full font-medium hover:bg-gray-800 transition disabled:opacity-50"
+            onClick={handleRemoveFromCart}
+            className="flex-1 bg-red-500 text-white font-bold py-3.5 rounded-full hover:bg-red-600 transition-all duration-300 shadow-lg text-base"
           >
-            اطلب الآن
+            إزالة من السلة
           </button>
+        ) : (
           <button
             onClick={handleAddToCart}
             disabled={stock === 0}
-            className="flex-1 bg-gray-800 text-white py-3 rounded-full font-medium hover:bg-gray-700 transition disabled:opacity-50"
+            className="flex-1 bg-linear-to-r from-sky-400 via-blue-500 to-indigo-500 text-white font-bold py-3.5 rounded-full hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-base"
           >
             أضف للسلة
           </button>
-        </div>
+        )}
       </div>
-    </>
+
+      {/* أزرار المفضلة والمشاركة */}
+      <div className="flex gap-3">
+        <button
+          onClick={handleToggleFavorite}
+          className={`flex-1 py-3 rounded-full font-bold transition-all duration-300 flex items-center justify-center gap-2 border-2 ${
+            isFavoritedState
+              ? 'bg-red-500 text-white border-red-500'
+              : 'bg-white text-black border-black/20 hover:border-black hover:bg-black/5'
+          }`}
+        >
+          <svg className="w-5 h-5" fill={isFavoritedState ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+          {isFavoritedState ? 'تمت الإضافة للمفضلة' : 'أضف للمفضلة'}
+        </button>
+        
+        <button
+          onClick={async () => {
+            const url = window.location.href;
+            if (navigator.share) {
+              try {
+                await navigator.share({
+                  title: `VELIX - ${product.name}`,
+                  text: `شوف منتج ${product.name} من VELIX`,
+                  url,
+                });
+              } catch (err) {}
+            } else {
+              await navigator.clipboard.writeText(url);
+              alert('تم نسخ رابط المنتج 📋');
+            }
+          }}
+          className="py-3 px-6 rounded-full font-bold bg-white text-black border-2 border-black/20 hover:border-black hover:bg-black/5 transition-all duration-300 flex items-center justify-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+          </svg>
+          مشاركة
+        </button>
+      </div>
+    </motion.div>
   );
 }

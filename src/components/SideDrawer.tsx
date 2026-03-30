@@ -8,6 +8,7 @@ import { Product } from '@/lib/products';
 import { useCart, CartItem } from '@/hooks/useCart';
 import { useFavorites } from '@/hooks/useFavorites';
 import OrderModal from './OrderModal';
+import { toArabicNumber, formatPrice } from '@/lib/utils';
 
 interface SideDrawerProps {
   isOpen: boolean;
@@ -161,7 +162,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
         aria-hidden="true"
       />
       
-      {/* ✅ الدروير - من 80% في الموبايل و 400px في الديسكتوب */}
+      {/* ✅ الدروير */}
       <div
         ref={drawerRef}
         role="dialog"
@@ -169,7 +170,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
         aria-label={title}
         className={`fixed top-0 left-0 h-full bg-white shadow-2xl z-50 transform transition-all duration-300 ease-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        } w-full sm:w-112.5 md:w-125 lg:w-137.5ax-w-[85vw]`}
+        } w-full sm:w-112.5 md:w-125 lg:w-137.5 max-w-[85vw]`}
       >
         {/* ✅ Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white sticky top-0 z-10">
@@ -261,20 +262,20 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                         {item.oldPrice && item.oldPrice > item.price ? (
                           <div className="flex items-center gap-1">
                             <span className="font-bold text-sm text-black">
-                              {item.price} جنيه
+                              {formatPrice(item.price)}
                             </span>
                             <span className="line-through text-black text-xs opacity-50 mr-1">
-                              {item.oldPrice}
+                              {formatPrice(item.oldPrice)}
                             </span>
                           </div>
                         ) : (
                           <span className="font-bold text-sm text-black">
-                            {item.price} جنيه
+                            {formatPrice(item.price)}
                           </span>
                         )}
                         {type === 'cart' && (item as any).quantity > 1 && (
                           <span className="text-xs font-bold text-black opacity-70 mr-2">
-                            × {(item as any).quantity}
+                            × {toArabicNumber((item as any).quantity)}
                           </span>
                         )}
                       </div>
@@ -284,24 +285,38 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                           <div className="flex items-center gap-1 bg-white rounded-lg px-1 shadow-sm">
                             <button 
                               onClick={() => handleUpdateQuantity(item.cartItemId, (item as CartItem).quantity - 1)} 
-                              className="w-6 h-6 rounded-full hover:bg-gray-100 text-sm font-bold flex items-center justify-center transition text-black"
+                              className="w-6 h-6 rounded-full hover:bg-gray-100 text-sm font-bold flex items-center justify-center transition text-black disabled:opacity-40"
                               aria-label="تقليل الكمية"
+                              disabled={(item as CartItem).quantity <= 1}
                             >
                               -
                             </button>
                             <span className="w-6 text-center text-xs font-bold text-black">
-                              {(item as CartItem).quantity}
+                              {toArabicNumber((item as CartItem).quantity)}
                             </span>
                             <button 
-                              onClick={() => handleUpdateQuantity(item.cartItemId, (item as CartItem).quantity + 1)} 
-                              className="w-6 h-6 rounded-full hover:bg-gray-100 text-sm font-bold flex items-center justify-center transition text-black"
+                              onClick={() => {
+                                const newQuantity = (item as CartItem).quantity + 1;
+                                const maxStock = (item as CartItem).stock || Infinity;
+                                if (newQuantity <= maxStock) {
+                                  handleUpdateQuantity(item.cartItemId, newQuantity);
+                                } else {
+                                  window.dispatchEvent(new CustomEvent('showToast', {
+                                    detail: {
+                                      message: `⚠️ لا يتوفر أكثر من ${toArabicNumber(maxStock)} قطع من هذا المنتج`,
+                                      type: 'warning'
+                                    }
+                                  }));
+                                }
+                              }} 
+                              className="w-6 h-6 rounded-full hover:bg-gray-100 text-sm font-bold flex items-center justify-center transition text-black disabled:opacity-40"
                               aria-label="زيادة الكمية"
+                              disabled={(item as CartItem).quantity >= ((item as CartItem).stock || Infinity)}
                             >
                               +
                             </button>
                           </div>
                         )}
-                        
                         <button 
                           onClick={() => handleRemove(item)} 
                           className="text-red-400 hover:text-red-600 transition p-1" 
@@ -335,11 +350,10 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                     <>
                       {hasDiscount && savings > 0 && (
                         <div className="text-xs font-bold text-green-700 mb-1">
-                          وفرت {savings.toFixed(0)} جنيه
+                          وفرت {toArabicNumber(Math.floor(savings))} جنيه
                         </div>
                       )}
-                      <span className="text-xl font-bold text-black">{total.toFixed(0)}</span>
-                      <span className="text-xs font-bold text-black mr-1">جنيه</span>
+                      <span className="text-xl font-bold text-black">{formatPrice(total)}</span>
                     </>
                   );
                 })()}
@@ -370,7 +384,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
           onClose={() => setIsOrderModalOpen(false)} 
           product={{
             id: 0,
-            name: `طلب متعدد (${cart.length} منتج)`,
+            name: `طلب متعدد (${toArabicNumber(cart.length)} منتج)`,
             price: total,
             mainImage: cart[0]?.mainImage || '',
             quantity: 1,

@@ -1,25 +1,41 @@
+// app/api/products/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import Redis from 'ioredis';
 
-// استخدام Redis مباشرة من .env.local
 const redis = new Redis(process.env.REDIS_URL!);
-
 const PRODUCTS_KEY = 'products';
 
-// قراءة المنتجات من Redis
 async function getProducts() {
   try {
     const data = await redis.get(PRODUCTS_KEY);
     if (!data) return [];
-    return JSON.parse(data);
+    let products = JSON.parse(data);
+    
+    // ✅ إضافة createdAt للمنتجات القديمة اللي مفيهاش
+    products = products.map((product: any, index: number) => {
+      if (!product.createdAt) {
+        // تاريخ وهمي: كل منتج أقدم من اللي بعده
+        const daysAgo = Math.min(30, (product.id || index + 1) % 31);
+        const fakeDate = new Date();
+        fakeDate.setDate(fakeDate.getDate() - daysAgo);
+        return {
+          ...product,
+          createdAt: product.createdAt || fakeDate.toISOString(),
+          salesCount: product.salesCount || 0,
+          rating: product.rating || 0,
+        };
+      }
+      return product;
+    });
+    
+    return products;
   } catch (error) {
     console.error('Error reading from Redis:', error);
     return [];
   }
 }
 
-// حفظ المنتجات في Redis
 async function saveProducts(products: any[]) {
   try {
     await redis.set(PRODUCTS_KEY, JSON.stringify(products));
@@ -29,7 +45,14 @@ async function saveProducts(products: any[]) {
   }
 }
 
-// رفع الصورة إلى Vercel Blob
+// إعادة ترقيم المنتجات
+async function renumberProducts(products: any[]) {
+  return products.map((product, index) => ({
+    ...product,
+    id: index + 1,
+  }));
+}
+
 async function uploadImageToBlob(file: File, fileName: string): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer());
   const { url } = await put(fileName, buffer, {
@@ -56,6 +79,7 @@ export async function POST(request: NextRequest) {
     const isNew = formData.get('isNew') === 'true';
     const sizes = JSON.parse(formData.get('sizes') as string || '[]');
     const colors = JSON.parse(formData.get('colors') as string || '[]');
+    const createdAt = formData.get('createdAt') as string || new Date().toISOString();
 
     if (!name || !price || !mainImage) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -70,11 +94,10 @@ export async function POST(request: NextRequest) {
       subImagesUrls.push(url);
     }
 
-    const products = await getProducts();
-    const newId = products.length > 0 ? Math.max(...products.map((p: any) => p.id)) + 1 : 1;
+    let products = await getProducts();
     
     const newProduct = {
-      id: newId,
+      id: 0,
       name,
       price,
       oldPrice,
@@ -88,14 +111,17 @@ export async function POST(request: NextRequest) {
       sizes,
       colors,
       isNew,
-      salesCount: 0, // ✅ بداية المبيعات = 0
-      createdAt: new Date().toISOString(),
+      salesCount: 0,
+      rating: 0,
+      createdAt,
     };
     
     products.push(newProduct);
-    await saveProducts(products);
     
-    return NextResponse.json({ success: true, product: newProduct });
+    const renumbered = await renumberProducts(products);
+    await saveProducts(renumbered);
+    
+    return NextResponse.json({ success: true, product: renumbered[renumbered.length - 1] });
   } catch (error) {
     console.error('Error adding product:', error);
     return NextResponse.json({ error: 'Failed to add product' }, { status: 500 });

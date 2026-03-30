@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
+import { toArabicNumber, formatPrice } from '@/lib/utils';
 
 interface OrderItem {
   id: number;
@@ -251,7 +252,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
         {/* Header - ثابت */}
         <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex justify-between items-center z-20">
           <h2 className="text-xl font-bold text-black">
-            {isMultiOrder ? `طلب متعدد (${cartItems.length} منتج)` : 'طلب المنتج'}
+            {isMultiOrder ? `طلب متعدد (${toArabicNumber(cartItems.length)} منتج)` : 'طلب المنتج'}
           </h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition" aria-label="إغلاق">
             <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -270,7 +271,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-sm text-black line-clamp-2">{item.name}</h3>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  <p className="text-xs font-bold text-black">{item.price} جنيه × {item.quantity}</p>
+                  <p className="text-xs font-bold text-black">{formatPrice(item.price)} × {toArabicNumber(item.quantity)}</p>
                   {item.selectedSize && (
                     <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full font-bold text-black">مقاس: {item.selectedSize}</span>
                   )}
@@ -285,7 +286,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
             </div>
           ))}
           <div className="mt-2 pt-2 border-t border-gray-200">
-            <p className="text-sm font-bold text-black">الإجمالي: <span className="text-lg">{totalAmount}</span> جنيه</p>
+            <p className="text-sm font-bold text-black">الإجمالي: <span className="text-lg">{formatPrice(totalAmount)}</span></p>
             {totalAmount > 500 && <p className="text-xs font-bold text-green-700 mt-0.5">🚚 شامل الشحن المجاني</p>}
           </div>
         </div>

@@ -94,7 +94,6 @@ export function useCart() {
     document.head.appendChild(script);
   };
 
-  // ✅ تحسين loadCart لمنع التحديث أثناء الـ render
   const loadCart = useCallback(() => {
     if (updateTimeoutRef.current) {
       clearTimeout(updateTimeoutRef.current);
@@ -139,10 +138,26 @@ export function useCart() {
     }, 0);
   }, []);
 
+  // ✅ تحديث الكمية مع التحقق من المخزون
   const updateCartQuantity = useCallback((cartItemId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
     
     setCart(prevCart => {
+      const item = prevCart.find(item => item.cartItemId === cartItemId);
+      
+      // ✅ التحقق من المخزون
+      if (item && item.stock !== undefined && newQuantity > item.stock) {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('showToast', {
+            detail: {
+              message: `⚠️ لا يتوفر أكثر من ${item.stock} قطع من هذا المنتج`,
+              type: 'warning'
+            }
+          }));
+        }, 0);
+        return prevCart;
+      }
+      
       const updatedCart = prevCart.map(item =>
         item.cartItemId === cartItemId ? { ...item, quantity: newQuantity } : item
       );
@@ -159,7 +174,6 @@ export function useCart() {
       const toSave = updatedCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
       localStorage.setItem('cart', JSON.stringify(toSave));
       
-      // ✅ تأجيل الـ event
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('cartUpdated'));
       }, 0);
@@ -232,6 +246,19 @@ export function useCart() {
   }, [cart, removeFromCart]);
 
   const addToCart = useCallback((product: Product, selectedSize?: string, selectedColor?: string, quantity: number = 1) => {
+    // ✅ التحقق من المخزون قبل الإضافة
+    if (product.stock !== undefined && quantity > product.stock) {
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('showToast', {
+          detail: {
+            message: `⚠️ لا يتوفر أكثر من ${product.stock} قطع من هذا المنتج`,
+            type: 'warning'
+          }
+        }));
+      }, 0);
+      return;
+    }
+    
     setCart(prevCart => {
       const newCartItem: CartItem = {
         ...product,

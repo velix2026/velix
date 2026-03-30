@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
 import { Product } from "@/lib/products";
+import { toArabicNumber } from '@/lib/utils';
 
 interface FeaturedProductsProps {
   products: Product[];
@@ -107,7 +108,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
               <p className="text-gray-500 font-bold text-sm">
                 {favoriteProducts.length === 1 
                   ? 'لديك منتج واحد في المفضلة' 
-                  : `لديك ${favoriteProducts.length} منتج في المفضلة`}
+                  : `لديك ${toArabicNumber(favoriteProducts.length)} منتج في المفضلة`}
               </p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -121,7 +122,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
                   href="/favorites"
                   className="inline-flex items-center gap-2 text-gray-500 hover:text-black font-bold text-sm transition-colors"
                 >
-                  عرض كل المفضلة ({favoriteIds.size})
+                  عرض كل المفضلة ({toArabicNumber(favoriteIds.size)})
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>

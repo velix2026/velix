@@ -11,6 +11,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { create } from 'zustand';
 import { ProductGridSkeleton } from '@/components/Skeleton';
+import { toArabicNumber } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -310,7 +311,7 @@ export default function ProductsPage() {
                 <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-all duration-300" />
                 <div className="relative z-10 flex flex-col items-center justify-center h-full text-white p-3">
                   <h3 className="text-sm md:text-base font-bold text-center drop-shadow-md">{category.name}</h3>
-                  <p className="text-xs text-white/90 mt-1 drop-shadow-sm">{category.count} منتج</p>
+                  <p className="text-xs text-white/90 mt-1 drop-shadow-sm">{toArabicNumber(category.count)} منتج</p>
                 </div>
               </button>
             ))}
@@ -351,7 +352,7 @@ export default function ProductsPage() {
                   value={priceRange[0]} 
                   onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])} 
                   className="w-16 px-1 py-0.5 text-sm focus:outline-none" 
-                  placeholder="من" 
+                  placeholder={`من ${toArabicNumber(minPrice)}`} 
                 />
                 <span className="text-gray-400">-</span>
                 <input 
@@ -359,7 +360,7 @@ export default function ProductsPage() {
                   value={priceRange[1]} 
                   onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])} 
                   className="w-16 px-1 py-0.5 text-sm focus:outline-none" 
-                  placeholder="إلى" 
+                  placeholder={`إلى ${toArabicNumber(maxPrice)}`} 
                 />
               </div>
             </div>
@@ -383,7 +384,7 @@ export default function ProductsPage() {
         {/* Results Count */}
         <div className="text-center mb-8">
           <p className="text-gray-500 text-sm font-bold">
-            <span className="font-bold text-gray-900">{filteredProducts.length}</span> منتج
+            <span className="font-bold text-gray-900">{toArabicNumber(filteredProducts.length)}</span> منتج
             {selectedCategory !== 'all' && <> في <span className="font-bold text-gray-900">{categories.find(c => c.id === selectedCategory)?.name}</span></>}
             {searchQuery && <> مطابق لـ <span className="font-bold text-gray-900">"{searchQuery}"</span></>}
           </p>

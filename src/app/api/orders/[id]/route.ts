@@ -1,6 +1,10 @@
 // app/api/orders/[id]/route.ts
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { kv } from '@vercel/kv';
+import { sql } from '@vercel/postgres';
 
 export async function PATCH(
   request: NextRequest,
@@ -8,7 +12,10 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const { status } = await request.json();
+    const body = await request.json();
+    const { status, delivered_at, cancelled_at } = body;
+
+    console.log('🔍 PATCH request for order:', id, 'status:', status);
 
     if (!id) {
       return NextResponse.json({ error: 'Missing order id' }, { status: 400 });
@@ -18,10 +25,40 @@ export async function PATCH(
       return NextResponse.json({ error: 'Missing status' }, { status: 400 });
     }
 
-    await kv.hset(`order:${id}`, {
-      status,
-      updatedAt: new Date().toISOString(),
-    });
+    // تحديث في Postgres
+    if (delivered_at) {
+      await sql`
+        UPDATE orders 
+        SET status = ${status}, delivered_at = ${delivered_at}, updated_at = CURRENT_TIMESTAMP
+        WHERE order_id = ${id}
+      `;
+    } else if (cancelled_at) {
+      await sql`
+        UPDATE orders 
+        SET status = ${status}, cancelled_at = ${cancelled_at}, updated_at = CURRENT_TIMESTAMP
+        WHERE order_id = ${id}
+      `;
+    } else {
+      await sql`
+        UPDATE orders 
+        SET status = ${status}, updated_at = CURRENT_TIMESTAMP
+        WHERE order_id = ${id}
+      `;
+    }
+    console.log('✅ Updated in Postgres');
+
+    // تحديث في Redis
+    try {
+      await kv.hset(`order:${id}`, {
+        status,
+        delivered_at: delivered_at || null,
+        cancelled_at: cancelled_at || null,
+        updatedAt: new Date().toISOString(),
+      });
+      console.log('✅ Updated in Redis');
+    } catch (redisError) {
+      console.error('Redis update failed (continuing):', redisError);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -10,15 +10,15 @@ export function proxy(request: NextRequest) {
   
   // ✅ المسارات المفتوحة للجميع (العملاء)
   const publicPaths = [
-    '/api/orders',        // إنشاء طلب جديد
-    '/api/orders-simple', // API بسيط للاختبار
-    '/api/products',      // عرض المنتجات
-    '/api/analytics',     // عرض الإحصائيات
-    '/api/test-db',       // اختبار قاعدة البيانات
-    '/api/test-redis',    // اختبار Redis
-    '/api/test',          // اختبار عام
-    '/api/newsletter',    // ✅ النشرة البريدية - الاشتراك (POST) مفتوح للجميع
-    '/api/admin/verify', // 🔥 الحل هنا
+    '/api/orders',
+    '/api/orders-simple',
+    '/api/products',
+    '/api/analytics',
+    '/api/test-db',
+    '/api/test-redis',
+    '/api/test',
+    '/api/newsletter',
+    '/api/admin/verify',
   ];
   
   // ✅ لو المسار مفتوح للجميع، سمح بالدخول
@@ -55,10 +55,112 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
   
+  // ==================== مسارات الأدمن (تتطلب توثيق) ====================
+  
+  // ✅ التحقق العام لمسارات الأدمن
+  const isAdminRoute = pathname.startsWith('/api/admin/');
+  
+  if (isAdminRoute) {
+    const authHeader = request.headers.get('authorization');
+    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
+    
+    if (authHeader !== `Bearer ${adminPassword}`) {
+      console.log('🔒 Admin auth required for:', pathname);
+      return NextResponse.json(
+        { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
+        { status: 401 }
+      );
+    }
+    console.log('✅ Admin authorized for:', pathname);
+    return NextResponse.next();
+  }
+  
+  // ✅ PATCH للمنتجات (تعديل منتج) - يتطلب توثيق الأدمن
+  if (pathname.startsWith('/api/products/') && method === 'PATCH') {
+    const authHeader = request.headers.get('authorization');
+    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
+    
+    if (authHeader !== `Bearer ${adminPassword}`) {
+      console.log('🔒 Admin auth required for PATCH product:', pathname);
+      return NextResponse.json(
+        { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
+        { status: 401 }
+      );
+    }
+    console.log('✅ Admin authorized for PATCH product:', pathname);
+    return NextResponse.next();
+  }
+  
+  // ✅ DELETE للمنتجات (حذف منتج) - يتطلب توثيق الأدمن
+  if (pathname.startsWith('/api/products/') && method === 'DELETE') {
+    const authHeader = request.headers.get('authorization');
+    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
+    
+    if (authHeader !== `Bearer ${adminPassword}`) {
+      console.log('🔒 Admin auth required for DELETE product:', pathname);
+      return NextResponse.json(
+        { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
+        { status: 401 }
+      );
+    }
+    console.log('✅ Admin authorized for DELETE product:', pathname);
+    return NextResponse.next();
+  }
+  
+  // ✅ GET للطلبات (جلب الطلبات) - يتطلب توثيق الأدمن
+  if (pathname === '/api/admin/orders' && method === 'GET') {
+    const authHeader = request.headers.get('authorization');
+    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
+    
+    if (authHeader !== `Bearer ${adminPassword}`) {
+      console.log('🔒 Admin auth required for GET /api/admin/orders');
+      return NextResponse.json(
+        { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
+        { status: 401 }
+      );
+    }
+    console.log('✅ Admin authorized for GET /api/admin/orders');
+    return NextResponse.next();
+  }
+  
+  // ✅ DELETE للطلبات - يتطلب توثيق الأدمن
+  if (pathname.startsWith('/api/admin/orders/') && method === 'DELETE') {
+    const authHeader = request.headers.get('authorization');
+    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
+    
+    if (authHeader !== `Bearer ${adminPassword}`) {
+      console.log('🔒 Admin auth required for DELETE:', pathname);
+      return NextResponse.json(
+        { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
+        { status: 401 }
+      );
+    }
+    console.log('✅ Admin authorized for DELETE:', pathname);
+    return NextResponse.next();
+  }
+  
+  // ✅ PATCH للطلبات (تحديث الحالة) - يتطلب توثيق الأدمن
+  if (pathname.startsWith('/api/orders/') && method === 'PATCH') {
+    const authHeader = request.headers.get('authorization');
+    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
+    
+    if (authHeader !== `Bearer ${adminPassword}`) {
+      console.log('🔒 Admin auth required for PATCH:', pathname);
+      return NextResponse.json(
+        { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
+        { status: 401 }
+      );
+    }
+    console.log('✅ Admin authorized for PATCH:', pathname);
+    return NextResponse.next();
+  }
+  
   // ✅ GET للنشرة البريدية (جلب المشتركين) - يتطلب توثيق الأدمن
   if (pathname === '/api/newsletter' && method === 'GET') {
-    const adminAuth = request.cookies.get('adminAuth')?.value;
-    if (!adminAuth || adminAuth !== 'true') {
+    const authHeader = request.headers.get('authorization');
+    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
+    
+    if (authHeader !== `Bearer ${adminPassword}`) {
       console.log('🔒 Admin auth required for GET /api/newsletter');
       return NextResponse.json(
         { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
@@ -70,9 +172,10 @@ export function proxy(request: NextRequest) {
   }
   
   // ✅ باقي المسارات تتطلب توثيق للمسؤول
-  const adminAuth = request.cookies.get('adminAuth')?.value;
+  const authHeader = request.headers.get('authorization');
+  const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
   
-  if (!adminAuth || adminAuth !== 'true') {
+  if (authHeader !== `Bearer ${adminPassword}`) {
     console.log('🔒 Admin auth required for:', pathname);
     return NextResponse.json(
       { error: 'غير مصرح به - تحتاج صلاحيات مدير' },

@@ -1,3 +1,4 @@
+// components/Header.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,6 +9,7 @@ import Image from 'next/image';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useCart } from '@/hooks/useCart';
 import SideDrawer from './SideDrawer';
+import { toArabicNumber } from '@/lib/utils';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -121,7 +123,7 @@ export default function Header() {
             <button
               onClick={() => setIsFavoritesDrawerOpen(true)}
               className="relative p-2 rounded-full transition-all duration-300 hover:bg-black/5 hover:scale-105"
-              aria-label={`المفضلة${favoritesCount > 0 ? ` - لديك ${favoritesCount} منتجات` : ''}`}
+              aria-label={`المفضلة${favoritesCount > 0 ? ` - لديك ${toArabicNumber(favoritesCount)} منتجات` : ''}`}
               aria-live="polite"
             >
               <svg
@@ -138,7 +140,7 @@ export default function Header() {
               </svg>
               {favoritesCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full animate-pulse">
-                  {favoritesCount}
+                  {toArabicNumber(favoritesCount)}
                 </span>
               )}
             </button>
@@ -147,7 +149,7 @@ export default function Header() {
             <button
               onClick={() => setIsCartDrawerOpen(true)}
               className="relative p-2 rounded-full transition-all duration-300 hover:bg-black/5 hover:scale-105"
-              aria-label={`سلة التسوق${cartCount > 0 ? ` - لديك ${cartCount} منتجات` : ''}`}
+              aria-label={`سلة التسوق${cartCount > 0 ? ` - لديك ${toArabicNumber(cartCount)} منتجات` : ''}`}
               aria-live="polite"
             >
               <svg
@@ -161,7 +163,7 @@ export default function Header() {
               </svg>
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full animate-pulse">
-                  {cartCount}
+                  {toArabicNumber(cartCount)}
                 </span>
               )}
             </button>
