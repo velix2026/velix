@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useCart } from '@/hooks/useCart';
 import { useFavorites } from '@/hooks/useFavorites';
-import { toArabicNumber } from '@/lib/utils';
+import { toArabicNumber, formatPrice } from '@/lib/utils';
 
 interface ProductActionsProps {
   product: any;
@@ -22,6 +22,21 @@ const allColors = [
   { name: 'بيج', value: '#F5F5DC', code: 'beige', border: true },
 ];
 
+// ✅ دالة حساب السعر بعد خصم الكمية
+const getQuantityDiscountPrice = (product: any, quantity: number) => {
+  if (!product.quantityDiscount?.enabled) return product.price * quantity;
+  
+  const { minQuantity, discountPerItem } = product.quantityDiscount;
+  
+  if (quantity < minQuantity) return product.price * quantity;
+  
+  const normalCount = minQuantity - 1;
+  const discountedCount = quantity - normalCount;
+  const discountedPrice = product.price - discountPerItem;
+  
+  return (normalCount * product.price) + (discountedCount * discountedPrice);
+};
+
 export default function ProductActions({ product, onOrder }: ProductActionsProps) {
   const [selection, setSelection] = useState({
     size: '',
@@ -37,6 +52,10 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
   const colors: string[] = product.colors || [];
   const isInCartState = isInCart(product.id);
   const isFavoritedState = isFavorite(product.id);
+  
+  const quantityDiscountPrice = getQuantityDiscountPrice(product, selection.quantity);
+  const originalPrice = product.price * selection.quantity;
+  const savings = originalPrice - quantityDiscountPrice;
 
   useEffect(() => {
     setSelection(prev => ({
@@ -68,18 +87,17 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
   };
 
   const handleAddToCart = () => {
-      if (!validateSelection()) return;
-      
-      // ✅ التحقق من الكمية المطلوبة مع المخزون
-      if (selection.quantity > stock) {
-        alert(`⚠️ الكمية المطلوبة (${selection.quantity}) تتجاوز المتاح (${stock})`);
-        return;
-      }
-      
-      setTimeout(() => {
-        addToCart(product, selection.size || undefined, selection.color || undefined, selection.quantity);
-      }, 0);
-    };
+    if (!validateSelection()) return;
+    
+    if (selection.quantity > stock) {
+      alert(`⚠️ الكمية المطلوبة (${selection.quantity}) تتجاوز المتاح (${stock})`);
+      return;
+    }
+    
+    setTimeout(() => {
+      addToCart(product, selection.size || undefined, selection.color || undefined, selection.quantity);
+    }, 0);
+  };
 
   const handleRemoveFromCart = () => {
     setTimeout(() => {
@@ -107,7 +125,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
       {/* المقاسات */}
       {sizes.length > 0 && (
         <div className="mb-6">
-          <label className="block text-sm font-bold text-black mb-3 items-center gap-2">
+          <label className="flex text-sm font-bold text-black mb-3 items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
             </svg>
@@ -134,7 +152,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
       {/* الألوان */}
       {colors.length > 0 && (
         <div className="mb-6">
-          <label className="block text-sm font-bold text-black mb-3 items-center gap-2">
+          <label className="flex text-sm font-bold text-black mb-3 items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
             </svg>
@@ -175,7 +193,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
       )}
 
       {/* الكمية */}
-      <div className="mb-8">
+      <div className="mb-4">
         <label className="block text-sm font-bold text-black mb-3">الكمية:</label>
         <div className="flex items-center gap-3">
           <div className="flex items-center bg-black/5 rounded-full">
@@ -199,6 +217,25 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
           </span>
         </div>
       </div>
+
+      {/* ✅ عرض خصم الكمية */}
+      {product.quantityDiscount?.enabled && selection.quantity >= product.quantityDiscount.minQuantity && (
+        <div className="mb-4 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🎉</span>
+              <span className="text-sm font-black text-emerald-700">خصم الكمية!</span>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-emerald-600 line-through">{formatPrice(originalPrice)}</div>
+              <div className="text-sm font-black text-emerald-700">{formatPrice(quantityDiscountPrice)}</div>
+            </div>
+          </div>
+          <p className="text-xs text-emerald-600 mt-1 font-bold">
+            وفرت {formatPrice(savings)} عند شراء {toArabicNumber(selection.quantity)} قطعة
+          </p>
+        </div>
+      )}
 
       {/* أزرار الإجراءات */}
       <div className="flex gap-3 mb-4">

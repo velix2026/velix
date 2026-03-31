@@ -1,3 +1,4 @@
+// lib/products.ts
 export interface Product {
   id: number;
   name: string;
@@ -16,20 +17,24 @@ export interface Product {
   sizes?: string[];
   colors?: string[];
   salesCount?: number;
+  quantityDiscount?: {
+    enabled: boolean;
+    tiers: Array<{
+      minQuantity: number;
+      discountPerItem: number;
+    }>;
+  };
 }
 
 export async function getProducts(): Promise<Product[]> {
   try {
-    // استخدام الرابط النسبي في المتصفح، والمطلق في الخادم
     const isServer = typeof window === 'undefined';
     let url: string;
     
     if (isServer) {
-      // في الخادم (Server Component)
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://velixstore.vercel.app';
       url = `${baseUrl}/api/products`;
     } else {
-      // في المتصفح (Client Component)
       url = `/api/products`;
     }
     

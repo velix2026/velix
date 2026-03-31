@@ -3,7 +3,6 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { kv } from '@vercel/kv';
 import { sql } from '@vercel/postgres';
 
 export async function PATCH(
@@ -45,20 +44,8 @@ export async function PATCH(
         WHERE order_id = ${id}
       `;
     }
+    
     console.log('✅ Updated in Postgres');
-
-    // تحديث في Redis
-    try {
-      await kv.hset(`order:${id}`, {
-        status,
-        delivered_at: delivered_at || null,
-        cancelled_at: cancelled_at || null,
-        updatedAt: new Date().toISOString(),
-      });
-      console.log('✅ Updated in Redis');
-    } catch (redisError) {
-      console.error('Redis update failed (continuing):', redisError);
-    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

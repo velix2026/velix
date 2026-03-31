@@ -14,6 +14,11 @@ interface OrderItem {
   selectedSize?: string;
   selectedColor?: string;
   mainImage: string;
+  quantityDiscount?: {
+    enabled: boolean;
+    minQuantity: number;
+    discountPerItem: number;
+  };
 }
 
 interface OrderModalProps {
@@ -49,6 +54,21 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
   
   const modalRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // ✅ دالة حساب السعر بعد خصم الكمية
+  const getItemTotalPrice = (item: OrderItem) => {
+    if (!item.quantityDiscount?.enabled) return item.price * item.quantity;
+    
+    const { minQuantity, discountPerItem } = item.quantityDiscount;
+    
+    if (item.quantity < minQuantity) return item.price * item.quantity;
+    
+    const normalCount = minQuantity - 1;
+    const discountedCount = item.quantity - normalCount;
+    const discountedPrice = item.price - discountPerItem;
+    
+    return (normalCount * item.price) + (discountedCount * discountedPrice);
+  };
 
   const loadSavedCustomerData = useCallback(() => {
     try {
@@ -94,10 +114,12 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
         if (tempData) {
           const data = JSON.parse(tempData);
           setCartItems(data.items);
-          setTotalAmount(data.totalAmount);
+          // حساب الإجمالي مع خصم الكمية
+          const total = data.items.reduce((sum: number, item: OrderItem) => sum + getItemTotalPrice(item), 0);
+          setTotalAmount(total);
           setIsMultiOrder(true);
         } else if (product.id !== 0) {
-          setCartItems([{
+          const singleItem: OrderItem = {
             id: product.id,
             name: product.name,
             price: product.price,
@@ -105,8 +127,9 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
             selectedSize: product.selectedSize,
             selectedColor: product.selectedColor,
             mainImage: product.mainImage,
-          }]);
-          setTotalAmount(product.price * product.quantity);
+          };
+          setCartItems([singleItem]);
+          setTotalAmount(getItemTotalPrice(singleItem));
           setIsMultiOrder(false);
         }
       } catch (error) {
@@ -241,6 +264,8 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
     return colorMap[colorCode] || colorCode;
   };
 
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
   if (!isOpen) return null;
 
   return (
@@ -261,7 +286,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
           </button>
         </div>
 
-        {/* ✅ قسم المنتجات - منغير سكرول منفصل */}
+        {/* قسم المنتجات */}
         <div className="p-4 border-b border-gray-100 bg-gray-50">
           {cartItems.map((item, idx) => (
             <div key={idx} className="flex gap-3 mb-3 last:mb-0 pb-3 last:pb-0 border-b last:border-b-0 border-gray-200">
@@ -282,16 +307,28 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
                     </span>
                   )}
                 </div>
+                {item.quantityDiscount?.enabled && item.quantity >= item.quantityDiscount.minQuantity && (
+                  <div className="mt-1 text-xs text-emerald-600 font-bold">
+                    🎉 خصم الكمية: {toArabicNumber(item.quantityDiscount.discountPerItem)} جنيه لكل قطعة إضافية
+                  </div>
+                )}
               </div>
             </div>
           ))}
           <div className="mt-2 pt-2 border-t border-gray-200">
-            <p className="text-sm font-bold text-black">الإجمالي: <span className="text-lg">{formatPrice(totalAmount)}</span></p>
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-bold text-black">إجمالي القطع:</p>
+              <p className="text-sm font-bold text-black">{toArabicNumber(totalItems)} قطعة</p>
+            </div>
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-sm font-bold text-black">الإجمالي:</p>
+              <p className="text-lg font-bold text-black">{formatPrice(totalAmount)}</p>
+            </div>
             {totalAmount > 500 && <p className="text-xs font-bold text-green-700 mt-0.5">🚚 شامل الشحن المجاني</p>}
           </div>
         </div>
 
-        {/* ✅ الفورم - منغير سكرول منفصل */}
+        {/* الفورم */}
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-bold text-black mb-1">الاسم الكامل <span className="text-red-500">*</span></label>
@@ -375,7 +412,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
           </div>
         </form>
 
-        {/* Footer - ثابت في الآخر */}
+        {/* Footer */}
         <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4">
           <div className="flex gap-3">
             <button type="submit" onClick={handleSubmit} disabled={loading} className="flex-1 bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white font-bold py-2.5 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 shadow-md">

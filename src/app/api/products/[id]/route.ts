@@ -95,6 +95,7 @@ export async function PATCH(
     const sizes = JSON.parse(formData.get('sizes') as string || '[]');
     const colors = JSON.parse(formData.get('colors') as string || '[]');
     const removedImages = JSON.parse(formData.get('removedImages') as string || '[]');
+    const quantityDiscount = JSON.parse(formData.get('quantityDiscount') as string || '{"enabled":false,"minQuantity":2,"discountPerItem":0}');
     
     let products = await getProducts();
     const index = products.findIndex((p: any) => p.id === parseInt(id));
@@ -134,7 +135,7 @@ export async function PATCH(
       newSubImagesUrls.push(url);
     }
     
-    // تحديث المنتج
+    // ✅ تحديث المنتج مع إضافة quantityDiscount
     const updatedProduct = {
       ...products[index],
       name: name || products[index].name,
@@ -149,6 +150,7 @@ export async function PATCH(
       colors: colors.length ? colors : products[index].colors,
       mainImage: mainImageUrl,
       subImages: [...products[index].subImages.filter((img: string) => !removedImages.includes(img)), ...newSubImagesUrls],
+      quantityDiscount: quantityDiscount, // ✅ إضافة خصم الكمية
     };
     
     products[index] = updatedProduct;

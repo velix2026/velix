@@ -82,6 +82,21 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   const showDiscountBadge = product.discount && product.discount > 0 && !isOutOfStock;
   const showLowStockBadge = isLowStock && !isOutOfStock && !showNewBadge && !showBestSellerBadge && !showDiscountBadge;
 
+  // ✅ دالة حساب السعر بعد خصم الكمية
+  const getQuantityDiscountPrice = (quantity: number) => {
+    if (!product.quantityDiscount?.enabled) return product.price * quantity;
+    
+    const { minQuantity, discountPerItem } = product.quantityDiscount;
+    
+    if (quantity < minQuantity) return product.price * quantity;
+    
+    const normalCount = minQuantity - 1;
+    const discountedCount = quantity - normalCount;
+    const discountedPrice = product.price - discountPerItem;
+    
+    return (normalCount * product.price) + (discountedCount * discountedPrice);
+  };
+
   useEffect(() => {
     mountedRef.current = true;
     return () => {
@@ -220,7 +235,6 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
   const confirmSelections = () => {
     if (hasValidSelections()) {
-      // ✅ التحقق من المخزون قبل الإضافة
       let totalQuantity = selections.reduce((sum, s) => sum + s.quantity, 0);
       if (product.stock !== undefined && totalQuantity > product.stock) {
         window.dispatchEvent(new CustomEvent('showToast', {
@@ -242,7 +256,6 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     }
   };
 
-  // ✅ دالة إلغاء المودال
   const cancelSelection = () => {
     setShowSelectionModal(false);
     setSelections([{ size: '', color: '', quantity: 1, id: Date.now().toString() }]);
@@ -329,37 +342,27 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             </>
           )}
 
-          {/* ✅ الـ Badges الجديدة - كلها جرادينت مع إيموجي */}
           <div className="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none z-10">
-            {/* 🎉 جديد - يظهر أول حاجة */}
             {showNewBadge && (
               <span className="bg-linear-to-r from-emerald-500 to-green-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
                 <span className="text-[11px]">🎉</span> جديد
               </span>
             )}
-            
-            {/* ⭐ الأكثر مبيعاً - يظهر تاني حاجة */}
             {showBestSellerBadge && (
               <span className="bg-linear-to-r from-yellow-500 to-amber-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
                 <span className="text-[11px]">⭐</span> الأكثر مبيعاً
               </span>
             )}
-            
-            {/* 🏷️ خصم - يظهر تالت حاجة */}
             {showDiscountBadge && (
               <span className="bg-linear-to-r from-red-500 to-rose-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
                 <span className="text-[11px]">🏷️</span> {formatDiscount(product.discount)}
               </span>
             )}
-            
-            {/* ⏳ باقي X فقط - يظهر رابع حاجة (بس لو مفيش badges تانية مهمة) */}
             {showLowStockBadge && (
               <span className="bg-linear-to-r from-orange-500 to-amber-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md animate-pulse flex items-center gap-1">
                 <span className="text-[11px]">⏳</span> {formatStock(product.stock)}
               </span>
             )}
-            
-            {/* 🚫 نفذت الكمية - يظهر لوحده (بيخفي كل الـ badges التانية) */}
             {isOutOfStock && (
               <span className="bg-linear-to-r from-gray-600 to-gray-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
                 <span className="text-[11px]">🚫</span> نفذت الكمية
@@ -401,38 +404,37 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           </div>
 
           {allImages.length > 1 && !showSelectionModal && (
-            <div className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm px-1.5 py-0.5 rounded-full text-white font-bold text-[8px] z-10">
-              {currentImageIndex + 1} / {allImages.length}
-            </div>
-          )}
-
-          {allImages.length > 1 && !showSelectionModal && (
-            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1.5 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full z-10">
-              {allImages.slice(0, 5).map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setCurrentImageIndex(idx);
-                    if (autoPlayRef.current) {
-                      clearInterval(autoPlayRef.current);
-                      autoPlayRef.current = setInterval(() => {
-                        if (mountedRef.current) {
-                          setCurrentImageIndex(prev => (prev + 1) % allImages.length);
-                        }
-                      }, 4000);
-                    }
-                  }}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                    currentImageIndex === idx 
-                      ? 'bg-white w-3' 
-                      : 'bg-white/50 hover:bg-white/80'
-                  }`}
-                  aria-label={`انتقال إلى الصورة ${idx + 1}`}
-                />
-              ))}
-            </div>
+            <>
+              <div className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm px-1.5 py-0.5 rounded-full text-white font-bold text-[8px] z-10">
+                {currentImageIndex + 1} / {allImages.length}
+              </div>
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1.5 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full z-10">
+                {allImages.slice(0, 5).map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setCurrentImageIndex(idx);
+                      if (autoPlayRef.current) {
+                        clearInterval(autoPlayRef.current);
+                        autoPlayRef.current = setInterval(() => {
+                          if (mountedRef.current) {
+                            setCurrentImageIndex(prev => (prev + 1) % allImages.length);
+                          }
+                        }, 4000);
+                      }
+                    }}
+                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                      currentImageIndex === idx 
+                        ? 'bg-white w-3' 
+                        : 'bg-white/50 hover:bg-white/80'
+                    }`}
+                    aria-label={`انتقال إلى الصورة ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
 
@@ -635,8 +637,13 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                 </div>
                 <div className="flex justify-between items-center mt-1">
                   <span className="text-sm font-bold text-black opacity-70">الإجمالي:</span>
-                  <span className="text-lg font-bold text-black">{formatPrice(totalPrice)}</span>
+                  <span className="text-lg font-bold text-black">{formatPrice(getQuantityDiscountPrice(totalItems))}</span>
                 </div>
+                {product.quantityDiscount?.enabled && totalItems >= product.quantityDiscount.minQuantity && (
+                  <div className="mt-2 text-xs text-emerald-600 font-bold text-center">
+                    🎉 خصم الكمية: وفرت {formatPrice(totalItems * product.price - getQuantityDiscountPrice(totalItems))}
+                  </div>
+                )}
               </div>
             </div>
 

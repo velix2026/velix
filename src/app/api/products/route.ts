@@ -15,7 +15,6 @@ async function getProducts() {
     // ✅ إضافة createdAt للمنتجات القديمة اللي مفيهاش
     products = products.map((product: any, index: number) => {
       if (!product.createdAt) {
-        // تاريخ وهمي: كل منتج أقدم من اللي بعده
         const daysAgo = Math.min(30, (product.id || index + 1) % 31);
         const fakeDate = new Date();
         fakeDate.setDate(fakeDate.getDate() - daysAgo);
@@ -45,7 +44,6 @@ async function saveProducts(products: any[]) {
   }
 }
 
-// إعادة ترقيم المنتجات
 async function renumberProducts(products: any[]) {
   return products.map((product, index) => ({
     ...product,
@@ -80,6 +78,7 @@ export async function POST(request: NextRequest) {
     const sizes = JSON.parse(formData.get('sizes') as string || '[]');
     const colors = JSON.parse(formData.get('colors') as string || '[]');
     const createdAt = formData.get('createdAt') as string || new Date().toISOString();
+    const quantityDiscount = JSON.parse(formData.get('quantityDiscount') as string || '{"enabled":false,"minQuantity":2,"discountPerItem":0}');
 
     if (!name || !price || !mainImage) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -114,6 +113,7 @@ export async function POST(request: NextRequest) {
       salesCount: 0,
       rating: 0,
       createdAt,
+      quantityDiscount, // ✅ إضافة خصم الكمية
     };
     
     products.push(newProduct);

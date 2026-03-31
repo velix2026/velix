@@ -40,7 +40,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'الطلب غير موجود' }, { status: 404 });
     }
     
-    // 3. حذف من Redis (KV)
+    // 3. حذف من Redis (KV) - اختياري
     try {
       await kv.del(`order:${id}`);
       console.log('✅ Deleted from Redis');
