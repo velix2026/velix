@@ -287,7 +287,7 @@ export default function Newsletter() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="أدخل بريدك الإلكتروني"
-                  className="flex-1 p-4 rounded-xl border-2 border-gray-200 bg-white text-gray-900 font-bold focus:outline-none focus:border-gray-400 transition placeholder:text-gray-400"
+                  className="flex-1 p-4 rounded-xl border-2 border-gray-200 bg-white text-gray-900 font-bold focus:outline-none focus:border-gray-400 transition placeholder:text-gray-400 placeholder:flex placeholder:items-center placeholder:justify-center"
                   required
                   disabled={loading}
                   dir="ltr"
