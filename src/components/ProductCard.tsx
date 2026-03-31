@@ -82,19 +82,38 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   const showDiscountBadge = product.discount && product.discount > 0 && !isOutOfStock;
   const showLowStockBadge = isLowStock && !isOutOfStock && !showNewBadge && !showBestSellerBadge && !showDiscountBadge;
 
-  // ✅ دالة حساب السعر بعد خصم الكمية
+  // ✅ دالة حساب السعر بعد خصم الكمية (معدلة لاستخدام tiers)
   const getQuantityDiscountPrice = (quantity: number) => {
     if (!product.quantityDiscount?.enabled) return product.price * quantity;
     
-    const { minQuantity, discountPerItem } = product.quantityDiscount;
+    const { tiers } = product.quantityDiscount;
     
-    if (quantity < minQuantity) return product.price * quantity;
+    // البحث عن أعلى مستوى خصم ينطبق على الكمية
+    let applicableTier = null;
+    for (let i = tiers.length - 1; i >= 0; i--) {
+      if (quantity >= tiers[i].minQuantity) {
+        applicableTier = tiers[i];
+        break;
+      }
+    }
     
-    const normalCount = minQuantity - 1;
-    const discountedCount = quantity - normalCount;
-    const discountedPrice = product.price - discountPerItem;
+    if (!applicableTier) return product.price * quantity;
     
-    return (normalCount * product.price) + (discountedCount * discountedPrice);
+    // تطبيق الخصم على كل القطع
+    const discountedPrice = product.price - applicableTier.discountPerItem;
+    return quantity * discountedPrice;
+  };
+
+  // ✅ دالة للحصول على مستوى الخصم المناسب
+  const getApplicableTier = (quantity: number) => {
+    if (!product.quantityDiscount?.enabled) return null;
+    const { tiers } = product.quantityDiscount;
+    for (let i = tiers.length - 1; i >= 0; i--) {
+      if (quantity >= tiers[i].minQuantity) {
+        return tiers[i];
+      }
+    }
+    return null;
   };
 
   useEffect(() => {
@@ -292,6 +311,8 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
   const totalItems = selections.reduce((sum, s) => sum + s.quantity, 0);
   const totalPrice = totalItems * product.price;
+  const applicableTier = getApplicableTier(totalItems);
+  const hasDiscount = applicableTier !== null;
 
   return (
     <>
@@ -639,7 +660,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                   <span className="text-sm font-bold text-black opacity-70">الإجمالي:</span>
                   <span className="text-lg font-bold text-black">{formatPrice(getQuantityDiscountPrice(totalItems))}</span>
                 </div>
-                {product.quantityDiscount?.enabled && totalItems >= product.quantityDiscount.minQuantity && (
+                {hasDiscount && (
                   <div className="mt-2 text-xs text-emerald-600 font-bold text-center">
                     🎉 خصم الكمية: وفرت {formatPrice(totalItems * product.price - getQuantityDiscountPrice(totalItems))}
                   </div>
