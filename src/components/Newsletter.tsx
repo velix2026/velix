@@ -282,16 +282,16 @@ export default function Newsletter() {
           ) : (
             <div className={`transition-all duration-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
               <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="أدخل بريدك الإلكتروني"
-                  className="flex-1 p-4 rounded-xl border-2 border-gray-200 bg-white text-gray-900 font-bold focus:outline-none focus:border-gray-400 transition placeholder:text-gray-400 placeholder:flex placeholder:items-center placeholder:justify-center"
-                  required
-                  disabled={loading}
-                  dir="ltr"
-                />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="أدخل بريدك الإلكتروني"
+                    className="flex-1 h-14 px-4 rounded-xl border-2 border-gray-200 bg-white text-gray-900 font-bold focus:outline-none focus:border-gray-400 transition placeholder:text-gray-400 leading-14"
+                    required
+                    disabled={loading}
+                    dir="rtl"
+                  />
                 <button
                   type="submit"
                   disabled={loading}
