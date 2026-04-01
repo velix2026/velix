@@ -12,7 +12,6 @@ async function getProducts() {
     if (!data) return [];
     let products = JSON.parse(data);
     
-    // ✅ إضافة createdAt للمنتجات القديمة اللي مفيهاش
     products = products.map((product: any, index: number) => {
       if (!product.createdAt) {
         const daysAgo = Math.min(30, (product.id || index + 1) % 31);
@@ -72,13 +71,31 @@ export async function POST(request: NextRequest) {
     const subImages = formData.getAll('subImages') as File[];
     
     const stock = parseInt(formData.get('stock') as string);
-    const oldPrice = formData.get('oldPrice') ? parseFloat(formData.get('oldPrice') as string) : undefined;
-    const discount = formData.get('discount') ? parseInt(formData.get('discount') as string) : 0;
+    
+    // ✅ معالجة oldPrice بشكل صحيح
+    const oldPriceRaw = formData.get('oldPrice') as string;
+    const oldPrice = oldPriceRaw && oldPriceRaw !== '' ? parseFloat(oldPriceRaw) : undefined;
+    
+    const discount = parseInt(formData.get('discount') as string || '0');
     const isNew = formData.get('isNew') === 'true';
     const sizes = JSON.parse(formData.get('sizes') as string || '[]');
     const colors = JSON.parse(formData.get('colors') as string || '[]');
     const createdAt = formData.get('createdAt') as string || new Date().toISOString();
-    const quantityDiscount = JSON.parse(formData.get('quantityDiscount') as string || '{"enabled":false,"minQuantity":2,"discountPerItem":0}');
+    
+    // ✅ معالجة quantityDiscount بشكل صحيح
+    let quantityDiscount = { enabled: false, tiers: [] };
+    const quantityDiscountRaw = formData.get('quantityDiscount') as string;
+    if (quantityDiscountRaw && quantityDiscountRaw !== '') {
+      try {
+        const parsed = JSON.parse(quantityDiscountRaw);
+        quantityDiscount = {
+          enabled: parsed.enabled || false,
+          tiers: parsed.tiers || []
+        };
+      } catch (e) {
+        console.error('Error parsing quantityDiscount:', e);
+      }
+    }
 
     if (!name || !price || !mainImage) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -113,7 +130,7 @@ export async function POST(request: NextRequest) {
       salesCount: 0,
       rating: 0,
       createdAt,
-      quantityDiscount, // ✅ إضافة خصم الكمية
+      quantityDiscount, // ✅ خصم الكمية
     };
     
     products.push(newProduct);

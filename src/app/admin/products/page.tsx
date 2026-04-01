@@ -1,6 +1,7 @@
+// app/admin/products/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -70,12 +71,18 @@ export default function AdminProductsPage() {
     } else {
       router.push('/admin/login');
     }
-    setLoading(false);
   }, [router]);
 
   const loadProducts = async () => {
-    const allProducts = await getProducts();
-    setProducts(allProducts);
+    setLoading(true);
+    try {
+      const allProducts = await getProducts();
+      setProducts(allProducts);
+    } catch (error) {
+      console.error('Error loading products:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -127,17 +134,33 @@ export default function AdminProductsPage() {
     }
   };
 
+  // ✅ حساب الخصم المئوي من السعر القديم والسعر الحالي
+  const calculateDiscountPercent = useCallback(() => {
+    if (!editingProduct) return 0;
+    if (editingProduct.oldPrice && editingProduct.oldPrice > editingProduct.price) {
+      return Math.round(((editingProduct.oldPrice - editingProduct.price) / editingProduct.oldPrice) * 100);
+    }
+    return 0;
+  }, [editingProduct]);
+
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct) return;
     
     setSaving(true);
     
+    // حساب الخصم المئوي تلقائياً
+    const discountPercent = calculateDiscountPercent();
+    
+    // ✅ تأكد من صحة البيانات
+    const price = parseFloat(editingProduct.price.toString());
+    const oldPriceValue = editingProduct.oldPrice ? parseFloat(editingProduct.oldPrice.toString()) : null;
+    
     const formData = new FormData();
     formData.append('name', editingProduct.name);
-    formData.append('price', editingProduct.price.toString());
-    formData.append('oldPrice', editingProduct.oldPrice?.toString() || '');
-    formData.append('discount', editingProduct.discount?.toString() || '0');
+    formData.append('price', price.toString());
+    formData.append('oldPrice', oldPriceValue !== null ? oldPriceValue.toString() : '');
+    formData.append('discount', discountPercent.toString());
     formData.append('category', editingProduct.category);
     formData.append('description', editingProduct.description);
     formData.append('stock', (editingProduct.stock ?? 0).toString());
@@ -147,13 +170,25 @@ export default function AdminProductsPage() {
     formData.append('removedImages', JSON.stringify(removedImages));
     formData.append('quantityDiscount', JSON.stringify({
       enabled: quantityDiscount.enabled,
-      tiers: quantityDiscount.tiers || DEFAULT_TIERS
+      tiers: quantityDiscount.tiers.filter(t => t.discountPerItem > 0 || t.minQuantity > 0)
     }));
     
     if (newMainImage) {
       formData.append('newMainImage', newMainImage);
     }
     newSubImages.forEach(img => formData.append('newSubImages', img));
+    
+    // ✅ طباعة البيانات للتأكد
+    console.log('Updating product:', {
+      id: editingProduct.id,
+      name: editingProduct.name,
+      price,
+      oldPrice: oldPriceValue,
+      discount: discountPercent,
+      stock: editingProduct.stock,
+      sizes: editingProduct.sizes,
+      colors: editingProduct.colors,
+    });
     
     try {
       const res = await fetch(`/api/products/${editingProduct.id}`, {
@@ -163,6 +198,9 @@ export default function AdminProductsPage() {
         },
         body: formData,
       });
+      
+      const responseText = await res.text();
+      console.log('Response:', responseText);
       
       if (res.ok) {
         await loadProducts();
@@ -176,9 +214,10 @@ export default function AdminProductsPage() {
         });
         alert('✅ تم تحديث المنتج بنجاح');
       } else {
-        alert('❌ حدث خطأ أثناء التحديث');
+        alert(`❌ حدث خطأ أثناء التحديث: ${responseText}`);
       }
-    } catch {
+    } catch (error) {
+      console.error('Update error:', error);
       alert('❌ حدث خطأ في الاتصال');
     } finally {
       setSaving(false);
@@ -232,11 +271,11 @@ export default function AdminProductsPage() {
 
   // عند فتح منتج للتعديل، تحميل خصم الكمية الخاص به
   const openEditModal = (product: Product) => {
-    setEditingProduct(product);
+    setEditingProduct({ ...product });
     if (product.quantityDiscount && product.quantityDiscount.tiers) {
       setQuantityDiscount({
         enabled: product.quantityDiscount.enabled || false,
-        tiers: product.quantityDiscount.tiers.length ? product.quantityDiscount.tiers : [...DEFAULT_TIERS]
+        tiers: product.quantityDiscount.tiers.length ? [...product.quantityDiscount.tiers] : [...DEFAULT_TIERS]
       });
     } else {
       setQuantityDiscount({
@@ -244,12 +283,16 @@ export default function AdminProductsPage() {
         tiers: [...DEFAULT_TIERS]
       });
     }
+    setNewMainImage(null);
+    setNewSubImages([]);
+    setRemovedImages([]);
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-black font-bold">جاري التحميل...</div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+        <p className="text-black font-bold mr-3">جاري التحميل...</p>
       </div>
     );
   }
@@ -284,6 +327,9 @@ export default function AdminProductsPage() {
             const stock = getProductStock(product);
             const sizes = getProductSizes(product);
             const colors = getProductColors(product);
+            const discountPercent = product.oldPrice && product.oldPrice > product.price 
+              ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
+              : 0;
             
             return (
               <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-black/10">
@@ -312,8 +358,12 @@ export default function AdminProductsPage() {
                   
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-xl font-black text-black">{formatPrice(product.price)}</span>
-                    {product.oldPrice && product.oldPrice > product.price && <span className="text-sm text-black/40 line-through font-bold">{formatPrice(product.oldPrice)}</span>}
-                    {product.discount && product.discount > 0 && <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-bold">{formatDiscount(product.discount)}</span>}
+                    {product.oldPrice && product.oldPrice > product.price && (
+                      <span className="text-sm text-black/40 line-through font-bold">{formatPrice(product.oldPrice)}</span>
+                    )}
+                    {discountPercent > 0 && (
+                      <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-bold">{formatDiscount(discountPercent)}</span>
+                    )}
                   </div>
                   
                   <div className="flex items-center gap-1 mb-3 flex-wrap">
@@ -329,7 +379,7 @@ export default function AdminProductsPage() {
                     })}
                   </div>
                   
-                  {/* ✅ عرض خصم الكمية المتدرج في الكارد - مع types صريحة */}
+                  {/* ✅ عرض خصم الكمية المتدرج في الكارد */}
                   {product.quantityDiscount?.enabled && product.quantityDiscount.tiers && product.quantityDiscount.tiers.length > 0 && (
                     <div className="mb-3 p-2 bg-emerald-50 rounded-lg border border-emerald-200">
                       <p className="text-xs font-bold text-emerald-700 mb-1 flex items-center gap-1">
@@ -362,7 +412,7 @@ export default function AdminProductsPage() {
           })}
         </div>
 
-        {/* Edit Modal - باقي الكود كما هو */}
+        {/* Edit Modal */}
         {editingProduct && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setEditingProduct(null)}>
             <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl border border-black/10" onClick={(e) => e.stopPropagation()}>
@@ -374,25 +424,116 @@ export default function AdminProductsPage() {
               </div>
               
               <form onSubmit={handleUpdate} className="p-6 space-y-4">
-                {/* ... باقي حقول الفورم كما هي ... */}
-                <div><label className="block text-sm font-black text-black mb-1">اسم المنتج</label><input type="text" value={editingProduct.name} onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })} className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-black font-bold" required /></div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><label className="block text-sm font-black text-black mb-1">السعر (جنيه)</label><input type="number" value={editingProduct.price} onChange={(e) => setEditingProduct({ ...editingProduct, price: parseFloat(e.target.value) })} className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-black font-bold" required /></div>
-                  <div><label className="block text-sm font-black text-black mb-1">السعر القديم (للخصم المئوي - اختياري)</label><input type="number" value={editingProduct.oldPrice || ''} onChange={(e) => setEditingProduct({ ...editingProduct, oldPrice: e.target.value ? parseFloat(e.target.value) : undefined })} className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-black font-bold" /></div>
+                <div>
+                  <label className="block text-sm font-black text-black mb-1">اسم المنتج</label>
+                  <input 
+                    type="text" 
+                    value={editingProduct.name} 
+                    onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })} 
+                    className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-black font-bold" 
+                    required 
+                  />
                 </div>
+                
                 <div className="grid grid-cols-2 gap-4">
-                  <div><label className="block text-sm font-black text-black mb-1">المخزون</label><input type="number" min="0" value={editingProduct.stock ?? 0} onChange={(e) => setEditingProduct({ ...editingProduct, stock: parseInt(e.target.value) })} className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-black font-bold" required /></div>
-                  <div><label className="block text-sm font-black text-black mb-1">القسم</label><select value={editingProduct.category} onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })} className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-black font-bold"><option value="تيشرتات">تيشرتات</option><option value="هوديز">هوديز</option><option value="شروال">شروال</option></select></div>
+                  <div>
+                    <label className="block text-sm font-black text-black mb-1">السعر (جنيه)</label>
+                    <input 
+                      type="number" 
+                      value={editingProduct.price} 
+                      onChange={(e) => setEditingProduct({ ...editingProduct, price: parseFloat(e.target.value) })} 
+                      className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-black font-bold" 
+                      required 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-black text-black mb-1">السعر القديم (للخصم المئوي - اختياري)</label>
+                    <input 
+                      type="number" 
+                      value={editingProduct.oldPrice || ''} 
+                      onChange={(e) => setEditingProduct({ ...editingProduct, oldPrice: e.target.value ? parseFloat(e.target.value) : undefined })} 
+                      className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-black font-bold" 
+                    />
+                    {calculateDiscountPercent() > 0 && (
+                      <p className="text-xs text-green-600 mt-1 font-bold">
+                        ✓ نسبة الخصم: {formatDiscount(calculateDiscountPercent())}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2"><input type="checkbox" id="isNew" checked={editingProduct.isNew ?? false} onChange={(e) => setEditingProduct({ ...editingProduct, isNew: e.target.checked })} className="w-4 h-4 accent-black" /><label htmlFor="isNew" className="text-sm font-bold text-black">منتج جديد</label></div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-black text-black mb-1">المخزون</label>
+                    <input 
+                      type="number" 
+                      min="0" 
+                      value={editingProduct.stock ?? 0} 
+                      onChange={(e) => setEditingProduct({ ...editingProduct, stock: parseInt(e.target.value) })} 
+                      className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-black font-bold" 
+                      required 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-black text-black mb-1">القسم</label>
+                    <select 
+                      value={editingProduct.category} 
+                      onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })} 
+                      className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-black font-bold"
+                    >
+                      <option value="تيشرتات">تيشرتات</option>
+                      <option value="هوديز">هوديز</option>
+                      <option value="شروال">شروال</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    id="isNew" 
+                    checked={editingProduct.isNew ?? false} 
+                    onChange={(e) => setEditingProduct({ ...editingProduct, isNew: e.target.checked })} 
+                    className="w-4 h-4 accent-black" 
+                  />
+                  <label htmlFor="isNew" className="text-sm font-bold text-black">منتج جديد</label>
+                </div>
                 
                 {/* المقاسات */}
-                <div><label className="block text-sm font-black text-black mb-2">المقاسات المتاحة</label><div className="flex flex-wrap gap-2">{allSizes.map(size => <button type="button" key={size} onClick={() => toggleSize(size)} className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 ${editingProduct.sizes?.includes(size) ? 'bg-black text-white shadow-md scale-105' : 'bg-gray-100 text-black hover:bg-gray-200'}`}>{size}</button>)}</div></div>
+                <div>
+                  <label className="block text-sm font-black text-black mb-2">المقاسات المتاحة</label>
+                  <div className="flex flex-wrap gap-2">
+                    {allSizes.map(size => (
+                      <button 
+                        type="button" 
+                        key={size} 
+                        onClick={() => toggleSize(size)} 
+                        className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 ${editingProduct.sizes?.includes(size) ? 'bg-black text-white shadow-md scale-105' : 'bg-gray-100 text-black hover:bg-gray-200'}`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 
                 {/* الألوان */}
-                <div><label className="block text-sm font-black text-black mb-2">الألوان المتاحة</label><div className="flex flex-wrap gap-3">{allColors.map(color => <button type="button" key={color.code} onClick={() => toggleColor(color.code)} className={`w-10 h-10 rounded-full transition-all duration-300 ${editingProduct.colors?.includes(color.code) ? 'ring-2 ring-offset-2 ring-black scale-110 shadow-lg' : 'hover:scale-105'}`} style={{ backgroundColor: color.value, border: color.border ? '1px solid #e5e7eb' : 'none' }} title={color.name} />)}</div></div>
+                <div>
+                  <label className="block text-sm font-black text-black mb-2">الألوان المتاحة</label>
+                  <div className="flex flex-wrap gap-3">
+                    {allColors.map(color => (
+                      <button 
+                        type="button" 
+                        key={color.code} 
+                        onClick={() => toggleColor(color.code)} 
+                        className={`w-10 h-10 rounded-full transition-all duration-300 ${editingProduct.colors?.includes(color.code) ? 'ring-2 ring-offset-2 ring-black scale-110 shadow-lg' : 'hover:scale-105'}`} 
+                        style={{ backgroundColor: color.value, border: color.border ? '1px solid #e5e7eb' : 'none' }} 
+                        title={color.name} 
+                      />
+                    ))}
+                  </div>
+                </div>
                 
-                {/* ✅ خصم الكمية المتدرج */}
+                {/* خصم الكمية المتدرج */}
                 <div className="border-t border-black/10 pt-4 mt-2">
                   <label className="flex items-center gap-2 mb-3">
                     <input
@@ -519,11 +660,24 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
                 
-                <div><label className="block text-sm font-black text-black mb-1">الوصف</label><textarea value={editingProduct.description} onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })} rows={3} className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-black font-bold" required /></div>
+                <div>
+                  <label className="block text-sm font-black text-black mb-1">الوصف</label>
+                  <textarea 
+                    value={editingProduct.description} 
+                    onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })} 
+                    rows={3} 
+                    className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-black font-bold" 
+                    required 
+                  />
+                </div>
                 
                 <div className="flex gap-3 pt-2">
-                  <button type="submit" disabled={saving} className="flex-1 bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white py-3 rounded-xl font-bold hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 shadow-md">{saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}</button>
-                  <button type="button" onClick={() => setEditingProduct(null)} className="flex-1 bg-gray-100 text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition-all duration-300">إلغاء</button>
+                  <button type="submit" disabled={saving} className="flex-1 bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white py-3 rounded-xl font-bold hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 shadow-md">
+                    {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                  </button>
+                  <button type="button" onClick={() => setEditingProduct(null)} className="flex-1 bg-gray-100 text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition-all duration-300">
+                    إلغاء
+                  </button>
                 </div>
               </form>
             </div>

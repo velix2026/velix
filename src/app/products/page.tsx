@@ -185,7 +185,7 @@ export default function ProductsPage() {
     filtered = filtered.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
     
     if (sortBy === 'newest') {
-      filtered.sort((a, b) => b.id - a.id);
+      filtered.sort((a, b) => (b.createdAt ? new Date(b.createdAt).getTime() : b.id) - (a.createdAt ? new Date(a.createdAt).getTime() : a.id));
     } else if (sortBy === 'price-asc') {
       filtered.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-desc') {
@@ -226,7 +226,7 @@ export default function ProductsPage() {
   return (
     <section className="bg-white py-12 md:py-20">
       <div className="container mx-auto px-4">
-        {/* Hero Title - نفس تصميم الصفحة الرئيسية */}
+        {/* Hero Title */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -245,7 +245,7 @@ export default function ProductsPage() {
           </p>
         </motion.div>
 
-        {/* Best Sellers Section - نفس تصميم الصفحة الرئيسية */}
+        {/* Best Sellers Section */}
         {bestSellers.length > 0 && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -278,7 +278,7 @@ export default function ProductsPage() {
           </motion.div>
         )}
 
-        {/* Categories Section - بنفس تصميم BrandFeatures */}
+        {/* Categories Section */}
         <div className="mb-16">
           <div className="text-center mb-8">
             <span className="text-xs text-gray-400 tracking-[0.2em] uppercase font-bold mb-3 block">
@@ -318,7 +318,7 @@ export default function ProductsPage() {
           </FixedGrid>
         </div>
 
-        {/* Filter Bar - أنيق ومتناسق */}
+        {/* Filter Bar */}
         <div className="bg-gray-50 rounded-2xl p-4 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             {/* Search */}

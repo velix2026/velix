@@ -84,18 +84,50 @@ export async function PATCH(
     const { id } = await params;
     const formData = await request.formData();
     
+    // ✅ قراءة البيانات مع معالجة القيم الفارغة
     const name = formData.get('name') as string;
     const price = parseFloat(formData.get('price') as string);
     const category = formData.get('category') as string;
     const description = formData.get('description') as string;
     const stock = parseInt(formData.get('stock') as string);
-    const oldPrice = formData.get('oldPrice') ? parseFloat(formData.get('oldPrice') as string) : undefined;
-    const discount = formData.get('discount') ? parseInt(formData.get('discount') as string) : 0;
+    
+    // ✅ معالجة oldPrice - إذا كان فارغ يصبح null
+    const oldPriceRaw = formData.get('oldPrice') as string;
+    const oldPrice = oldPriceRaw && oldPriceRaw !== '' ? parseFloat(oldPriceRaw) : undefined;
+    
+    const discount = parseInt(formData.get('discount') as string || '0');
     const isNew = formData.get('isNew') === 'true';
     const sizes = JSON.parse(formData.get('sizes') as string || '[]');
     const colors = JSON.parse(formData.get('colors') as string || '[]');
     const removedImages = JSON.parse(formData.get('removedImages') as string || '[]');
-    const quantityDiscount = JSON.parse(formData.get('quantityDiscount') as string || '{"enabled":false,"minQuantity":2,"discountPerItem":0}');
+    
+    // ✅ معالجة quantityDiscount
+    const quantityDiscountRaw = formData.get('quantityDiscount') as string;
+    let quantityDiscount = { enabled: false, tiers: [] };
+    if (quantityDiscountRaw && quantityDiscountRaw !== '') {
+      try {
+        const parsed = JSON.parse(quantityDiscountRaw);
+        quantityDiscount = {
+          enabled: parsed.enabled || false,
+          tiers: parsed.tiers || []
+        };
+      } catch (e) {
+        console.error('Error parsing quantityDiscount:', e);
+      }
+    }
+    
+    console.log('📦 Updating product:', {
+      id,
+      name,
+      price,
+      oldPrice,
+      discount,
+      stock,
+      sizes,
+      colors,
+      quantityDiscount,
+      removedImages
+    });
     
     let products = await getProducts();
     const index = products.findIndex((p: any) => p.id === parseInt(id));
@@ -104,62 +136,78 @@ export async function PATCH(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
     
-    // حذف الصور المرفوعة من Blob
+    // ✅ حذف الصور المرفوعة من Blob
     for (const imageUrl of removedImages) {
       try {
-        const url = new URL(imageUrl);
-        const pathname = url.pathname;
-        const blobKey = pathname.split('/').pop();
-        if (blobKey) {
-          await del(blobKey);
+        if (imageUrl && imageUrl.includes('blob.vercel-storage.com')) {
+          const url = new URL(imageUrl);
+          const pathname = url.pathname;
+          const blobKey = pathname.split('/').pop();
+          if (blobKey) {
+            await del(blobKey);
+            console.log('✅ Deleted image:', blobKey);
+          }
         }
       } catch (error) {
         console.error('Error deleting image:', error);
       }
     }
     
-    // رفع الصورة الرئيسية الجديدة
+    // ✅ رفع الصورة الرئيسية الجديدة
     let mainImageUrl = products[index].mainImage;
     const newMainImage = formData.get('newMainImage') as File;
-    if (newMainImage && newMainImage.size > 0) {
+    if (newMainImage && newMainImage.size > 0 && newMainImage.name !== 'undefined') {
       const timestamp = Date.now();
       mainImageUrl = await uploadImageToBlob(newMainImage, `${timestamp}_main.jpg`);
+      console.log('✅ Uploaded main image:', mainImageUrl);
     }
     
-    // رفع الصور الإضافية الجديدة
+    // ✅ رفع الصور الإضافية الجديدة
     const newSubImagesFiles = formData.getAll('newSubImages') as File[];
     const newSubImagesUrls: string[] = [];
     for (let i = 0; i < newSubImagesFiles.length; i++) {
-      const timestamp = Date.now();
-      const url = await uploadImageToBlob(newSubImagesFiles[i], `${timestamp}_sub${i + 1}.jpg`);
-      newSubImagesUrls.push(url);
+      const file = newSubImagesFiles[i];
+      if (file && file.size > 0 && file.name !== 'undefined') {
+        const timestamp = Date.now();
+        const url = await uploadImageToBlob(file, `${timestamp}_sub${i + 1}.jpg`);
+        newSubImagesUrls.push(url);
+        console.log('✅ Uploaded sub image:', url);
+      }
     }
     
-    // ✅ تحديث المنتج مع إضافة quantityDiscount
+    // ✅ الحفاظ على الصور الموجودة (اللي مش محذوفة)
+    const existingSubImages = products[index].subImages.filter(
+      (img: string) => !removedImages.includes(img)
+    );
+    
+    // ✅ إنشاء المنتج المحدث
     const updatedProduct = {
       ...products[index],
       name: name || products[index].name,
-      price: price || products[index].price,
+      price: isNaN(price) ? products[index].price : price,
       category: category || products[index].category,
       description: description || products[index].description,
-      stock: stock !== undefined ? stock : products[index].stock,
-      oldPrice: oldPrice !== undefined ? oldPrice : products[index].oldPrice,
-      discount: discount !== undefined ? discount : products[index].discount,
-      isNew: isNew !== undefined ? isNew : products[index].isNew,
+      stock: isNaN(stock) ? products[index].stock : stock,
+      oldPrice: oldPrice,
+      discount: isNaN(discount) ? products[index].discount : discount,
+      isNew: isNew,
       sizes: sizes.length ? sizes : products[index].sizes,
       colors: colors.length ? colors : products[index].colors,
       mainImage: mainImageUrl,
-      subImages: [...products[index].subImages.filter((img: string) => !removedImages.includes(img)), ...newSubImagesUrls],
-      quantityDiscount: quantityDiscount, // ✅ إضافة خصم الكمية
+      subImages: [...existingSubImages, ...newSubImagesUrls],
+      quantityDiscount: quantityDiscount,
+      updatedAt: new Date().toISOString(),
     };
     
     products[index] = updatedProduct;
     await saveProducts(products);
     
+    console.log('✅ Product updated successfully:', updatedProduct.id);
+    
     return NextResponse.json({ success: true, product: updatedProduct });
   } catch (error) {
-    console.error('Error updating product:', error);
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+    console.error('❌ Error updating product:', error);
+    return NextResponse.json({ error: 'Failed to update product', details: String(error) }, { status: 500 });
   }
 }
 
@@ -181,11 +229,14 @@ export async function DELETE(
     const allImages = [productToDelete.mainImage, ...productToDelete.subImages];
     for (const imageUrl of allImages) {
       try {
-        const url = new URL(imageUrl);
-        const pathname = url.pathname;
-        const blobKey = pathname.split('/').pop();
-        if (blobKey) {
-          await del(blobKey);
+        if (imageUrl && imageUrl.includes('blob.vercel-storage.com')) {
+          const url = new URL(imageUrl);
+          const pathname = url.pathname;
+          const blobKey = pathname.split('/').pop();
+          if (blobKey) {
+            await del(blobKey);
+            console.log('✅ Deleted image:', blobKey);
+          }
         }
       } catch (error) {
         console.error('Error deleting image:', error);
@@ -194,6 +245,8 @@ export async function DELETE(
     
     const newProducts = products.filter((p: any) => p.id !== parseInt(id));
     await saveProducts(newProducts);
+    
+    console.log('✅ Product deleted successfully:', id);
     
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -27,11 +27,16 @@ export const formatPrice = (price: number | undefined | null): string => {
 };
 
 export const formatDiscount = (discount: number | undefined | null): string => {
-  if (!discount && discount !== 0) return '-٠%';
+  // إصلاح: عدم عرض الخصم إذا كان 0
+  if (!discount && discount !== 0) return '';
+  if (discount === 0) return '';
   return `${toArabicNumber(discount)}%`;
 };
 
 export const formatStock = (stock: number | undefined | null): string => {
-  if (!stock && stock !== 0) return 'باقي ٠ فقط';
+  // إصلاح: عدم عرض "باقي ٠ فقط" إذا كان 0
+  if (stock === undefined || stock === null) return '';
+  if (stock <= 0) return '';
+  if (stock <= 5) return `⏳ باقي ${toArabicNumber(stock)} فقط`;
   return `باقي ${toArabicNumber(stock)} فقط`;
 };

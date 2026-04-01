@@ -61,26 +61,31 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   const mountedRef = useRef(true);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
-  // ✅ دالة للتحقق إذا كان المنتج جديد (أقل من 3 أيام)
-  const isRecentlyAdded = useCallback(() => {
-    if (!product.createdAt) return false;
-    const createdDate = new Date(product.createdAt);
-    const now = new Date();
-    const diffDays = (now.getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
-    return diffDays < 3;
-  }, [product.createdAt]);
+    // ✅ دالة للتحقق إذا كان المنتج جديد (أقل من 3 أيام)
+    const isRecentlyAdded = useCallback(() => {
+      if (!product.createdAt) return false;
+      const createdDate = new Date(product.createdAt);
+      const now = new Date();
+      const diffDays = (now.getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
+      return diffDays < 3;
+    }, [product.createdAt]);
 
-  // ✅ دالة للتحقق إذا كان المنتج من الأكثر مبيعاً
-  const isBestSeller = product.salesCount && product.salesCount > 10;
+    // ✅ دالة للتحقق إذا كان المنتج من الأكثر مبيعاً
+    const isBestSeller = product.salesCount !== undefined && product.salesCount > 10;
 
-  const isLowStock = product.stock !== undefined && product.stock <= 5 && product.stock > 0;
-  const isOutOfStock = product.stock === 0;
+    const isLowStock = product.stock !== undefined && product.stock <= 5 && product.stock > 0;
+    const isOutOfStock = product.stock === 0;
 
-  // ✅ ترتيب الـ Badges
-  const showNewBadge = isRecentlyAdded() && !isOutOfStock;
-  const showBestSellerBadge = isBestSeller && !isOutOfStock;
-  const showDiscountBadge = product.discount && product.discount > 0 && !isOutOfStock;
-  const showLowStockBadge = isLowStock && !isOutOfStock && !showNewBadge && !showBestSellerBadge && !showDiscountBadge;
+    // ✅ حساب الخصم المئوي من السعر القديم والسعر الحالي
+    const discountPercent = product.oldPrice && product.oldPrice > product.price 
+      ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
+      : 0;
+
+    // ✅ ترتيب الـ Badges
+    const showNewBadge = isRecentlyAdded() && !isOutOfStock;
+    const showBestSellerBadge = isBestSeller && !isOutOfStock;
+    const showDiscountBadge = discountPercent > 0 && !isOutOfStock;
+    const showLowStockBadge = isLowStock && !isOutOfStock;  // ← من غير شروط
 
   // ✅ دالة حساب السعر بعد خصم الكمية (معدلة لاستخدام tiers)
   const getQuantityDiscountPrice = (quantity: number) => {
@@ -376,7 +381,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             )}
             {showDiscountBadge && (
               <span className="bg-linear-to-r from-red-500 to-rose-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
-                <span className="text-[11px]">🏷️</span> {formatDiscount(product.discount)}
+                <span className="text-[11px]">🏷️</span> {formatDiscount(discountPercent)}
               </span>
             )}
             {showLowStockBadge && (
