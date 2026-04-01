@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { toArabicNumber } from '@/lib/utils';
-import OrderPrint from '@/components/OrderPrint';
+import { toArabicNumber, formatPrice } from '@/lib/utils';
 
 // دالة مؤقتة لتنسيق السعر بشكل صحيح
 const formatPriceCorrect = (price: number) => {
@@ -90,7 +89,6 @@ export default function AdminOrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<Order | null>(null);
-  const [showPrint, setShowPrint] = useState(false);
 
   useEffect(() => {
     const auth = sessionStorage.getItem('adminAuth');
@@ -336,6 +334,12 @@ export default function AdminOrdersPage() {
               🔄 <span className="hidden sm:inline">تحديث</span>
             </button>
             <Link 
+              href="/admin/print-multi" 
+              className="px-3 md:px-4 py-1.5 md:py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-full text-xs md:text-sm flex items-center gap-1 md:gap-2 transition-colors"
+            >
+              🖨️ <span className="hidden sm:inline">طباعة فواتير متعددة</span>
+            </Link>
+            <Link 
               href="/admin" 
               className="px-3 md:px-4 py-1.5 md:py-2 bg-black/5 hover:bg-black/10 text-black font-bold rounded-full text-xs md:text-sm flex items-center gap-1 md:gap-2 transition-colors"
             >
@@ -431,7 +435,7 @@ export default function AdminOrdersPage() {
                   <th className="p-2 md:p-3 text-right font-black text-black text-xs md:text-sm hidden md:table-cell">التاريخ</th>
                   <th className="p-2 md:p-3 text-right font-black text-black text-xs md:text-sm hidden lg:table-cell">تاريخ التسليم/الإلغاء</th>
                   <th className="p-2 md:p-3 text-right font-black text-black text-xs md:text-sm">الإجراءات</th>
-                </tr>
+                 </tr>
               </thead>
               <tbody>
                 {filteredOrders.length === 0 ? (
@@ -523,11 +527,15 @@ export default function AdminOrdersPage() {
             <div className="sticky top-0 bg-white border-b border-black/10 p-3 md:p-4 flex justify-between items-center">
               <h2 className="text-base md:text-xl font-black text-black">تفاصيل الطلب #{selectedOrder.order_id}</h2>
               <div className="flex gap-1 md:gap-2">
-                <button onClick={() => setShowPrint(true)} className="p-1.5 md:p-2 hover:bg-black/5 rounded-full transition-colors" title="طباعة">
+                <Link 
+                  href={`/admin/print-multi?selected=${selectedOrder.order_id}`}
+                  className="p-1.5 md:p-2 hover:bg-black/5 rounded-full transition-colors" 
+                  title="طباعة"
+                >
                   <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                   </svg>
-                </button>
+                </Link>
                 <button onClick={() => setSelectedOrder(null)} className="p-1.5 md:p-2 hover:bg-black/5 rounded-full transition-colors">
                   <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -598,9 +606,12 @@ export default function AdminOrdersPage() {
               )}
             </div>
             <div className="sticky bottom-0 bg-white border-t border-black/10 p-3 md:p-4">
-              <button onClick={() => setShowPrint(true)} className="w-full bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white font-bold py-2 md:py-2.5 rounded-xl text-sm md:text-base hover:shadow-lg transition-all">
+              <Link
+                href={`/admin/print-multi?selected=${selectedOrder.order_id}`}
+                className="w-full bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white font-bold py-2 md:py-2.5 rounded-xl text-sm md:text-base hover:shadow-lg transition-all text-center block"
+              >
                 🖨️ طباعة الفاتورة
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -624,9 +635,6 @@ export default function AdminOrdersPage() {
           </div>
         </div>
       )}
-
-      {/* Print Component */}
-      {showPrint && selectedOrder && <OrderPrint order={selectedOrder} onClose={() => setShowPrint(false)} />}
     </div>
   );
 }
