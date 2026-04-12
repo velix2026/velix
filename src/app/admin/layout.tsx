@@ -25,26 +25,57 @@ export default function AdminLayout({
     setLoading(false);
   }, [router, isLoginPage]);
 
-  // ✅ تسجيل Service Worker للأدمن
+  // ✅ إزالة manifest الموقع العادي وإضافة manifest الأدمن (يشتغل فوراً)
   useEffect(() => {
-    if ('serviceWorker' in navigator && !isLoginPage) {
-      navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('SW registered for admin'))
-        .catch(err => console.log('SW error:', err));
+    // إزالة manifest الموقع العادي (اللي معاه data-main)
+    const mainManifest = document.querySelector('link[rel="manifest"][data-main="true"]');
+    if (mainManifest) {
+      mainManifest.remove();
     }
-  }, [isLoginPage]);
+    
+    // إضافة manifest الأدمن
+    let adminManifest = document.querySelector('link[rel="manifest"][data-admin="true"]');
+    if (!adminManifest) {
+      adminManifest = document.createElement('link');
+      adminManifest.setAttribute('rel', 'manifest');
+      adminManifest.setAttribute('href', '/admin-manifest.json');
+      adminManifest.setAttribute('data-admin', 'true');
+      document.head.appendChild(adminManifest);
+    }
+    
+    // ✅ تغيير عنوان الصفحة
+    let title = 'VELIX Admin - لوحة التحكم';
+    if (pathname === '/admin/products') title = 'إدارة المنتجات - VELIX Admin';
+    if (pathname === '/admin/orders') title = 'إدارة الطلبات - VELIX Admin';
+    if (pathname === '/admin/newsletter') title = 'النشرة البريدية - VELIX Admin';
+    if (pathname === '/admin') title = 'إضافة منتج - VELIX Admin';
+    document.title = title;
+    
+    // ✅ تغيير meta tags للتطبيق
+    let appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+    if (!appleTitle) {
+      appleTitle = document.createElement('meta');
+      appleTitle.setAttribute('name', 'apple-mobile-web-app-title');
+      document.head.appendChild(appleTitle);
+    }
+    appleTitle.setAttribute('content', 'VELIX Admin');
+    
+    let appName = document.querySelector('meta[name="application-name"]');
+    if (!appName) {
+      appName = document.createElement('meta');
+      appName.setAttribute('name', 'application-name');
+      document.head.appendChild(appName);
+    }
+    appName.setAttribute('content', 'VELIX Admin');
+  }, [pathname]); // ✅ اشتغل عند كل تغيير في المسار
 
-  // ✅ إضافة الـ manifest ديناميكياً
+  // ✅ كمان خلي المؤثر ده يشتغل بعد التحميل مباشرة
   useEffect(() => {
     if (!isLoginPage) {
-      // إضافة link manifest في head إذا مش موجود
-      let manifestLink = document.querySelector('link[rel="manifest"][data-admin="true"]');
-      if (!manifestLink) {
-        manifestLink = document.createElement('link');
-        manifestLink.setAttribute('rel', 'manifest');
-        manifestLink.setAttribute('href', '/admin-manifest.json');
-        manifestLink.setAttribute('data-admin', 'true');
-        document.head.appendChild(manifestLink);
+      // إزالة manifest الموقع العادي
+      const mainManifest = document.querySelector('link[rel="manifest"][data-main="true"]');
+      if (mainManifest) {
+        mainManifest.remove();
       }
     }
   }, [isLoginPage]);

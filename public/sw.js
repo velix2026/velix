@@ -21,6 +21,7 @@ const ADMIN_STATIC_URLS = [
   '/admin/products',
   '/admin/orders',
   '/admin/newsletter',
+  '/admin/login',
   '/admin-manifest.json'
 ];
 
