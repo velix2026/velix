@@ -2,6 +2,9 @@
 import { MetadataRoute } from 'next';
 import { getProducts } from '@/lib/products';
 
+// ✅ يتجدد كل ساعة (3600 ثانية) - أفضل أداء مع تحديث معقول
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://velix-eg.store';
   
@@ -61,12 +64,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let productPages: MetadataRoute.Sitemap = [];
   try {
     const products = await getProducts();
-    productPages = products.map((product) => ({
-      url: `${baseUrl}/products/${product.id}`,
-      lastModified: new Date(product.createdAt || Date.now()),
-      changeFrequency: 'weekly' as const, // ✅ أضفنا 'as const' عشان يحدد النوع
-      priority: 0.8,
-    }));
+    if (products && products.length > 0) {
+      productPages = products.map((product) => ({
+        url: `${baseUrl}/products/${product.id}`,
+        lastModified: new Date(product.createdAt || Date.now()),
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      }));
+    }
   } catch (error) {
     console.error('Error fetching products for sitemap:', error);
   }
