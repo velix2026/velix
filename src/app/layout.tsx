@@ -1,10 +1,9 @@
-import type { Viewport } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cairo } from 'next/font/google';
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ToastProvider from "@/components/ToastProvider";
-import Breadcrumbs from '@/components/Breadcrumbs';
 
 const cairo = Cairo({
   subsets: ['arabic'],
@@ -12,6 +11,38 @@ const cairo = Cairo({
   variable: '--font-cairo',
   weight: ['400', '500', '600', '700', '800'],
 });
+
+// ✅ أضف الـ metadata هنا عشان يشتغل الـ metadataBase
+export const metadata: Metadata = {
+  metadataBase: new URL('https://velix-eg.store'),
+  title: {
+    default: "VELIX | براند ملابس مصري - جودة عالمية وتصميم عصري",
+    template: "%s | VELIX",
+  },
+  description: "VELIX أول براند ملابس مصري يقدم لك جودة عالمية بسعر مناسب. تشكيلة رائعة من التيشرتات والهوديز والشروال. دفع عند الاستلام وتوصيل لجميع محافظات مصر.",
+  openGraph: {
+    title: "VELIX | براند ملابس مصري",
+    description: "اكتشف أحدث تشكيلة من VELIX. جودة عالمية، تصميم عصري، ودفع عند الاستلام.",
+    url: "https://velix-eg.store",
+    siteName: "VELIX",
+    locale: "ar_EG",
+    type: "website",
+    images: [
+      {
+        url: "/images/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "VELIX - براند ملابس مصري",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "VELIX | براند ملابس مصري",
+    description: "اكتشف أحدث تشكيلة من VELIX. جودة عالمية، تصميم عصري، ودفع عند الاستلام.",
+    images: ["/images/og-image.jpg"],
+  },
+};
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -30,7 +61,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" className={cairo.variable}>
+    <html lang="ar" dir="rtl" className={cairo.variable} data-scroll-behavior="smooth">
       <head>
         {/* Favicon and Icons */}
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -58,61 +89,60 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://facebook.com" />
         <link rel="dns-prefetch" href="https://tiktok.com" />
         
-        {/* Structured Data - JSON-LD (بيانات الموقع الأساسية) */}
+        {/* Structured Data - JSON-LD */}
         <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{
-                __html: JSON.stringify({
-                  "@context": "https://schema.org",
-                  "@type": "ClothingStore",
-                  "name": "VELIX",
-                  "url": "https://velix-eg.store",
-                  "logo": "https://velix-eg.store/images/logo.png",
-                  "image": "https://velix-eg.store/images/og-image.jpg",
-                  "description": "براند ملابس مصري - جودة عالمية وتصميم عصري",
-                  "telephone": "+201500125133",
-                  "priceRange": "$$",
-                  "paymentAccepted": "Cash on Delivery",
-                  "currenciesAccepted": "EGP",
-                  "areaServed": "EG",
-                  "address": {
-                    "@type": "PostalAddress",
-                    "addressCountry": "EG",
-                    "addressRegion": "Qalyubia",
-                    "addressLocality": "Shubra El-Kheima",
-                    "streetAddress": "شبرا الخيمة، القليوبية",
-                    "postalCode": "13766"
-                  },
-                  "contactPoint": {
-                    "@type": "ContactPoint",
-                    "telephone": "+201500125133",
-                    "contactType": "customer service",
-                    "availableLanguage": ["Arabic", "English"],
-                    "areaServed": "EG"
-                  },
-                  "sameAs": [
-                    "https://instagram.com/velix.2026",
-                    "https://facebook.com/velix2026",
-                    "https://tiktok.com/@velix2026",
-                    "https://wa.me/201500125133"
-                  ],
-                  "openingHours": ["Mo-Sa 10:00-22:00"],
-                  "deliveryLeadTime": {
-                    "@type": "QuantitativeValue",
-                    "value": "5",
-                    "unitCode": "DAY"
-                  }
-                })
-              }}
-            />
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "ClothingStore",
+              "name": "VELIX",
+              "url": "https://velix-eg.store",
+              "logo": "https://velix-eg.store/images/logo.png",
+              "image": "https://velix-eg.store/images/og-image.jpg",
+              "description": "براند ملابس مصري - جودة عالمية وتصميم عصري",
+              "telephone": "+201500125133",
+              "priceRange": "$$",
+              "paymentAccepted": "Cash on Delivery",
+              "currenciesAccepted": "EGP",
+              "areaServed": "EG",
+              "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "EG",
+                "addressRegion": "Qalyubia",
+                "addressLocality": "Shubra El-Kheima",
+                "streetAddress": "شبرا الخيمة، القليوبية",
+                "postalCode": "13766"
+              },
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+201500125133",
+                "contactType": "customer service",
+                "availableLanguage": ["Arabic", "English"],
+                "areaServed": "EG"
+              },
+              "sameAs": [
+                "https://instagram.com/velix.2026",
+                "https://facebook.com/velix2026",
+                "https://tiktok.com/@velix2026",
+                "https://wa.me/201500125133"
+              ],
+              "openingHours": ["Mo-Sa 10:00-22:00"],
+              "deliveryLeadTime": {
+                "@type": "QuantitativeValue",
+                "value": "5",
+                "unitCode": "DAY"
+              }
+            })
+          }}
+        />
       </head>
       <body className="flex flex-col min-h-screen bg-white font-sans antialiased">
         <ToastProvider />
         <Header />
         <main className="grow">
-            <Breadcrumbs />
-            {children}
-          </main>
+          {children}
+        </main>
         <Footer />
       </body>
     </html>

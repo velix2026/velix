@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 export default function Breadcrumbs() {
   const pathname = usePathname();
   
-  // لو في الصفحة الرئيسية، متظهرش
+  // لو في الصفحة الرئيسية، متعرضش حاجة خالص
   if (pathname === '/') return null;
   
   // نقسم الرابط إلى أجزاء
@@ -33,40 +33,47 @@ export default function Breadcrumbs() {
     return { url, name, isLast };
   });
   
-  // JSON-LD للـ Breadcrumbs
+  // ✅ JSON-LD للـ Breadcrumbs (ده اللي بيقراه جوجل)
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": breadcrumbs.map((item, index) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "name": item.name,
-      "item": `https://velix-eg.store${item.url}`
-    }))
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "الرئيسية",
+        "item": "https://velix-eg.store/"
+      },
+      ...breadcrumbs.map((item, index) => ({
+        "@type": "ListItem",
+        "position": index + 2,
+        "name": item.name,
+        "item": `https://velix-eg.store${item.url}`
+      }))
+    ]
   };
   
   return (
     <>
+      {/* ✅ JSON-LD للـ Breadcrumbs -visible to Google only */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <nav className="container mx-auto px-4 py-3 mb-4" aria-label="Breadcrumb">
+      
+      {/* ✅ Breadcrumbs visually hidden - موجودة في الـ HTML لكن مش ظاهرة للمستخدم */}
+      <nav className="sr-only" aria-label="Breadcrumb">
         <ol className="flex flex-wrap items-center gap-2 text-sm">
           <li>
-            <Link href="/" className="text-black/60 hover:text-black font-bold transition">
-              الرئيسية
-            </Link>
+            <Link href="/">الرئيسية</Link>
           </li>
           {breadcrumbs.map((item, index) => (
             <li key={index} className="flex items-center gap-2">
-              <span className="text-black/30">/</span>
+              <span>/</span>
               {item.isLast ? (
-                <span className="text-black font-black">{item.name}</span>
+                <span>{item.name}</span>
               ) : (
-                <Link href={item.url} className="text-black/60 hover:text-black font-bold transition">
-                  {item.name}
-                </Link>
+                <Link href={item.url}>{item.name}</Link>
               )}
             </li>
           ))}

@@ -308,6 +308,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
                     src={category.image} 
                     alt={category.name} 
                     fill 
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
