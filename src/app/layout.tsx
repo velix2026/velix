@@ -1,89 +1,16 @@
-import type { Metadata, Viewport } from "next";
+import type { Viewport } from "next";
 import { Cairo } from 'next/font/google';
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ToastProvider from "@/components/ToastProvider";
 
-// تحسين الخط للعربية - load faster مع performance
 const cairo = Cairo({
   subsets: ['arabic'],
   display: 'swap',
   variable: '--font-cairo',
   weight: ['400', '500', '600', '700', '800'],
 });
-
-export const metadata: Metadata = {
-  metadataBase: new URL("https://velixstore.vercel.app"),
-  title: {
-    default: "VELIX | براند ملابس مصري - ستايل عصري وجودة في التفاصيل",
-    template: "%s | VELIX",
-  },
-  description: "VELIX براند ملابس مصري بيقدم ستايل عصري للشباب. جودة عالية، تفاصيل مميزة، ودفع عند الاستلام.",
-  keywords: [
-    "ملابس رجالي مصر",
-    "براند ملابس مصري",
-    "تيشرتات رجالي",
-    "هوديز مصر",
-    "VELIX",
-    "ستريت وير مصر",
-    "جودة عالية ملابس",
-    "دفع عند الاستلام",
-    "ماركة ملابس مصرية",
-    "أزياء مصرية",
-    "تصميم عصري",
-  ],
-  authors: [{ name: "VELIX", url: "https://velixstore.vercel.app" }],
-  creator: "VELIX",
-  publisher: "VELIX",
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-  openGraph: {
-    title: "VELIX | براند ملابس مصري",
-    description: "ستايل عصري وجودة في التفاصيل. اطلب دلوقتي بالدفع عند الاستلام.",
-    url: "https://velixstore.vercel.app",
-    siteName: "VELIX",
-    locale: "ar_EG",
-    type: "website",
-    images: [
-      {
-        url: "/images/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "VELIX - براند ملابس مصري",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "VELIX | براند ملابس مصري",
-    description: "ستايل عصري وجودة في التفاصيل. اطلب دلوقتي بالدفع عند الاستلام.",
-    images: ["/images/og-image.jpg"],
-  },
-  alternates: {
-    canonical: "https://velixstore.vercel.app",
-  },
-  category: "fashion",
-  verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "",
-  },
-  other: {
-    'format-detection': 'telephone=no',
-    'msapplication-tap-highlight': 'no',
-    'apple-mobile-web-app-capable': 'yes',
-    'apple-mobile-web-app-status-bar-style': 'black-translucent',
-    'apple-mobile-web-app-title': 'VELIX',
-  },
-};
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -111,10 +38,8 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
         
-        {/* ✅ Meta tags للـ PWA - النسخة الحديثة */}
+        {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
-        {/* ❌ اشيل السطر ده: <meta name="apple-mobile-web-app-capable" content="yes" /> */}
-        
         <meta name="theme-color" content="#ffffff" />
         <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="msapplication-TileImage" content="/android-chrome-192x192.png" />
@@ -123,14 +48,57 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
-        {/* ❌ اشيل الـ preload ده: <link rel="preload" href="/images/logo.png" as="image" /> */}
-        
-        {/* Sitemap and RSS */}
+        {/* Sitemap */}
         <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
         
         {/* DNS Prefetch */}
         <link rel="dns-prefetch" href="https://wa.me" />
         <link rel="dns-prefetch" href="https://instagram.com" />
+        <link rel="dns-prefetch" href="https://facebook.com" />
+        <link rel="dns-prefetch" href="https://tiktok.com" />
+        
+        {/* Structured Data - JSON-LD (بيانات الموقع الأساسية) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "ClothingStore",
+              "name": "VELIX",
+              "url": "https://velix-eg.store",
+              "logo": "https://velix-eg.store/images/logo.png",
+              "image": "https://velix-eg.store/images/og-image.jpg",
+              "description": "براند ملابس مصري - جودة عالمية وتصميم عصري",
+              "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "EG",
+                "addressRegion": "Cairo"
+              },
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+201500125133",
+                "contactType": "customer service",
+                "availableLanguage": ["Arabic", "English"],
+                "areaServed": "EG"
+              },
+              "sameAs": [
+                "https://instagram.com/velix.2026",
+                "https://facebook.com/velix2026",
+                "https://tiktok.com/@velix2026",
+                "https://wa.me/201500125133"
+              ],
+              "openingHours": "Mo-Sa 10:00-22:00",
+              "paymentAccepted": "Cash on Delivery",
+              "priceRange": "$$",
+              "currenciesAccepted": "EGP",
+              "deliveryLeadTime": {
+                "@type": "QuantitativeValue",
+                "value": "2-5",
+                "unitCode": "DAY"
+              }
+            })
+          }}
+        />
       </head>
       <body className="flex flex-col min-h-screen bg-white font-sans antialiased">
         <ToastProvider />

@@ -97,7 +97,8 @@ export default function Header() {
             {[
               { href: '/', label: 'الرئيسية', title: 'الصفحة الرئيسية لبراند VELIX' },
               { href: '/products', label: 'المنتجات', title: 'جميع منتجات VELIX - ملابس مصرية' },
-              { href: '/about', label: 'عن البراند', title: 'قصة VELIX - براند ملابس مصري' }
+              { href: '/about', label: 'عن البراند', title: 'قصة VELIX - براند ملابس مصري' },
+              { href: '/contact', label: 'اتصل بنا', title: 'تواصل مع فريق VELIX' }
             ].map((link) => (
               <Link
                 key={link.href}
@@ -211,7 +212,8 @@ export default function Header() {
               {[
                 { href: '/', label: 'الرئيسية' },
                 { href: '/products', label: 'المنتجات' },
-                { href: '/about', label: 'عن البراند' }
+                { href: '/about', label: 'عن البراند' },
+                { href: '/contact', label: 'اتصل بنا' }
               ].map((link) => (
                 <Link
                   key={link.href}

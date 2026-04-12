@@ -1,19 +1,27 @@
 {
-  "name": "VELIX",
+  "name": "VELIX - براند ملابس مصري",
   "short_name": "VELIX",
+  "description": "براند ملابس مصري - جودة عالية وتصميم عصري",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
-  "display": "standalone"
+  "lang": "ar",
+  "dir": "rtl",
+  "orientation": "portrait",
+  "categories": ["shopping", "fashion", "clothing"]
 }
