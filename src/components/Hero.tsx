@@ -18,9 +18,9 @@ export default function Hero() {
     '@type': 'Organization',
     'name': 'VELIX',
     'description': 'براند ملابس مصري بيقدم ستايل عصري للشباب. جودة عالية وتفاصيل مميزة مع دفع عند الاستلام.',
-    'url': 'https://velixstore.vercel.app',
-    'logo': 'https://velixstore.vercel.app/logo.png',
-    'image': 'https://velixstore.vercel.app/images/hero-model.png',
+    'url': 'https://velix-eg.store',
+    'logo': 'https://velix-eg.store/logo.png',
+    'image': 'https://velix-eg.store/images/hero-model.png',
     'address': {
       '@type': 'PostalAddress',
       'addressCountry': 'EG'

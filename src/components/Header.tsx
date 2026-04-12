@@ -33,8 +33,8 @@ export default function Header() {
     '@context': 'https://schema.org',
     '@type': 'ClothingStore',
     name: 'VELIX',
-    url: 'https://velixstore.vercel.app',
-    logo: 'https://velixstore.vercel.app/images/logo.png', // ✅ تم التحديث للمسار الصحيح
+    url: 'https://velix-eg.store',
+    logo: 'https://velix-eg.store/images/logo.png', // ✅ تم التحديث للمسار الصحيح
     sameAs: [
       'https://instagram.com/velix.2026',
       'https://facebook.com/velix2026',

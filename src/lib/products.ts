@@ -37,7 +37,7 @@ export async function getProducts(): Promise<Product[]> {
     let url: string;
     
     if (isServer) {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://velixstore.vercel.app';
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://velix-eg.store';
       url = `${baseUrl}/api/products`;
     } else {
       url = `/api/products`;

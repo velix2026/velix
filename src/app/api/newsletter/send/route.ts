@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
                   <h2 style="color: #667eea;">${subject}</h2>
                   <div style="white-space: pre-line;">${body}</div>
                   <div style="text-align: center; margin: 30px 0;">
-                    <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://velixstore.vercel.app'}/products" class="shop-link" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://velix-eg.store'}/products" class="shop-link" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                       🛒 تسوق الآن
                     </a>
                   </div>
@@ -69,11 +69,11 @@ export async function POST(request: NextRequest) {
                 <div class="footer">
                   <p>© 2024 VELIX - جميع الحقوق محفوظة</p>
                   <p style="margin-top: 10px;">
-                    <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://velixstore.vercel.app'}" style="color: #667eea;">velixstore.vercel.app</a>
+                    <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://velix-eg.store'}" style="color: #667eea;">velix-eg.store</a>
                   </p>
                   <p style="margin-top: 10px; font-size: 11px;">
                     تم إرسال هذه الرسالة من متجر VELIX - 
-                    <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://velixstore.vercel.app'}/unsubscribe?email=${email}" style="color: #999;">إلغاء الإشتراك</a>
+                    <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://velix-eg.store'}/unsubscribe?email=${email}" style="color: #999;">إلغاء الإشتراك</a>
                   </p>
                 </div>
               </div>

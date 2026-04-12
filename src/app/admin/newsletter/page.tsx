@@ -13,7 +13,7 @@ interface Subscriber {
 }
 
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'velix@2026';
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://velixstore.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://velix-eg.store';
 
 export default function AdminNewsletter() {
   const router = useRouter();
