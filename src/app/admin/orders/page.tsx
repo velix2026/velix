@@ -316,9 +316,10 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-20 md:pt-28 pb-12">
+    <div className="min-h-screen bg-gray-50 pt-20 md:pt-28 pb-12">
       <div className="container mx-auto px-3 md:px-4">
-        {/* Header */}
+        
+        {/* Header - مع إضافة زر رجوع للداش بورد */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 md:mb-8">
           <div className="text-center sm:text-right">
             <h1 className="text-2xl md:text-3xl font-black text-black">الطلبات</h1>
@@ -331,8 +332,8 @@ export default function AdminOrdersPage() {
             <Link href="/admin/print-multi" className="px-3 md:px-4 py-1.5 md:py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-full text-xs md:text-sm flex items-center gap-1 md:gap-2 transition-colors">
               🖨️ <span className="hidden sm:inline">طباعة فواتير متعددة</span>
             </Link>
-            <Link href="/admin" className="px-3 md:px-4 py-1.5 md:py-2 bg-black/10 hover:bg-black/20 text-black font-bold rounded-full text-xs md:text-sm flex items-center gap-1 md:gap-2 transition-colors">
-              ← <span className="hidden sm:inline">العودة للوحة</span>
+            <Link href="/admin/dashboard" className="px-3 md:px-4 py-1.5 md:py-2 bg-black/10 hover:bg-black/20 text-black font-bold rounded-full text-xs md:text-sm flex items-center gap-1 md:gap-2 transition-colors">
+              ← <span className="hidden sm:inline">العودة للداش بورد</span>
             </Link>
           </div>
         </div>

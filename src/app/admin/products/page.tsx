@@ -1,4 +1,3 @@
-// app/admin/products/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -317,9 +316,11 @@ export default function AdminProductsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
-        <p className="text-black font-bold mr-3">جاري التحميل...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-black font-bold">جاري التحميل...</p>
+        </div>
       </div>
     );
   }
@@ -329,23 +330,34 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-28 pb-12">
+    <div className="min-h-screen bg-gray-50 pt-28 pb-12">
       <div className="container mx-auto px-4">
-        {/* Header */}
+        {/* Header - مع إضافة زر رجوع للداش بورد */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-black text-black">إدارة المنتجات</h1>
             <p className="text-black/60 text-sm font-bold mt-1">تعديل وحذف المنتجات</p>
           </div>
-          <Link
-            href="/admin"
-            className="px-5 py-2 bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white rounded-full text-sm font-bold hover:scale-[1.02] transition-all duration-300 flex items-center gap-2 shadow-md"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            إضافة منتج جديد
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/admin"
+              className="px-5 py-2 bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white rounded-full text-sm font-bold hover:scale-[1.02] transition-all duration-300 flex items-center gap-2 shadow-md"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              إضافة منتج جديد
+            </Link>
+            <Link
+              href="/admin/dashboard"
+              className="px-5 py-2 bg-black/10 hover:bg-black/20 text-black rounded-full text-sm font-bold flex items-center gap-2 transition-all duration-300"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              العودة للداش بورد
+            </Link>
+          </div>
         </div>
 
         {/* Products Grid */}
@@ -549,51 +561,51 @@ export default function AdminProductsPage() {
                 </div>
 
                 {/* جدول الكميات لكل لون ومقاس */}
-                {editingProduct.colors && editingProduct.colors.length > 0 && editingProduct.sizes && editingProduct.sizes.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-black text-black mb-2">الكميات المتاحة (لكل لون ومقاس)</label>
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse">
-                        <thead>
-                          <tr className="bg-black/5">
-                            <th className="border border-black/20 p-2 text-right text-sm font-black text-black">اللون / المقاس</th>
-                            {editingProduct.sizes.map(size => (
-                              <th key={size} className="border border-black/20 p-2 text-center text-sm font-black text-black">{size}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {editingProduct.colors.map(colorCode => {
-                            const colorName = allColors.find(c => c.code === colorCode)?.name || colorCode;
-                            const colorValue = allColors.find(c => c.code === colorCode)?.value;
-                            return (
-                              <tr key={colorCode}>
-                                <td className="border border-black/20 p-2 text-sm font-bold text-black">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: colorValue, border: colorCode === 'white' ? '1px solid #000000' : 'none' }}></div>
-                                    {colorName}
-                                  </div>
-                                </td>
-                                {editingProduct.sizes?.map(size => (
-                                  <td key={size} className="border border-black/20 p-2">
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      value={getStockQuantity(colorCode, size)}
-                                      onChange={(e) => updateStockQuantity(colorCode, size, parseInt(e.target.value) || 0)}
-                                      className="w-full p-2 text-center bg-white border-2 border-black/20 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                    />
+                  {editingProduct.colors && editingProduct.colors.length > 0 && editingProduct.sizes && editingProduct.sizes.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-black text-black mb-2">الكميات المتاحة (لكل لون ومقاس)</label>
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse">
+                          <thead>
+                            <tr className="bg-black/5">
+                              <th className="border border-black/20 p-2 text-right text-sm font-black text-black">اللون / المقاس</th>
+                              {editingProduct.sizes.map(size => (
+                                <th key={size} className="border border-black/20 p-2 text-center text-sm font-black text-black">{size}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {editingProduct.colors.map(colorCode => {
+                              const colorName = allColors.find(c => c.code === colorCode)?.name || colorCode;
+                              const colorValue = allColors.find(c => c.code === colorCode)?.value;
+                              return (
+                                <tr key={colorCode}>
+                                  <td className="border border-black/20 p-2 text-sm font-bold text-black">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: colorValue, border: colorCode === 'white' ? '1px solid #000000' : 'none' }}></div>
+                                      {colorName}
+                                    </div>
                                   </td>
-                                ))}
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                                  {editingProduct.sizes?.map(size => (
+                                    <td key={size} className="border border-black/20 p-2">
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        value={getStockQuantity(colorCode, size)}
+                                        onChange={(e) => updateStockQuantity(colorCode, size, parseInt(e.target.value) || 0)}
+                                        className="w-full p-2 text-center bg-white border-2 border-black/20 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                      />
+                                    </td>
+                                  ))}
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="text-xs text-black/60 mt-2 font-bold">💡 أدخل الكمية المتاحة لكل لون ومقاس (0 يعني غير متاح)</p>
                     </div>
-                    <p className="text-xs text-black/60 mt-2 font-bold">💡 أدخل الكمية المتاحة لكل لون ومقاس (0 يعني غير متاح)</p>
-                  </div>
-                )}
+                  )}
                 
                 {/* خصم الكمية المتدرج */}
                 <div className="border-t border-black/20 pt-4 mt-2">

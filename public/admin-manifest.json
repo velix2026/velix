@@ -1,10 +1,10 @@
 {
   "name": "VELIX Admin",
   "short_name": "Admin VELIX",
-  "description": "لوحة تحكم VELIX - إدارة المنتجات والطلبات",
+  "description": "لوحة تحكم VELIX - إدارة المنتجات والطلبات والمشتركين",
   "start_url": "/admin/dashboard",
   "display": "standalone",
-  "background_color": "#000000",
+  "background_color": "#ffffff",
   "theme_color": "#000000",
   "orientation": "portrait",
   "scope": "/admin/",
@@ -20,6 +20,11 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
     }
   ],
   "categories": ["business", "productivity"],
