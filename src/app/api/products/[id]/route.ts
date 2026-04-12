@@ -1,9 +1,9 @@
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { put, del } from '@vercel/blob';
 import Redis from 'ioredis';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const redis = new Redis(process.env.REDIS_URL!);
 const PRODUCTS_KEY = 'products';
@@ -83,13 +83,11 @@ export async function PATCH(
     const { id } = await params;
     const formData = await request.formData();
     
-    // ✅ قراءة البيانات مع معالجة القيم الفارغة
     const name = formData.get('name') as string;
     const price = parseFloat(formData.get('price') as string);
     const category = formData.get('category') as string;
     const description = formData.get('description') as string;
     
-    // ✅ معالجة stockItems الجديد
     let stockItems: Array<{ colorCode: string; size: string; quantity: number }> = [];
     const stockItemsRaw = formData.get('stockItems') as string;
     if (stockItemsRaw && stockItemsRaw !== '') {
@@ -101,10 +99,8 @@ export async function PATCH(
       }
     }
     
-    // ✅ معالجة stock القديم (للتوافق)
     const stock = parseInt(formData.get('stock') as string);
     
-    // ✅ معالجة oldPrice - إذا كان فارغ يصبح undefined
     const oldPriceRaw = formData.get('oldPrice') as string;
     const oldPrice = oldPriceRaw && oldPriceRaw !== '' ? parseFloat(oldPriceRaw) : undefined;
     
@@ -114,9 +110,8 @@ export async function PATCH(
     const colors = JSON.parse(formData.get('colors') as string || '[]');
     const removedImages = JSON.parse(formData.get('removedImages') as string || '[]');
     
-    // ✅ معالجة quantityDiscount
-    const quantityDiscountRaw = formData.get('quantityDiscount') as string;
     let quantityDiscount = { enabled: false, tiers: [] };
+    const quantityDiscountRaw = formData.get('quantityDiscount') as string;
     if (quantityDiscountRaw && quantityDiscountRaw !== '') {
       try {
         const parsed = JSON.parse(quantityDiscountRaw);
@@ -150,7 +145,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
     
-    // ✅ حذف الصور المرفوعة من Blob
+    // حذف الصور المرفوعة من Blob
     for (const imageUrl of removedImages) {
       try {
         if (imageUrl && imageUrl.includes('blob.vercel-storage.com')) {
@@ -167,7 +162,7 @@ export async function PATCH(
       }
     }
     
-    // ✅ رفع الصورة الرئيسية الجديدة
+    // رفع الصورة الرئيسية الجديدة
     let mainImageUrl = products[index].mainImage;
     const newMainImage = formData.get('newMainImage') as File;
     if (newMainImage && newMainImage.size > 0 && newMainImage.name !== 'undefined') {
@@ -176,7 +171,7 @@ export async function PATCH(
       console.log('✅ Uploaded main image:', mainImageUrl);
     }
     
-    // ✅ رفع الصور الإضافية الجديدة
+    // رفع الصور الإضافية الجديدة
     const newSubImagesFiles = formData.getAll('newSubImages') as File[];
     const newSubImagesUrls: string[] = [];
     for (let i = 0; i < newSubImagesFiles.length; i++) {
@@ -189,17 +184,17 @@ export async function PATCH(
       }
     }
     
-    // ✅ الحفاظ على الصور الموجودة (اللي مش محذوفة)
+    // الحفاظ على الصور الموجودة
     const existingSubImages = products[index].subImages.filter(
       (img: string) => !removedImages.includes(img)
     );
     
-    // ✅ حساب inStock بناءً على stockItems أو stock
+    // حساب inStock
     const inStock = stockItems.length > 0 
       ? stockItems.some(item => item.quantity > 0)
       : (!isNaN(stock) ? stock > 0 : products[index].inStock);
     
-    // ✅ إنشاء المنتج المحدث
+    // إنشاء المنتج المحدث
     const updatedProduct = {
       ...products[index],
       name: name || products[index].name,

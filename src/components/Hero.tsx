@@ -1,4 +1,3 @@
-// components/Hero.tsx
 'use client';
 
 import Image from "next/image";
@@ -12,19 +11,42 @@ export default function Hero() {
     setIsVisible(true);
   }, []);
 
-  // Hero Schema for SEO
+  // ✅ Hero Schema for SEO - نسخة كاملة بدون تحذيرات
   const heroSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
+    '@type': 'ClothingStore',
     'name': 'VELIX',
     'description': 'براند ملابس مصري بيقدم ستايل عصري للشباب. جودة عالية وتفاصيل مميزة مع دفع عند الاستلام.',
     'url': 'https://velix-eg.store',
-    'logo': 'https://velix-eg.store/logo.png',
+    'logo': 'https://velix-eg.store/images/logo.png',
     'image': 'https://velix-eg.store/images/hero-model.png',
+    'telephone': '+201500125133',
+    'priceRange': '$$',
+    'paymentAccepted': 'Cash on Delivery',
+    'currenciesAccepted': 'EGP',
+    'areaServed': 'EG',
     'address': {
       '@type': 'PostalAddress',
-      'addressCountry': 'EG'
-    }
+      'addressCountry': 'EG',
+      'addressRegion': 'Qalyubia',
+      'addressLocality': 'Shubra El-Kheima',
+      'streetAddress': 'شبرا الخيمة، القليوبية',
+      'postalCode': '13766'
+    },
+    'contactPoint': {
+      '@type': 'ContactPoint',
+      'telephone': '+201500125133',
+      'contactType': 'customer service',
+      'availableLanguage': ['Arabic', 'English'],
+      'areaServed': 'EG'
+    },
+    'sameAs': [
+      'https://instagram.com/velix.2026',
+      'https://facebook.com/velix2026',
+      'https://tiktok.com/@velix2026',
+      'https://wa.me/201500125133'
+    ],
+    'openingHours': ['Mo-Sa 10:00-22:00']
   };
 
   return (
@@ -41,10 +63,10 @@ export default function Hero() {
             
             {/* Text Content - Centered Vertically */}
             <div className={`text-center md:text-right order-2 md:order-1 transition-all duration-700 transform ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}>
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-gray-900 mb-6 tracking-tighter leading-[1.1]">
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-black mb-6 tracking-tighter leading-[1.1]">
                 VELIX
               </h1>
-              <p className="text-gray-500 font-bold text-base md:text-lg mb-8 max-w-lg mx-auto md:mx-0 leading-relaxed">
+              <p className="text-black/60 font-bold text-base md:text-lg mb-8 max-w-lg mx-auto md:mx-0 leading-relaxed">
                 براند ملابس مصري بيقدم ستايل عصري يناسب الشباب اللي بيحبوا يبانوا بشكل مختلف.
                 <br />
                 جودة في كل تفصيلة، ودفع عند الاستلام.
@@ -52,7 +74,7 @@ export default function Hero() {
               <div className="flex justify-center md:justify-start">
                 <Link
                   href="/products"
-                  className="group bg-linear-to-r from-gray-800 via-gray-700 to-gray-900 text-white font-bold px-8 py-4 rounded-full text-base md:text-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 inline-flex items-center justify-center gap-3 w-full md:w-auto shadow-md hover:shadow-lg"
+                  className="group bg-linear-to-r from-black via-black/80 to-black/90 text-white font-bold px-8 py-4 rounded-full text-base md:text-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 inline-flex items-center justify-center gap-3 w-full md:w-auto shadow-md hover:shadow-lg"
                   style={{ minWidth: "220px" }}
                 >
                   <svg 
@@ -93,7 +115,7 @@ export default function Hero() {
                     fill
                     sizes="(max-width: 768px) 33vw, 25vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    loading="eager"  // ✅ أضف ده عشان الصورة تظهر فوراً
+                    loading="eager"
                     priority={false}
                   />
                 </div>
@@ -104,7 +126,7 @@ export default function Hero() {
                     fill
                     sizes="(max-width: 768px) 33vw, 25vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    loading="eager"  // ✅ أضف ده عشان الصورة تظهر فوراً
+                    loading="eager"
                     priority={false}
                   />
                 </div>
@@ -115,7 +137,7 @@ export default function Hero() {
                     fill
                     sizes="(max-width: 768px) 33vw, 25vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    loading="eager"  // ✅ أضف ده عشان الصورة تظهر فوراً
+                    loading="eager"
                     priority={false}
                   />
                 </div>

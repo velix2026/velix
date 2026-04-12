@@ -2,36 +2,47 @@ import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import Redis from 'ioredis';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 const redis = new Redis(process.env.REDIS_URL!);
 const PRODUCTS_KEY = 'products';
 
-async function getProducts() {
-  try {
-    const data = await redis.get(PRODUCTS_KEY);
-    if (!data) return [];
-    let products = JSON.parse(data);
-    
-    products = products.map((product: any, index: number) => {
-      if (!product.createdAt) {
-        const daysAgo = Math.min(30, (product.id || index + 1) % 31);
-        const fakeDate = new Date();
-        fakeDate.setDate(fakeDate.getDate() - daysAgo);
-        return {
-          ...product,
-          createdAt: product.createdAt || fakeDate.toISOString(),
-          salesCount: product.salesCount || 0,
-          rating: product.rating || 0,
-        };
+// في app/api/products/route.ts - دالة getProducts
+  async function getProducts() {
+    try {
+      const data = await redis.get(PRODUCTS_KEY);
+      if (!data) return [];
+      let products = JSON.parse(data);
+      
+      let changed = false;
+      products = products.map((product: any, index: number) => {
+        if (!product.createdAt) {
+          changed = true;
+          const daysAgo = Math.min(30, (product.id || index + 1) % 31);
+          const fakeDate = new Date();
+          fakeDate.setDate(fakeDate.getDate() - daysAgo);
+          return {
+            ...product,
+            createdAt: product.createdAt || fakeDate.toISOString(),
+            salesCount: product.salesCount || 0,
+            rating: product.rating || 0,
+          };
+        }
+        return product;
+      });
+      
+      // ✅ لو فيه تغييرات، احفظها في Redis
+      if (changed) {
+        await redis.set(PRODUCTS_KEY, JSON.stringify(products));
       }
-      return product;
-    });
-    
-    return products;
-  } catch (error) {
-    console.error('Error reading from Redis:', error);
-    return [];
+      
+      return products;
+    } catch (error) {
+      console.error('Error reading from Redis:', error);
+      return [];
+    }
   }
-}
 
 async function saveProducts(products: any[]) {
   try {
@@ -136,8 +147,8 @@ export async function POST(request: NextRequest) {
       mainImage: mainImageUrl,
       subImages: subImagesUrls,
       inStock: stockItems.length > 0 ? stockItems.some(item => item.quantity > 0) : stock > 0,
-      stock: stock, // للتوافق مع الإصدارات السابقة
-      stockItems: stockItems, // ✅ النظام الجديد
+      stock: stock,
+      stockItems: stockItems,
       sizes,
       colors,
       isNew,

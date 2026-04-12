@@ -71,13 +71,17 @@ export default function RootLayout({
                   "image": "https://velix-eg.store/images/og-image.jpg",
                   "description": "براند ملابس مصري - جودة عالمية وتصميم عصري",
                   "telephone": "+201500125133",
+                  "priceRange": "$$",
+                  "paymentAccepted": "Cash on Delivery",
+                  "currenciesAccepted": "EGP",
+                  "areaServed": "EG",
                   "address": {
                     "@type": "PostalAddress",
                     "addressCountry": "EG",
-                    "addressRegion": "Cairo",
-                    "addressLocality": "Cairo",
-                    "streetAddress": "مصر الجديدة",
-                    "postalCode": "11757"
+                    "addressRegion": "Qalyubia",
+                    "addressLocality": "Shubra El-Kheima",
+                    "streetAddress": "شبرا الخيمة، القليوبية",
+                    "postalCode": "13766"
                   },
                   "contactPoint": {
                     "@type": "ContactPoint",
@@ -92,13 +96,10 @@ export default function RootLayout({
                     "https://tiktok.com/@velix2026",
                     "https://wa.me/201500125133"
                   ],
-                  "openingHours": "Mo-Sa 10:00-22:00",
-                  "paymentAccepted": "Cash on Delivery",
-                  "priceRange": "$$",
-                  "currenciesAccepted": "EGP",
+                  "openingHours": ["Mo-Sa 10:00-22:00"],
                   "deliveryLeadTime": {
                     "@type": "QuantitativeValue",
-                    "value": "2-5",
+                    "value": "5",
                     "unitCode": "DAY"
                   }
                 })

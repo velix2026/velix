@@ -1,4 +1,3 @@
-// components/Newsletter.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -171,24 +170,24 @@ export default function Newsletter() {
   };
 
   return (
-    <section className="bg-white py-20 md:py-28 border-t border-gray-100">
+    <section className="bg-white py-20 md:py-28 border-t border-black/10">
       <div className="container mx-auto px-4">
         <div className={`text-center mb-12 md:mb-16 transition-all duration-700 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-          <span className="text-xs text-gray-400 tracking-[0.2em] uppercase font-bold mb-3 block">
+          <span className="text-xs text-black/40 tracking-[0.2em] uppercase font-bold mb-3 block">
             ابقى على تواصل
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+          <h2 className="text-3xl md:text-4xl font-bold text-black">
             اشترك في النشرة البريدية
           </h2>
-          <div className="w-16 h-0.5 bg-gray-300 mx-auto mt-4 mb-6"></div>
-          <p className="text-gray-500 font-bold text-base max-w-2xl mx-auto">
+          <div className="w-16 h-0.5 bg-black/20 mx-auto mt-4 mb-6"></div>
+          <p className="text-black/60 font-bold text-base max-w-2xl mx-auto">
             كن أول من يعلم بآخر المنتجات والعروض الحصرية
           </p>
         </div>
 
         <div className="max-w-2xl mx-auto">
           {isSubscribed ? (
-            <div className={`bg-gray-50 rounded-2xl p-8 text-center transition-all duration-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+            <div className={`bg-black/5 rounded-2xl p-8 text-center transition-all duration-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
               <div className="flex items-center justify-center gap-3 mb-3">
                 <svg className="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -198,13 +197,13 @@ export default function Newsletter() {
               {isEditing ? (
                 // ✅ وضع التعديل
                 <div className="space-y-4">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">تعديل البريد الإلكتروني</h3>
+                  <h3 className="text-xl font-bold text-black mb-2">تعديل البريد الإلكتروني</h3>
                   <input
                     type="email"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="البريد الإلكتروني الجديد"
-                    className="w-full p-3 rounded-xl border-2 border-gray-200 bg-white text-gray-900 font-bold focus:outline-none focus:border-gray-400 transition"
+                    className="w-full p-3 rounded-xl border-2 border-black/20 bg-white text-black font-bold focus:outline-none focus:border-black/40 transition"
                     dir="ltr"
                   />
                   <div className="flex gap-3">
@@ -218,7 +217,7 @@ export default function Newsletter() {
                     <button
                       onClick={() => setIsEditing(false)}
                       disabled={loading}
-                      className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-400 transition"
+                      className="flex-1 px-4 py-2 bg-black/20 text-black font-bold rounded-xl hover:bg-black/30 transition"
                     >
                       إلغاء
                     </button>
@@ -227,8 +226,8 @@ export default function Newsletter() {
               ) : showUnsubscribeConfirm ? (
                 // ✅ تأكيد إلغاء الاشتراك
                 <div className="space-y-4">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">هل أنت متأكد؟</h3>
-                  <p className="text-gray-600">هل تريد إلغاء الاشتراك من النشرة البريدية؟</p>
+                  <h3 className="text-xl font-bold text-black mb-2">هل أنت متأكد؟</h3>
+                  <p className="text-black/60">هل تريد إلغاء الاشتراك من النشرة البريدية؟</p>
                   <div className="flex gap-3">
                     <button
                       onClick={handleUnsubscribe}
@@ -239,7 +238,7 @@ export default function Newsletter() {
                     </button>
                     <button
                       onClick={() => setShowUnsubscribeConfirm(false)}
-                      className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-400 transition"
+                      className="flex-1 px-4 py-2 bg-black/20 text-black font-bold rounded-xl hover:bg-black/30 transition"
                     >
                       إلغاء
                     </button>
@@ -248,11 +247,11 @@ export default function Newsletter() {
               ) : (
                 // ✅ الوضع العادي - عرض المشترك
                 <>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">أنت مشترك بالفعل!</h3>
-                  <p className="text-gray-600 font-bold">
-                    بريدك الإلكتروني <span className="text-gray-900">{subscribedEmail}</span>
+                  <h3 className="text-xl font-bold text-black mb-2">أنت مشترك بالفعل!</h3>
+                  <p className="text-black/60 font-bold">
+                    بريدك الإلكتروني <span className="text-black">{subscribedEmail}</span>
                   </p>
-                  <p className="text-gray-400 text-sm mt-2">
+                  <p className="text-black/40 text-sm mt-2">
                     هتوصلک آخر العروض والمنتجات الجديدة على بريدك
                   </p>
                   
@@ -282,16 +281,16 @@ export default function Newsletter() {
           ) : (
             <div className={`transition-all duration-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
               <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="أدخل بريدك الإلكتروني"
-                    className="flex-1 h-14 px-4 rounded-xl border-2 border-gray-200 bg-white text-gray-900 font-bold focus:outline-none focus:border-gray-400 transition placeholder:text-gray-400 leading-14"
-                    required
-                    disabled={loading}
-                    dir="rtl"
-                  />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="أدخل بريدك الإلكتروني"
+                  className="flex-1 h-14 px-4 rounded-xl border-2 border-black/20 bg-white text-black font-bold focus:outline-none focus:border-black/40 transition placeholder:text-black/40 leading-14"
+                  required
+                  disabled={loading}
+                  dir="rtl"
+                />
                 <button
                   type="submit"
                   disabled={loading}
@@ -317,7 +316,7 @@ export default function Newsletter() {
                 </p>
               )}
               
-              <p className="text-center text-gray-400 text-xs mt-6">
+              <p className="text-center text-black/40 text-xs mt-6">
                 لن نرسل لك بريداً مزعجاً، فقط العروض الحصرية
               </p>
             </div>

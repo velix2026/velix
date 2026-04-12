@@ -45,6 +45,9 @@ export const metadata = {
 export default async function Home() {
   const products = await getProducts();
 
+  // ✅ جميع المنتجات
+  const allProducts = products;
+  
   // ✅ بيانات منظمة للصفحة الرئيسية (JSON-LD)
   const homePageSchema = {
     "@context": "https://schema.org",
@@ -59,20 +62,32 @@ export default async function Home() {
       "priceRange": "$$",
       "paymentAccepted": "Cash on Delivery",
       "areaServed": "EG",
+      "telephone": "+201500125133",
       "address": {
         "@type": "PostalAddress",
-        "addressCountry": "EG"
+        "addressCountry": "EG",
+        "addressRegion": "Qalyubia",
+        "addressLocality": "Shubra El-Kheima",
+        "streetAddress": "شبرا الخيمة، القليوبية",
+        "postalCode": "13766"
       },
       "contactPoint": {
         "@type": "ContactPoint",
         "telephone": "+201500125133",
         "contactType": "customer service",
-        "availableLanguage": ["Arabic"]
-      }
+        "availableLanguage": ["Arabic", "English"],
+        "areaServed": "EG"
+      },
+      "sameAs": [
+        "https://instagram.com/velix.2026",
+        "https://facebook.com/velix2026",
+        "https://tiktok.com/@velix2026",
+        "https://wa.me/201500125133"
+      ]
     }
   };
 
-  // ✅ إحصائيات الموقع (لوجك)
+  // ✅ إحصائيات الموقع
   const stats = {
     productsCount: products.length,
     categories: ["تيشرتات", "هوديز", "شروال"],
@@ -88,35 +103,37 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homePageSchema) }}
       />
       
-      {/* ✅ Hero Section مع SEO */}
+      {/* ✅ Hero Section */}
       <Hero />
       
       {/* ✅ Brand Features */}
       <BrandFeatures />
       
-      {/* ✅ Featured Products مع SEO */}
-      <section>
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-8">
-            <span className="text-xs text-black/40 tracking-[0.2em] uppercase font-bold mb-3 block">
-              أحدث المجموعات
-            </span>
-            <h1 className="text-3xl md:text-4xl font-bold text-black">
-              منتجاتنا المميزة
-            </h1>
-            <div className="w-16 h-0.5 bg-black/20 mx-auto mt-4 mb-6" />
-            <p className="text-black/60 font-bold text-base max-w-2xl mx-auto">
-              اكتشف أحدث تشكيلة من التيشرتات والهوديز بتصميم عصري وجودة عالية
-            </p>
+      {/* ✅ منتجاتنا المميزة - يظهر بس لو فيه منتجات */}
+      {allProducts.length > 0 && (
+        <section>
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-8">
+              <span className="text-xs text-black/40 tracking-[0.2em] uppercase font-bold mb-3 block">
+                أحدث المجموعات
+              </span>
+              <h1 className="text-3xl md:text-4xl font-bold text-black">
+                منتجاتنا المميزة
+              </h1>
+              <div className="w-16 h-0.5 bg-black/20 mx-auto mt-4 mb-6" />
+              <p className="text-black/60 font-bold text-base max-w-2xl mx-auto">
+                اكتشف تشكيلتنا المميزة من التيشرتات والهوديز بتصميم عصري وجودة عالية
+              </p>
+            </div>
           </div>
-        </div>
-        <FeaturedProducts key={products.length} products={products} />
-      </section>
+          <FeaturedProducts key={allProducts.length} products={allProducts} />
+        </section>
+      )}
       
       {/* ✅ Newsletter */}
       <Newsletter />
       
-      {/* ✅ Hidden SEO Text - عشان جوجل يقرا محتوى إضافي */}
+      {/* ✅ Hidden SEO Text */}
       <div className="sr-only" aria-hidden="true">
         <h2>VELIX - براند ملابس مصري رائد</h2>
         <p>
@@ -136,7 +153,7 @@ export default async function Home() {
         </ul>
       </div>
       
-      {/* ✅ إحصائيات سريعة للسيو (hidden but readable) */}
+      {/* ✅ إحصائيات سريعة للسيو */}
       <div className="sr-only" aria-hidden="true">
         <p>عدد المنتجات: {stats.productsCount} منتج</p>
         <p>الأقسام: {stats.categories.join('، ')}</p>
