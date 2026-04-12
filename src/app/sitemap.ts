@@ -2,8 +2,10 @@
 import { MetadataRoute } from 'next';
 import { getProducts } from '@/lib/products';
 
-// ✅ يتجدد كل ساعة (3600 ثانية) - أفضل أداء مع تحديث معقول
-export const revalidate = 3600;
+// ✅ أجبر الـ sitemap يتولد ديناميكياً عند كل طلب
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://velix-eg.store';
@@ -60,7 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
   
-  // الصفحات الديناميكية للمنتجات
+  // ✅ لف جلب المنتجات في try-catch عشان لو فشل، يعدي ويرجع الصفحات الثابتة بس
   let productPages: MetadataRoute.Sitemap = [];
   try {
     const products = await getProducts();
@@ -74,6 +76,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } catch (error) {
     console.error('Error fetching products for sitemap:', error);
+    // ✅ في حالة الخطأ، نرجع الصفحات الثابتة بس من غير منتجات
   }
   
   return [...staticPages, ...productPages];
