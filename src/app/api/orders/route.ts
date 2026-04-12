@@ -1,4 +1,3 @@
-// app/api/orders/route.ts
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +39,65 @@ async function getAllOrders() {
   } catch (error) {
     console.error('Error getting orders from Redis:', error);
     return [];
+  }
+}
+
+// ✅ دالة تحديث المخزون بعد الطلب
+async function updateProductStock(productId: number, quantity: number, selectedSize?: string, selectedColor?: string) {
+  try {
+    const productsKey = 'products';
+    const productsData = await kv.get(productsKey);
+    if (!productsData) return;
+    
+    let products = JSON.parse(productsData as string);
+    const productIndex = products.findIndex((p: any) => p.id === productId);
+    
+    if (productIndex !== -1) {
+      const product = products[productIndex];
+      
+      // ✅ إذا كان المنتج يستخدم stockItems
+      if (product.stockItems && Array.isArray(product.stockItems) && selectedSize && selectedColor) {
+        const stockIndex = product.stockItems.findIndex(
+          (item: any) => item.size === selectedSize && item.colorCode === selectedColor
+        );
+        if (stockIndex !== -1) {
+          product.stockItems[stockIndex].quantity -= quantity;
+          if (product.stockItems[stockIndex].quantity < 0) {
+            product.stockItems[stockIndex].quantity = 0;
+          }
+        }
+        // تحديث salesCount
+        product.salesCount = (product.salesCount || 0) + quantity;
+        await kv.set(productsKey, JSON.stringify(products));
+        console.log(`✅ Updated stock for product ${productId} (size: ${selectedSize}, color: ${selectedColor}): -${quantity}`);
+      } 
+      // ✅ للمنتجات القديمة (بدون stockItems)
+      else if (product.stock !== undefined) {
+        product.stock -= quantity;
+        if (product.stock < 0) product.stock = 0;
+        product.salesCount = (product.salesCount || 0) + quantity;
+        await kv.set(productsKey, JSON.stringify(products));
+        console.log(`✅ Updated stock for product ${productId}: -${quantity}, remaining: ${product.stock}`);
+      } 
+      // ✅ للمنتجات اللي عندها stockItems بس مفيش مقاس/لون محدد (نحسب إجمالي)
+      else if (product.stockItems && Array.isArray(product.stockItems)) {
+        const totalStock = product.stockItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+        if (totalStock >= quantity) {
+          // نخصم من أول عنصر متاح (أو نوزع)
+          let remaining = quantity;
+          for (let i = 0; i < product.stockItems.length && remaining > 0; i++) {
+            const deduction = Math.min(product.stockItems[i].quantity, remaining);
+            product.stockItems[i].quantity -= deduction;
+            remaining -= deduction;
+          }
+        }
+        product.salesCount = (product.salesCount || 0) + quantity;
+        await kv.set(productsKey, JSON.stringify(products));
+        console.log(`✅ Updated stock for product ${productId} (distributed): -${quantity}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error updating product stock:', error);
   }
 }
 
@@ -94,15 +152,18 @@ export async function POST(request: NextRequest) {
       )
     `;
 
-    // حفظ كل منتج في order_items
+    // حفظ كل منتج في order_items وتحديث المخزون
     for (const item of orderData.items) {
       await sql`
         INSERT INTO order_items (order_id, product_id, product_name, quantity, price, selected_size, selected_color)
         VALUES (${orderId}, ${item.id}, ${item.name}, ${item.quantity}, ${item.price}, ${item.selectedSize || null}, ${item.selectedColor || null})
       `;
+      
+      // ✅ تحديث المخزون باستخدام الدالة الجديدة
+      await updateProductStock(item.id, item.quantity, item.selectedSize, item.selectedColor);
       await incrementProductSales(item.id, item.quantity);
     }
-    console.log('✅ Saved to Postgres');
+    console.log('✅ Saved to Postgres and updated stock');
 
     await updateAnalyticsPostgres(orderData.totalAmount);
 

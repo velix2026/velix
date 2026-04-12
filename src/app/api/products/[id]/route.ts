@@ -1,4 +1,3 @@
-// app/api/products/[id]/route.ts
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -89,9 +88,23 @@ export async function PATCH(
     const price = parseFloat(formData.get('price') as string);
     const category = formData.get('category') as string;
     const description = formData.get('description') as string;
+    
+    // ✅ معالجة stockItems الجديد
+    let stockItems: Array<{ colorCode: string; size: string; quantity: number }> = [];
+    const stockItemsRaw = formData.get('stockItems') as string;
+    if (stockItemsRaw && stockItemsRaw !== '') {
+      try {
+        stockItems = JSON.parse(stockItemsRaw);
+        console.log('✅ Parsed stockItems:', stockItems.length);
+      } catch (e) {
+        console.error('Error parsing stockItems:', e);
+      }
+    }
+    
+    // ✅ معالجة stock القديم (للتوافق)
     const stock = parseInt(formData.get('stock') as string);
     
-    // ✅ معالجة oldPrice - إذا كان فارغ يصبح null
+    // ✅ معالجة oldPrice - إذا كان فارغ يصبح undefined
     const oldPriceRaw = formData.get('oldPrice') as string;
     const oldPrice = oldPriceRaw && oldPriceRaw !== '' ? parseFloat(oldPriceRaw) : undefined;
     
@@ -123,6 +136,7 @@ export async function PATCH(
       oldPrice,
       discount,
       stock,
+      stockItemsCount: stockItems.length,
       sizes,
       colors,
       quantityDiscount,
@@ -180,6 +194,11 @@ export async function PATCH(
       (img: string) => !removedImages.includes(img)
     );
     
+    // ✅ حساب inStock بناءً على stockItems أو stock
+    const inStock = stockItems.length > 0 
+      ? stockItems.some(item => item.quantity > 0)
+      : (!isNaN(stock) ? stock > 0 : products[index].inStock);
+    
     // ✅ إنشاء المنتج المحدث
     const updatedProduct = {
       ...products[index],
@@ -188,9 +207,11 @@ export async function PATCH(
       category: category || products[index].category,
       description: description || products[index].description,
       stock: isNaN(stock) ? products[index].stock : stock,
+      stockItems: stockItems.length > 0 ? stockItems : products[index].stockItems || [],
       oldPrice: oldPrice,
       discount: isNaN(discount) ? products[index].discount : discount,
       isNew: isNew,
+      inStock: inStock,
       sizes: sizes.length ? sizes : products[index].sizes,
       colors: colors.length ? colors : products[index].colors,
       mainImage: mainImageUrl,

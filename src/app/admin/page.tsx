@@ -30,6 +30,13 @@ interface QuantityDiscount {
   tiers: QuantityTier[];
 }
 
+// ✅ واجهة الكمية لكل لون ومقاس
+interface StockItem {
+  colorCode: string;
+  size: string;
+  quantity: number;
+}
+
 export default function AdminPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -40,11 +47,11 @@ export default function AdminPage() {
     oldPrice: '',
     category: '',
     description: '',
-    stock: '',
     isNew: false,
   });
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [subImages, setSubImages] = useState<File[]>([]);
   const [status, setStatus] = useState('');
@@ -88,6 +95,28 @@ export default function AdminPage() {
     setSelectedColors(prev =>
       prev.includes(colorCode) ? prev.filter(c => c !== colorCode) : [...prev, colorCode]
     );
+  };
+
+  // ✅ دالة تحديث الكمية لكل لون ومقاس
+  const updateStockQuantity = (colorCode: string, size: string, quantity: number) => {
+    setStockItems(prev => {
+      const existing = prev.find(item => item.colorCode === colorCode && item.size === size);
+      if (existing) {
+        return prev.map(item =>
+          item.colorCode === colorCode && item.size === size
+            ? { ...item, quantity }
+            : item
+        );
+      } else {
+        return [...prev, { colorCode, size, quantity }];
+      }
+    });
+  };
+
+  // ✅ دالة جلب الكمية الحالية
+  const getStockQuantity = (colorCode: string, size: string) => {
+    const item = stockItems.find(i => i.colorCode === colorCode && i.size === size);
+    return item?.quantity || 0;
   };
 
   const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,10 +183,10 @@ export default function AdminPage() {
     formData.append('discount', discount.toString());
     formData.append('category', product.category);
     formData.append('description', product.description);
-    formData.append('stock', product.stock);
     formData.append('isNew', product.isNew.toString());
     formData.append('sizes', JSON.stringify(selectedSizes));
     formData.append('colors', JSON.stringify(selectedColors));
+    formData.append('stockItems', JSON.stringify(stockItems));
     formData.append('mainImage', mainImage);
     formData.append('createdAt', new Date().toISOString());
     formData.append('quantityDiscount', JSON.stringify(quantityDiscount));
@@ -167,9 +196,10 @@ export default function AdminPage() {
       const res = await fetch('/api/products', { method: 'POST', body: formData });
       if (res.ok) {
         setStatus('✅ تم إضافة المنتج بنجاح!');
-        setProduct({ name: '', price: '', oldPrice: '', category: '', description: '', stock: '', isNew: false });
+        setProduct({ name: '', price: '', oldPrice: '', category: '', description: '', isNew: false });
         setSelectedSizes([]);
         setSelectedColors([]);
+        setStockItems([]);
         setMainImage(null);
         setSubImages([]);
         setQuantityDiscount({
@@ -213,7 +243,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-white pt-28 pb-12">
       <div className="container mx-auto px-4">
-        {/* Header */}
+        {/* Header - بالألوان الأصلية */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
           <div className="text-center sm:text-right">
             <h1 className="text-3xl font-black text-black">VELIX</h1>
@@ -239,7 +269,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* كاردز سريعة للوصول */}
+        {/* كاردز سريعة للوصول - بالألوان الأصلية */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
           <Link href="/admin/products" className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-black/10 group">
             <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300 inline-block">📦</div>
@@ -261,7 +291,7 @@ export default function AdminPage() {
         </div>
 
         {/* نموذج إضافة منتج */}
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-black text-black mb-4 flex items-center gap-2">
             <span className="text-xl">➕</span>
             إضافة منتج جديد
@@ -281,26 +311,70 @@ export default function AdminPage() {
                 {discount > 0 && <p className="text-xs text-green-600 mt-1 font-bold">✓ نسبة الخصم المئوي: {toArabicNumber(discount)}%</p>}
               </div>
               
-              {/* المخزون */}
-              <div><label className="block text-xs font-black text-black uppercase tracking-wider mb-1">عدد القطع المتاحة</label><input type="number" min="0" value={product.stock} onChange={(e) => setProduct({ ...product, stock: e.target.value })} className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-black font-bold" required /></div>
-              
               {/* منتج جديد */}
               <div className="flex items-center gap-3"><input type="checkbox" id="isNew" checked={product.isNew} onChange={(e) => setProduct({ ...product, isNew: e.target.checked })} className="w-4 h-4 accent-black" /><label htmlFor="isNew" className="text-sm font-bold text-black">منتج جديد</label></div>
               
               {/* القسم */}
               <div><label className="block text-xs font-black text-black uppercase tracking-wider mb-1">القسم</label><select value={product.category} onChange={(e) => setProduct({ ...product, category: e.target.value })} className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-black font-bold" required><option value="">اختر القسم</option><option value="تيشرتات">تيشرتات</option><option value="هوديز">هوديز</option><option value="شروال">شروال</option></select></div>
               
-              {/* المقاسات */}
+              {/* المقاسات - بالألوان الأصلية */}
               <div><label className="block text-xs font-black text-black uppercase tracking-wider mb-2">المقاسات المتاحة</label><div className="flex flex-wrap gap-2">{sizes.map(size => <button type="button" key={size} onClick={() => handleSizeToggle(size)} className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 ${selectedSizes.includes(size) ? 'bg-black text-white shadow-md scale-105' : 'bg-gray-100 text-black hover:bg-gray-200'}`}>{size}</button>)}</div></div>
               
-              {/* الألوان */}
+              {/* الألوان - بالألوان الأصلية */}
               <div><label className="block text-xs font-black text-black uppercase tracking-wider mb-2">الألوان المتاحة</label><div className="flex flex-wrap gap-3">{colors.map(color => <button type="button" key={color.code} onClick={() => handleColorToggle(color.code)} className={`w-10 h-10 rounded-full transition-all duration-300 ${selectedColors.includes(color.code) ? 'ring-2 ring-offset-2 ring-black scale-110 shadow-lg' : 'hover:scale-105'}`} style={{ backgroundColor: color.value, border: color.border ? '1px solid #e5e7eb' : 'none' }} title={color.name} />)}</div></div>
+              
+              {/* ✅ جدول الكميات لكل لون ومقاس */}
+              {selectedColors.length > 0 && selectedSizes.length > 0 && (
+                <div>
+                  <label className="block text-xs font-black text-black uppercase tracking-wider mb-2">الكميات المتاحة (لكل لون ومقاس)</label>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="border border-gray-200 p-2 text-right text-sm font-black text-black">اللون / المقاس</th>
+                          {selectedSizes.map(size => (
+                            <th key={size} className="border border-gray-200 p-2 text-center text-sm font-black text-black">{size}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedColors.map(colorCode => {
+                          const colorName = colors.find(c => c.code === colorCode)?.name || colorCode;
+                          const colorValue = colors.find(c => c.code === colorCode)?.value;
+                          return (
+                            <tr key={colorCode}>
+                              <td className="border border-gray-200 p-2 text-sm font-bold text-black">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: colorValue, border: colorCode === 'white' ? '1px solid #e5e7eb' : 'none' }}></div>
+                                  {colorName}
+                                </div>
+                              </td>
+                              {selectedSizes.map(size => (
+                                <td key={size} className="border border-gray-200 p-2">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={getStockQuantity(colorCode, size)}
+                                    onChange={(e) => updateStockQuantity(colorCode, size, parseInt(e.target.value) || 0)}
+                                    className="w-full p-2 text-center bg-white border-2 border-gray-200 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                  />
+                                </td>
+                              ))}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 font-bold">💡 أدخل الكمية المتاحة لكل لون ومقاس (0 يعني غير متاح)</p>
+                </div>
+              )}
               
               {/* الوصف */}
               <div><label className="block text-xs font-black text-black uppercase tracking-wider mb-1">وصف المنتج</label><textarea value={product.description} onChange={(e) => setProduct({ ...product, description: e.target.value })} rows={4} className="w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-black font-bold" required dir="rtl" /></div>
               
               {/* ✅ خصم الكمية المتدرج (يعمل بشكل منفصل عن الخصم المئوي) */}
-              <div className="border-t border-black/10 pt-4 mt-2">
+              <div className="border-t border-gray-200 pt-4 mt-2">
                 <label className="flex items-center gap-2 mb-3">
                   <input
                     type="checkbox"
@@ -310,11 +384,11 @@ export default function AdminPage() {
                   />
                   <span className="text-sm font-black text-black">🎁 تفعيل خصم الكمية (إضافي)</span>
                 </label>
-                <p className="text-xs text-black/50 mb-3">ملاحظة: هذا الخصم يضاف فوق الخصم المئوي (إن وجد)</p>
+                <p className="text-xs text-gray-500 mb-3">ملاحظة: هذا الخصم يضاف فوق الخصم المئوي (إن وجد)</p>
                 
                 {quantityDiscount.enabled && (
                   <div className="space-y-3">
-                    <p className="text-xs font-black text-black/60">الخصم حسب الكمية (يطبق على الكمية المحددة وكل ما هو أكبر منها):</p>
+                    <p className="text-xs font-black text-gray-600">الخصم حسب الكمية (يطبق على الكمية المحددة وكل ما هو أكبر منها):</p>
                     {quantityDiscount.tiers.map((tier, idx) => (
                       <div key={idx} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl">
                         <div className="flex-1">
@@ -324,7 +398,7 @@ export default function AdminPage() {
                             min={idx === 0 ? 2 : (quantityDiscount.tiers[idx-1]?.minQuantity + 1 || 2)}
                             value={tier.minQuantity}
                             onChange={(e) => updateTier(idx, 'minQuantity', parseInt(e.target.value) || 0)}
-                            className="w-full p-2 bg-white border-2 border-gray-200 rounded-lg text-black font-bold"
+                            className="w-full p-2 bg-white border-2 border-gray-200 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                           />
                         </div>
                         <div className="flex-1">
@@ -334,7 +408,7 @@ export default function AdminPage() {
                             min="0"
                             value={tier.discountPerItem}
                             onChange={(e) => updateTier(idx, 'discountPerItem', parseInt(e.target.value) || 0)}
-                            className="w-full p-2 bg-white border-2 border-gray-200 rounded-lg text-black font-bold"
+                            className="w-full p-2 bg-white border-2 border-gray-200 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                           />
                         </div>
                         {quantityDiscount.tiers.length > 1 && (
@@ -354,7 +428,7 @@ export default function AdminPage() {
                     <button
                       type="button"
                       onClick={addTier}
-                      className="w-full py-2 border-2 border-dashed border-gray-300 rounded-xl text-sm font-bold text-black/60 hover:border-black hover:text-black transition"
+                      className="w-full py-2 border-2 border-dashed border-gray-300 rounded-xl text-sm font-bold text-gray-600 hover:border-green-500 hover:text-green-600 transition"
                     >
                       + إضافة مستوى خصم جديد
                     </button>
@@ -366,7 +440,7 @@ export default function AdminPage() {
               <div><label className="block text-xs font-black text-black uppercase tracking-wider mb-1">الصورة الرئيسية</label><input type="file" accept="image/*" onChange={handleMainImageChange} className="w-full p-2 bg-gray-50 border-2 border-gray-100 rounded-xl text-black font-bold" required /></div>
               <div><label className="block text-xs font-black text-black uppercase tracking-wider mb-1">صور إضافية (اختياري)</label><input type="file" accept="image/*" multiple onChange={handleSubImagesChange} className="w-full p-2 bg-gray-50 border-2 border-gray-100 rounded-xl text-black font-bold" /></div>
               
-              {/* زر الإضافة */}
+              {/* زر الإضافة - بالألوان الأصلية */}
               <button type="submit" disabled={uploading} className="w-full bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white py-3 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 font-black tracking-wide shadow-md hover:shadow-lg">{uploading ? 'جاري الرفع...' : '+ إضافة المنتج'}</button>
               {status && <p className={`text-center text-sm font-bold ${status.includes('✅') ? 'text-green-600' : 'text-red-500'}`}>{status}</p>}
             </div>

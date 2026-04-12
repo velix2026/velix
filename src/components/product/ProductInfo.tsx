@@ -1,4 +1,3 @@
-// components/product/ProductInfo.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,6 +7,14 @@ import { toArabicNumber, formatPrice } from '@/lib/utils';
 interface ProductInfoProps {
   product: any;
 }
+
+// ✅ دالة حساب إجمالي الكمية من stockItems
+const getTotalStock = (product: any): number => {
+  if (product.stockItems && Array.isArray(product.stockItems)) {
+    return product.stockItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+  }
+  return product.stock || 0;
+};
 
 export default function ProductInfo({ product }: ProductInfoProps) {
   const [timeLeft, setTimeLeft] = useState(0);
@@ -30,7 +37,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
     return `${toArabicNumber(hours)}:${toArabicNumber(minutes)}:${toArabicNumber(seconds)}`;
   };
 
-  const stock = product.stock || 0;
+  const stock = getTotalStock(product);
   const rating = product.rating || 0;
 
   return (
@@ -71,9 +78,9 @@ export default function ProductInfo({ product }: ProductInfoProps) {
               </svg>
             ))}
           </div>
-          <span className="text-sm font-bold text-black opacity-60">({toArabicNumber(rating)} / {toArabicNumber(5)})</span>
-          <span className="text-black opacity-30">|</span>
-          <span className="text-sm font-bold text-black opacity-60">{toArabicNumber(product.salesCount || 0)} مراجعة</span>
+          <span className="text-sm font-bold text-black/60">({toArabicNumber(rating)} / {toArabicNumber(5)})</span>
+          <span className="text-black/30">|</span>
+          <span className="text-sm font-bold text-black/60">{toArabicNumber(product.salesCount || 0)} مراجعة</span>
         </div>
       )}
 
@@ -99,7 +106,6 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           <span className="text-4xl md:text-5xl font-black text-black">{formatPrice(product.price)}</span>
         )}
         
-        {/* ✅ شحن مجاني لجميع المنتجات */}
         <p className="text-green-600 text-sm font-bold mt-2 flex items-center gap-1">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -145,21 +151,21 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       <div className="border-t border-black/10 pt-6 mt-6">
         <div className="grid grid-cols-2 gap-4">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-black opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-black/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
             </svg>
             <span className="text-black font-bold opacity-60">القسم:</span>
             <span className="font-bold text-black">{product.category}</span>
           </div>
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-black opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-black/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
             </svg>
             <span className="text-black font-bold opacity-60">رمز المنتج:</span>
-            <span className="font-bold text-black">VEL-{product.id}</span> {/* ✅ زي ماهو منغير تحويل */}
+            <span className="font-bold text-black">VEL-{product.id}</span>
           </div>
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-black opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-black/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span className="text-black font-bold opacity-60">الحالة:</span>
@@ -168,7 +174,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-black opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-black/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
             <span className="text-black font-bold opacity-60">الشحن:</span>

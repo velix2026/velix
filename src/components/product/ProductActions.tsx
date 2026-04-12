@@ -1,4 +1,3 @@
-// components/product/ProductActions.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -37,6 +36,17 @@ const getQuantityDiscountPrice = (product: any, quantity: number) => {
   return (normalCount * product.price) + (discountedCount * discountedPrice);
 };
 
+// ✅ دالة حساب إجمالي الكمية من stockItems
+const getTotalStock = (product: any, selectedSize: string, selectedColor: string): number => {
+  if (product.stockItems && Array.isArray(product.stockItems)) {
+    const stockItem = product.stockItems.find(
+      (item: any) => item.size === selectedSize && item.colorCode === selectedColor
+    );
+    return stockItem?.quantity || 0;
+  }
+  return product.stock || 0;
+};
+
 export default function ProductActions({ product, onOrder }: ProductActionsProps) {
   const [selection, setSelection] = useState({
     size: '',
@@ -47,9 +57,12 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
   const { addToCart, removeFromCartByProductId, isInCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
 
-  const stock = product.stock || 0;
   const sizes: string[] = product.sizes || [];
   const colors: string[] = product.colors || [];
+  
+  // ✅ حساب الكمية المتاحة بناءً على المقاس واللون المختارين
+  const availableStock = getTotalStock(product, selection.size, selection.color);
+  
   const isInCartState = isInCart(product.id);
   const isFavoritedState = isFavorite(product.id);
   
@@ -64,6 +77,11 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
       color: colors[0] || '',
     }));
   }, [sizes, colors]);
+
+  // ✅ إعادة تعيين الكمية عند تغيير المقاس أو اللون
+  useEffect(() => {
+    setSelection(prev => ({ ...prev, quantity: 1 }));
+  }, [selection.size, selection.color]);
 
   const updateSelection = (key: string, value: any) => {
     setSelection(prev => ({ ...prev, [key]: value }));
@@ -89,8 +107,8 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
   const handleAddToCart = () => {
     if (!validateSelection()) return;
     
-    if (selection.quantity > stock) {
-      alert(`⚠️ الكمية المطلوبة (${selection.quantity}) تتجاوز المتاح (${stock})`);
+    if (selection.quantity > availableStock) {
+      alert(`⚠️ الكمية المطلوبة (${selection.quantity}) تتجاوز المتاح (${availableStock})`);
       return;
     }
     
@@ -171,7 +189,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
                   }`}
                   style={{
                     backgroundColor: color.value,
-                    border: color.border ? '1px solid #e5e7eb' : 'none',
+                    border: color.border ? '1px solid #000000' : 'none',
                   }}
                   title={color.name}
                 >
@@ -205,15 +223,15 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
             </button>
             <span className="w-12 text-center text-xl font-black text-black">{toArabicNumber(selection.quantity)}</span>
             <button
-              onClick={() => updateSelection('quantity', Math.min(stock, selection.quantity + 1))}
-              disabled={selection.quantity >= stock}
+              onClick={() => updateSelection('quantity', Math.min(availableStock, selection.quantity + 1))}
+              disabled={selection.quantity >= availableStock}
               className="w-10 h-10 rounded-full hover:bg-black/10 transition flex items-center justify-center text-lg font-bold text-black disabled:opacity-40 disabled:cursor-not-allowed"
             >
               +
             </button>
           </div>
-          <span className="text-sm font-bold text-black opacity-60">
-            <span className="font-black text-black">{toArabicNumber(stock)}</span> قطعة متاحة
+          <span className="text-sm font-bold text-black/60">
+            <span className="font-black text-black">{toArabicNumber(availableStock)}</span> قطعة متاحة
           </span>
         </div>
       </div>
@@ -241,7 +259,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
       <div className="flex gap-3 mb-4">
         <button
           onClick={handleOrder}
-          disabled={stock === 0}
+          disabled={availableStock === 0}
           className="flex-1 bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white font-bold py-3.5 rounded-full hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-base"
         >
           اطلب الآن
@@ -257,7 +275,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
         ) : (
           <button
             onClick={handleAddToCart}
-            disabled={stock === 0}
+            disabled={availableStock === 0}
             className="flex-1 bg-linear-to-r from-sky-400 via-blue-500 to-indigo-500 text-white font-bold py-3.5 rounded-full hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-base"
           >
             أضف للسلة

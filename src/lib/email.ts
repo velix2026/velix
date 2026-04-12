@@ -1,4 +1,3 @@
-// lib/email.ts
 export const runtime = 'nodejs';
 
 import nodemailer from 'nodemailer';
@@ -25,6 +24,8 @@ export interface OrderEmailData {
     quantity: number;
     selectedSize?: string;
     selectedColor?: string;
+    availableStock?: number;
+    totalStock?: number;
   }>;
   totalAmount: number;
   notes?: string;

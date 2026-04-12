@@ -1,4 +1,3 @@
-// app/api/admin/orders/route.ts
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -41,11 +40,6 @@ export async function GET(request: NextRequest) {
     `;
 
     console.log(`✅ Found ${orders.rows.length} orders`);
-    console.log('📊 Orders sample:', orders.rows.slice(0, 2).map(o => ({
-      order_id: o.order_id,
-      status: o.status,
-      total_amount: o.total_amount
-    })));
 
     // جلب عناصر كل طلب
     const ordersWithItems = await Promise.all(
@@ -77,14 +71,6 @@ export async function GET(request: NextRequest) {
         };
       })
     );
-
-    console.log('💰 Total delivered sales:', ordersWithItems
-      .filter(o => o.status === 'delivered')
-      .reduce((sum, o) => sum + o.total_amount, 0));
-    
-    console.log('💰 Total cancelled sales:', ordersWithItems
-      .filter(o => o.status === 'cancelled')
-      .reduce((sum, o) => sum + o.total_amount, 0));
 
     return NextResponse.json(ordersWithItems);
   } catch (error) {

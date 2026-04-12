@@ -1,4 +1,3 @@
-// hooks/useFavorites.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Product } from '@/lib/products';
 
@@ -11,6 +10,14 @@ const trackFavoriteEvent = (eventName: string, data: any) => {
   }
 };
 
+// ✅ دالة حساب إجمالي الكمية من stockItems
+const getTotalStock = (product: Product): number => {
+  if (product.stockItems && Array.isArray(product.stockItems)) {
+    return product.stockItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+  }
+  return product.stock || 0;
+};
+
 export function useFavorites() {
   const [favorites, setFavorites] = useState<Product[]>([]);
   const [favoritesCount, setFavoritesCount] = useState(0);
@@ -19,7 +26,6 @@ export function useFavorites() {
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadFavorites = useCallback(() => {
-    // ✅ استخدام requestAnimationFrame بدل setTimeout لتجنب الـ race conditions
     if (updateTimeoutRef.current) {
       clearTimeout(updateTimeoutRef.current);
     }
@@ -57,7 +63,6 @@ export function useFavorites() {
         setFavoritesCount(newFavorites.length);
         setFavoriteIds(new Set(newFavorites.map(p => p.id)));
         
-        // ✅ استخدام setTimeout لتأجيل الـ event
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('favoritesUpdated'));
         }, 0);

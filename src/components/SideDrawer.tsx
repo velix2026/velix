@@ -1,4 +1,3 @@
-// components/SideDrawer.tsx
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -20,6 +19,59 @@ const isCartItem = (item: Product | CartItem): item is CartItem => {
   return (item as CartItem).cartItemId !== undefined;
 };
 
+// دالة حساب السعر بعد خصم الكمية
+const getItemTotalPrice = (item: CartItem): number => {
+  if (!item.quantityDiscount?.enabled) return item.price * item.quantity;
+  
+  const { tiers } = item.quantityDiscount;
+  let applicableTier = null;
+  for (let i = tiers.length - 1; i >= 0; i--) {
+    if (item.quantity >= tiers[i].minQuantity) {
+      applicableTier = tiers[i];
+      break;
+    }
+  }
+  
+  if (!applicableTier) return item.price * item.quantity;
+  const discountedPrice = item.price - applicableTier.discountPerItem;
+  return item.quantity * discountedPrice;
+};
+
+// دالة حساب الكمية المتاحة من stockItems
+const getAvailableStock = (product: any, selectedSize?: string, selectedColor?: string): number => {
+  if (product.stockItems && Array.isArray(product.stockItems)) {
+    if (selectedSize && selectedColor) {
+      const stockItem = product.stockItems.find(
+        (item: any) => item.size === selectedSize && item.colorCode === selectedColor
+      );
+      return stockItem?.quantity || 0;
+    }
+    return product.stockItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+  }
+  return product.stock || 0;
+};
+
+const getColorName = (colorCode: string): string => {
+  const colorMap: Record<string, string> = {
+    '#000000': 'أسود',
+    '#FFFFFF': 'أبيض',
+    '#808080': 'رمادي',
+    '#FF0000': 'أحمر',
+    '#0000FF': 'أزرق',
+    '#008000': 'أخضر',
+    '#FFFF00': 'أصفر',
+    '#FFC0CB': 'وردي',
+    '#A52A2A': 'بني',
+    '#800080': 'بنفسجي',
+    '#FFA500': 'برتقالي',
+    '#00FFFF': 'سماوي',
+    '#FF69B4': 'زهري',
+    '#C0C0C0': 'فضي',
+    '#FFD700': 'ذهبي',
+  };
+  return colorMap[colorCode.toUpperCase()] || colorCode;
+};
+
 export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
   const title = type === 'favorites' ? 'المفضلة' : 'سلة التسوق';
   const emptyMessage = type === 'favorites' 
@@ -39,8 +91,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
   useEffect(() => {
     if (type === 'cart') {
       const sum = cart.reduce((sum, item) => {
-        const price = item.oldPrice && item.oldPrice > item.price ? item.price : item.price;
-        return sum + price * (item.quantity || 1);
+        return sum + getItemTotalPrice(item);
       }, 0);
       setTotal(sum);
     }
@@ -74,9 +125,22 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
     };
   }, [isOpen]);
 
-  const handleUpdateQuantity = useCallback((cartItemId: string, newQuantity: number) => {
+  const handleUpdateQuantity = useCallback((cartItem: CartItem, newQuantity: number) => {
     if (newQuantity < 1) return;
-    updateCartQuantity(cartItemId, newQuantity);
+    
+    const availableStock = getAvailableStock(cartItem, cartItem.selectedSize, cartItem.selectedColor);
+    
+    if (newQuantity > availableStock) {
+      window.dispatchEvent(new CustomEvent('showToast', {
+        detail: {
+          message: `⚠️ لا يتوفر أكثر من ${toArabicNumber(availableStock)} قطع من هذا المنتج (مقاس ${cartItem.selectedSize || 'غير محدد'}، لون ${getColorName(cartItem.selectedColor || '')})`,
+          type: 'warning'
+        }
+      }));
+      return;
+    }
+    
+    updateCartQuantity(cartItem.cartItemId, newQuantity);
   }, [updateCartQuantity]);
 
   const handleRemove = useCallback((item: Product | CartItem) => {
@@ -100,6 +164,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
         selectedSize: item.selectedSize,
         selectedColor: item.selectedColor,
         mainImage: item.mainImage,
+        quantityDiscount: item.quantityDiscount,
       })),
       totalAmount: total,
       totalItems: cart.reduce((sum, item) => sum + item.quantity, 0),
@@ -135,34 +200,18 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
     return `fav-${item.id}`;
   };
 
-  const getColorName = (colorCode: string): string => {
-    const colorMap: Record<string, string> = {
-      '#000000': 'أسود',
-      '#FFFFFF': 'أبيض',
-      '#808080': 'رمادي',
-      '#FF0000': 'أحمر',
-      '#0000FF': 'أزرق',
-      '#008000': 'أخضر',
-      '#FFFF00': 'أصفر',
-      '#FFC0CB': 'وردي',
-      '#A52A2A': 'بني',
-      '#800080': 'بنفسجي',
-    };
-    return colorMap[colorCode] || colorCode;
-  };
-
   if (!isOpen) return null;
 
   return (
     <>
-      {/* ✅ خلفية داكنة مع blur */}
+      {/* خلفية داكنة مع blur */}
       <div 
         className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-all duration-300" 
         onClick={onClose}
         aria-hidden="true"
       />
       
-      {/* ✅ الدروير */}
+      {/* الدروير */}
       <div
         ref={drawerRef}
         role="dialog"
@@ -172,13 +221,13 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } w-full sm:w-112.5 md:w-125 lg:w-137.5 max-w-[85vw]`}
       >
-        {/* ✅ Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white sticky top-0 z-10">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-black/10 bg-white sticky top-0 z-10">
           <h2 className="text-lg font-bold text-black">{title}</h2>
           <button 
             ref={closeButtonRef}
             onClick={onClose} 
-            className="p-2 rounded-full transition-all duration-300 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            className="p-2 rounded-full transition-all duration-300 hover:bg-black/10 focus:outline-none focus:ring-2 focus:ring-black/20"
             aria-label="إغلاق"
           >
             <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,7 +236,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
           </button>
         </div>
 
-        {/* ✅ Content */}
+        {/* Content */}
         <div 
           ref={contentRef}
           className="flex-1 overflow-y-auto overflow-x-hidden p-4"
@@ -213,11 +262,11 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
           ) : (
             <div className="space-y-4 pb-4">
               {items.map((item) => (
-                <div key={getItemKey(item)} className="flex gap-3 bg-gray-50 rounded-xl p-3 hover:shadow-md transition-all duration-300">
+                <div key={getItemKey(item)} className="flex gap-3 bg-black/5 rounded-xl p-3 hover:shadow-md transition-all duration-300">
                   <Link 
                     href={`/products/${item.id}`} 
                     onClick={onClose} 
-                    className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                    className="relative w-20 h-20 rounded-xl overflow-hidden bg-black/10 shrink-0 transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-black/20"
                   >
                     <Image 
                       src={item.mainImage} 
@@ -232,7 +281,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                     <Link 
                       href={`/products/${item.id}`} 
                       onClick={onClose} 
-                      className="font-bold text-sm text-black hover:text-gray-600 transition line-clamp-2"
+                      className="font-bold text-sm text-black hover:text-black/60 transition line-clamp-2"
                     >
                       {item.name}
                     </Link>
@@ -240,14 +289,14 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                     
                     {type === 'cart' && (item as any).selectedSize && (
                       <div className="inline-flex items-center gap-1 text-xs font-bold mb-2 ml-2">
-                        <span className="bg-gray-200 px-2 py-0.5 rounded text-[10px] text-black">
+                        <span className="bg-black/10 px-2 py-0.5 rounded text-[10px] text-black">
                           مقاس: {(item as any).selectedSize}
                         </span>
                       </div>
                     )}
                     {type === 'cart' && (item as any).selectedColor && (
                       <div className="inline-flex items-center gap-1 text-xs font-bold mb-2">
-                        <span className="bg-gray-200 px-2 py-0.5 rounded text-[10px] text-black flex items-center gap-1">
+                        <span className="bg-black/10 px-2 py-0.5 rounded text-[10px] text-black flex items-center gap-1">
                           <span 
                             className="w-2 h-2 rounded-full" 
                             style={{ backgroundColor: (item as any).selectedColor }} 
@@ -284,34 +333,20 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                         {type === 'cart' && isCartItem(item) && (
                           <div className="flex items-center gap-1 bg-white rounded-lg px-1 shadow-sm">
                             <button 
-                              onClick={() => handleUpdateQuantity(item.cartItemId, (item as CartItem).quantity - 1)} 
-                              className="w-6 h-6 rounded-full hover:bg-gray-100 text-sm font-bold flex items-center justify-center transition text-black disabled:opacity-40"
+                              onClick={() => handleUpdateQuantity(item, item.quantity - 1)} 
+                              className="w-6 h-6 rounded-full hover:bg-black/10 text-sm font-bold flex items-center justify-center transition text-black disabled:opacity-40"
                               aria-label="تقليل الكمية"
-                              disabled={(item as CartItem).quantity <= 1}
+                              disabled={item.quantity <= 1}
                             >
                               -
                             </button>
                             <span className="w-6 text-center text-xs font-bold text-black">
-                              {toArabicNumber((item as CartItem).quantity)}
+                              {toArabicNumber(item.quantity)}
                             </span>
                             <button 
-                              onClick={() => {
-                                const newQuantity = (item as CartItem).quantity + 1;
-                                const maxStock = (item as CartItem).stock || Infinity;
-                                if (newQuantity <= maxStock) {
-                                  handleUpdateQuantity(item.cartItemId, newQuantity);
-                                } else {
-                                  window.dispatchEvent(new CustomEvent('showToast', {
-                                    detail: {
-                                      message: `⚠️ لا يتوفر أكثر من ${toArabicNumber(maxStock)} قطع من هذا المنتج`,
-                                      type: 'warning'
-                                    }
-                                  }));
-                                }
-                              }} 
-                              className="w-6 h-6 rounded-full hover:bg-gray-100 text-sm font-bold flex items-center justify-center transition text-black disabled:opacity-40"
+                              onClick={() => handleUpdateQuantity(item, item.quantity + 1)} 
+                              className="w-6 h-6 rounded-full hover:bg-black/10 text-sm font-bold flex items-center justify-center transition text-black"
                               aria-label="زيادة الكمية"
-                              disabled={(item as CartItem).quantity >= ((item as CartItem).stock || Infinity)}
                             >
                               +
                             </button>
@@ -335,20 +370,19 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
           )}
         </div>
 
-        {/* ✅ Footer - للسلة فقط */}
+        {/* Footer - للسلة فقط */}
         {type === 'cart' && items.length > 0 && (
-          <div className="border-t border-gray-100 p-4 bg-white sticky bottom-0 z-10 shadow-lg rounded-t-2xl">
+          <div className="border-t border-black/10 p-4 bg-white sticky bottom-0 z-10 shadow-lg rounded-t-2xl">
             <div className="flex justify-between items-center mb-3">
               <span className="text-black font-bold text-sm">الإجمالي</span>
               <div className="text-right">
                 {(() => {
-                  const hasDiscount = cart.some(item => item.oldPrice && item.oldPrice > item.price);
                   const originalTotal = cart.reduce((sum, item) => sum + (item.oldPrice || item.price) * item.quantity, 0);
                   const savings = originalTotal - total;
                   
                   return (
                     <>
-                      {hasDiscount && savings > 0 && (
+                      {savings > 0 && (
                         <div className="text-xs font-bold text-green-700 mb-1">
                           وفرت {toArabicNumber(Math.floor(savings))} جنيه
                         </div>

@@ -1,4 +1,3 @@
-// app/api/admin/orders/[id]/route.ts
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 

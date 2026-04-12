@@ -244,7 +244,7 @@ export default function AdminOrdersPage() {
 
   const getStatusBadge = (status: string) => {
     const config = orderStatuses.find(s => s.value === status);
-    if (!config) return <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold">{status}</span>;
+    if (!config) return <span className={`px-2 py-1 bg-black/10 text-black rounded-full text-xs font-bold`}>{status}</span>;
     return <span className={`px-2 py-1 ${config.color} rounded-full text-xs font-bold`}>{config.label}</span>;
   };
 
@@ -257,12 +257,10 @@ export default function AdminOrdersPage() {
     cancelled: orders.filter(o => o.status === 'cancelled').length,
   };
 
-  // حساب إجمالي المبيعات المكتملة (مجموع واحد)
   const totalDeliveredSales = orders
     .filter(o => o.status === 'delivered')
     .reduce((sum, order) => sum + order.total_amount, 0);
 
-  // حساب إجمالي المبيعات الملغية (مجموع واحد)
   const totalCancelledSales = orders
     .filter(o => o.status === 'cancelled')
     .reduce((sum, order) => sum + order.total_amount, 0);
@@ -284,7 +282,7 @@ export default function AdminOrdersPage() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
             <div className="relative">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-black/10"></div>
               <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent absolute top-0 left-0"></div>
             </div>
             <p className="text-black font-bold text-lg mt-6">جاري تحميل الطلبات...</p>
@@ -327,22 +325,13 @@ export default function AdminOrdersPage() {
             <p className="text-black/70 text-xs md:text-sm font-bold mt-1">إدارة ومتابعة طلبات العملاء</p>
           </div>
           <div className="flex gap-2 md:gap-3">
-            <button 
-              onClick={fetchOrders} 
-              className="px-3 md:px-4 py-1.5 md:py-2 bg-black/5 hover:bg-black/10 text-black font-bold rounded-full text-xs md:text-sm flex items-center gap-1 md:gap-2 transition-colors"
-            >
+            <button onClick={fetchOrders} className="px-3 md:px-4 py-1.5 md:py-2 bg-black/10 hover:bg-black/20 text-black font-bold rounded-full text-xs md:text-sm flex items-center gap-1 md:gap-2 transition-colors">
               🔄 <span className="hidden sm:inline">تحديث</span>
             </button>
-            <Link 
-              href="/admin/print-multi" 
-              className="px-3 md:px-4 py-1.5 md:py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-full text-xs md:text-sm flex items-center gap-1 md:gap-2 transition-colors"
-            >
+            <Link href="/admin/print-multi" className="px-3 md:px-4 py-1.5 md:py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-full text-xs md:text-sm flex items-center gap-1 md:gap-2 transition-colors">
               🖨️ <span className="hidden sm:inline">طباعة فواتير متعددة</span>
             </Link>
-            <Link 
-              href="/admin" 
-              className="px-3 md:px-4 py-1.5 md:py-2 bg-black/5 hover:bg-black/10 text-black font-bold rounded-full text-xs md:text-sm flex items-center gap-1 md:gap-2 transition-colors"
-            >
+            <Link href="/admin" className="px-3 md:px-4 py-1.5 md:py-2 bg-black/10 hover:bg-black/20 text-black font-bold rounded-full text-xs md:text-sm flex items-center gap-1 md:gap-2 transition-colors">
               ← <span className="hidden sm:inline">العودة للوحة</span>
             </Link>
           </div>
@@ -351,35 +340,18 @@ export default function AdminOrdersPage() {
         {/* Search */}
         <div className="mb-6">
           <div className="relative max-w-full sm:max-w-md">
-            <input 
-              type="text" 
-              value={searchQuery} 
-              onChange={(e) => setSearchQuery(e.target.value)} 
-              placeholder="🔍 بحث برقم الطلب..." 
-              className="w-full p-3 pr-10 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-black font-bold text-sm md:text-base" 
-            />
+            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="🔍 بحث برقم الطلب..." className="w-full p-3 pr-10 bg-white border-2 border-black/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-black font-bold text-sm md:text-base" />
             {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')} 
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black font-bold"
-              >
-                ✕
-              </button>
+              <button onClick={() => setSearchQuery('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black font-bold">✕</button>
             )}
           </div>
-          {searchQuery && (
-            <p className="text-sm text-black/70 font-bold mt-2">تم العثور على {toArabicNumber(filteredOrders.length)} نتيجة</p>
-          )}
+          {searchQuery && <p className="text-sm text-black/70 font-bold mt-2">تم العثور على {toArabicNumber(filteredOrders.length)} نتيجة</p>}
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3 mb-6 md:mb-8">
           {statCards.map(stat => (
-            <button 
-              key={stat.key} 
-              onClick={() => setActiveFilter(stat.key === activeFilter ? 'all' : stat.key)} 
-              className={`${stat.bg} rounded-xl md:rounded-2xl p-2 md:p-3 shadow-md border transition-all duration-300 ${activeFilter === stat.key ? 'border-black ring-2 ring-black/20 scale-[1.02]' : 'border-black/20'}`}
-            >
+            <button key={stat.key} onClick={() => setActiveFilter(stat.key === activeFilter ? 'all' : stat.key)} className={`${stat.bg} rounded-xl md:rounded-2xl p-2 md:p-3 shadow-md border transition-all duration-300 ${activeFilter === stat.key ? 'border-black ring-2 ring-black/20 scale-[1.02]' : 'border-black/20'}`}>
               <div className={`text-lg md:text-2xl font-black ${stat.color}`}>{toArabicNumber(stat.value)}</div>
               <div className="text-black/70 text-[10px] md:text-xs font-bold mt-1 leading-tight">{stat.label}</div>
             </button>
@@ -388,33 +360,22 @@ export default function AdminOrdersPage() {
 
         {/* Sales Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
-          {/* Completed Sales Card */}
           <div className="bg-linear-to-r from-green-50 to-emerald-50 rounded-xl md:rounded-2xl p-3 md:p-5 shadow-md border border-green-200">
             <div className="flex justify-between items-center">
               <div className="flex-1">
-                <div className="text-xl md:text-3xl font-black text-green-700 mb-1">
-                  {formatPriceCorrect(totalDeliveredSales)}
-                </div>
+                <div className="text-xl md:text-3xl font-black text-green-700 mb-1">{formatPriceCorrect(totalDeliveredSales)}</div>
                 <div className="text-green-700 text-xs md:text-sm font-bold">💰 إجمالي المبيعات المكتملة</div>
-                <div className="text-green-700/70 text-[10px] md:text-xs font-bold mt-1 md:mt-2">
-                  {toArabicNumber(stats.delivered)} طلب مكتمل
-                </div>
+                <div className="text-green-700/70 text-[10px] md:text-xs font-bold mt-1 md:mt-2">{toArabicNumber(stats.delivered)} طلب مكتمل</div>
               </div>
               <div className="text-3xl md:text-5xl text-green-500">💰</div>
             </div>
           </div>
-
-          {/* Cancelled Sales Card */}
           <div className="bg-linear-to-r from-red-50 to-rose-50 rounded-xl md:rounded-2xl p-3 md:p-5 shadow-md border border-red-200">
             <div className="flex justify-between items-center">
               <div className="flex-1">
-                <div className="text-xl md:text-3xl font-black text-red-700 mb-1">
-                  {formatPriceCorrect(totalCancelledSales)}
-                </div>
+                <div className="text-xl md:text-3xl font-black text-red-700 mb-1">{formatPriceCorrect(totalCancelledSales)}</div>
                 <div className="text-red-700 text-xs md:text-sm font-bold">❌ إجمالي المبيعات الملغية</div>
-                <div className="text-red-700/70 text-[10px] md:text-xs font-bold mt-1 md:mt-2">
-                  {toArabicNumber(stats.cancelled)} طلب ملغي
-                </div>
+                <div className="text-red-700/70 text-[10px] md:text-xs font-bold mt-1 md:mt-2">{toArabicNumber(stats.cancelled)} طلب ملغي</div>
               </div>
               <div className="text-3xl md:text-5xl text-red-500">❌</div>
             </div>
@@ -435,15 +396,11 @@ export default function AdminOrdersPage() {
                   <th className="p-2 md:p-3 text-right font-black text-black text-xs md:text-sm hidden md:table-cell">التاريخ</th>
                   <th className="p-2 md:p-3 text-right font-black text-black text-xs md:text-sm hidden lg:table-cell">تاريخ التسليم/الإلغاء</th>
                   <th className="p-2 md:p-3 text-right font-black text-black text-xs md:text-sm">الإجراءات</th>
-                 </tr>
+                </tr>
               </thead>
               <tbody>
                 {filteredOrders.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="p-6 md:p-8 text-center text-black/70 font-bold text-sm">
-                      لا توجد طلبات
-                    </td>
-                  </tr>
+                  <tr><td colSpan={8} className="p-6 md:p-8 text-center text-black/70 font-bold text-sm">لا توجد طلبات</td></tr>
                 ) : (
                   filteredOrders.map(order => {
                     const nextStatus = orderStatuses.find(s => s.value === order.status)?.next;
@@ -460,53 +417,26 @@ export default function AdminOrdersPage() {
                           <div className="flex items-center gap-1 md:gap-2 flex-wrap">
                             {getStatusBadge(order.status)}
                             {nextStatus && order.status !== 'cancelled' && order.status !== 'delivered' && (
-                              <button 
-                                onClick={() => handleStatusChange(order, nextStatus)} 
-                                disabled={updatingStatus === order.id} 
-                                className="text-[10px] md:text-xs bg-black/10 hover:bg-black/20 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full transition-colors whitespace-nowrap text-black font-bold"
-                              >
+                              <button onClick={() => handleStatusChange(order, nextStatus)} disabled={updatingStatus === order.id} className="text-[10px] md:text-xs bg-black/10 hover:bg-black/20 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full transition-colors whitespace-nowrap text-black font-bold">
                                 → {orderStatuses.find(s => s.value === nextStatus)?.label}
                               </button>
                             )}
                           </div>
                         </td>
-                        <td className="p-2 md:p-3 text-black/70 font-bold text-[10px] md:text-sm hidden md:table-cell">
-                          {new Date(order.created_at).toLocaleDateString('ar-EG')}
-                        </td>
-                        <td className="p-2 md:p-3 text-black/70 font-bold text-[10px] md:text-sm hidden lg:table-cell">
-                          {completionDate ? new Date(completionDate).toLocaleDateString('ar-EG') : '-'}
-                        </td>
+                        <td className="p-2 md:p-3 text-black/70 font-bold text-[10px] md:text-sm hidden md:table-cell">{new Date(order.created_at).toLocaleDateString('ar-EG')}</td>
+                        <td className="p-2 md:p-3 text-black/70 font-bold text-[10px] md:text-sm hidden lg:table-cell">{completionDate ? new Date(completionDate).toLocaleDateString('ar-EG') : '-'}</td>
                         <td className="p-2 md:p-3">
                           <div className="flex gap-1 md:gap-2">
-                            <button 
-                              onClick={() => setSelectedOrder(order)} 
-                              className="text-blue-600 hover:text-blue-800 p-1 transition-colors font-bold" 
-                              title="عرض التفاصيل"
-                            >
-                              <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
+                            <button onClick={() => setSelectedOrder(order)} className="text-blue-600 hover:text-blue-800 p-1 transition-colors font-bold" title="عرض التفاصيل">
+                              <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                             </button>
                             {canCancel && (
-                              <button 
-                                onClick={() => cancelOrder(order)} 
-                                disabled={updatingStatus === order.id}
-                                className="text-orange-600 hover:text-orange-800 p-1 transition-colors font-bold" 
-                                title="إلغاء الطلب"
-                              >
-                                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                              <button onClick={() => cancelOrder(order)} disabled={updatingStatus === order.id} className="text-orange-600 hover:text-orange-800 p-1 transition-colors font-bold" title="إلغاء الطلب">
+                                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                               </button>
                             )}
-                            <button 
-                              onClick={() => setShowDeleteConfirm(order)} 
-                              className="text-red-600 hover:text-red-800 p-1 transition-colors font-bold"
-                              title="حذف الطلب"
-                            >
-                              <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
+                            <button onClick={() => setShowDeleteConfirm(order)} className="text-red-600 hover:text-red-800 p-1 transition-colors font-bold" title="حذف الطلب">
+                              <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                           </div>
                         </td>
@@ -527,19 +457,11 @@ export default function AdminOrdersPage() {
             <div className="sticky top-0 bg-white border-b border-black/10 p-3 md:p-4 flex justify-between items-center">
               <h2 className="text-base md:text-xl font-black text-black">تفاصيل الطلب #{selectedOrder.order_id}</h2>
               <div className="flex gap-1 md:gap-2">
-                <Link 
-                  href={`/admin/print-multi?selected=${selectedOrder.order_id}`}
-                  className="p-1.5 md:p-2 hover:bg-black/5 rounded-full transition-colors" 
-                  title="طباعة"
-                >
-                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                  </svg>
+                <Link href={`/admin/print-multi?selected=${selectedOrder.order_id}`} className="p-1.5 md:p-2 hover:bg-black/10 rounded-full transition-colors" title="طباعة">
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                 </Link>
-                <button onClick={() => setSelectedOrder(null)} className="p-1.5 md:p-2 hover:bg-black/5 rounded-full transition-colors">
-                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                <button onClick={() => setSelectedOrder(null)} className="p-1.5 md:p-2 hover:bg-black/10 rounded-full transition-colors">
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
             </div>
@@ -558,18 +480,8 @@ export default function AdminOrdersPage() {
                 <p className="text-sm md:text-base"><span className="font-black text-black">المبلغ:</span> <span className="font-bold text-black">{formatPriceCorrect(selectedOrder.total_amount)}</span></p>
                 <p className="text-sm md:text-base"><span className="font-black text-black">الحالة:</span> {getStatusBadge(selectedOrder.status)}</p>
                 <p className="text-sm md:text-base"><span className="font-black text-black">التاريخ:</span> <span className="font-bold text-black">{new Date(selectedOrder.created_at).toLocaleString('ar-EG')}</span></p>
-                {selectedOrder.delivered_at && (
-                  <p className="text-sm md:text-base">
-                    <span className="font-black text-black">📦 تاريخ التسليم:</span> 
-                    <span className="font-bold text-green-700"> {new Date(selectedOrder.delivered_at).toLocaleString('ar-EG')}</span>
-                  </p>
-                )}
-                {selectedOrder.cancelled_at && (
-                  <p className="text-sm md:text-base">
-                    <span className="font-black text-black">❌ تاريخ الإلغاء:</span> 
-                    <span className="font-bold text-red-600"> {new Date(selectedOrder.cancelled_at).toLocaleString('ar-EG')}</span>
-                  </p>
-                )}
+                {selectedOrder.delivered_at && <p className="text-sm md:text-base"><span className="font-black text-black">📦 تاريخ التسليم:</span> <span className="font-bold text-green-700"> {new Date(selectedOrder.delivered_at).toLocaleString('ar-EG')}</span></p>}
+                {selectedOrder.cancelled_at && <p className="text-sm md:text-base"><span className="font-black text-black">❌ تاريخ الإلغاء:</span> <span className="font-bold text-red-600"> {new Date(selectedOrder.cancelled_at).toLocaleString('ar-EG')}</span></p>}
               </div>
               {selectedOrder.notes && (
                 <div className="border-b border-black/10 pb-2">
@@ -581,17 +493,15 @@ export default function AdminOrdersPage() {
                 <div>
                   <p className="text-[10px] md:text-xs font-black text-black mb-2">🛍️ المنتجات</p>
                   <div className="space-y-2">
-                    {selectedOrder.items.map((item, idx) => {
+                    {selectedOrder.items.map((item: OrderItem, idx) => {
                       const discounted = getItemDiscountedPrice(item);
                       return (
-                        <div key={idx} className="bg-black/5 rounded-xl p-2">
+                        <div key={idx} className="bg-black/10 rounded-xl p-2">
                           <p className="font-black text-black text-sm md:text-base">{item.product_name}</p>
                           <div className="flex justify-between items-center mt-1 text-[10px] md:text-xs">
                             <div className="font-bold text-black">
                               <span>{toArabicNumber(item.quantity)} × {formatPriceCorrect(item.price)}</span>
-                              {discounted < item.price * item.quantity && (
-                                <span className="text-green-700 mr-2 font-bold">← {formatPriceCorrect(discounted)}</span>
-                              )}
+                              {discounted < item.price * item.quantity && <span className="text-green-700 mr-2 font-bold">← {formatPriceCorrect(discounted)}</span>}
                             </div>
                             <div className="flex gap-2 font-bold text-black">
                               {item.selected_size && <span>مقاس: {item.selected_size}</span>}
@@ -606,10 +516,7 @@ export default function AdminOrdersPage() {
               )}
             </div>
             <div className="sticky bottom-0 bg-white border-t border-black/10 p-3 md:p-4">
-              <Link
-                href={`/admin/print-multi?selected=${selectedOrder.order_id}`}
-                className="w-full bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white font-bold py-2 md:py-2.5 rounded-xl text-sm md:text-base hover:shadow-lg transition-all text-center block"
-              >
+              <Link href={`/admin/print-multi?selected=${selectedOrder.order_id}`} className="w-full bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white font-bold py-2 md:py-2.5 rounded-xl text-sm md:text-base hover:shadow-lg transition-all text-center block">
                 🖨️ طباعة الفاتورة
               </Link>
             </div>
@@ -625,12 +532,8 @@ export default function AdminOrdersPage() {
             <h3 className="text-lg md:text-xl font-black text-black mb-2">تأكيد الحذف</h3>
             <p className="text-black/60 text-sm md:text-base mb-4">هل أنت متأكد من حذف الطلب رقم {showDeleteConfirm.order_id}؟</p>
             <div className="flex gap-3">
-              <button onClick={() => deleteOrder(showDeleteConfirm)} className="flex-1 bg-red-500 text-white py-2 rounded-xl text-sm md:text-base hover:bg-red-600 transition-colors">
-                نعم، حذف
-              </button>
-              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 bg-gray-100 py-2 rounded-xl text-sm md:text-base hover:bg-gray-200 transition-colors">
-                إلغاء
-              </button>
+              <button onClick={() => deleteOrder(showDeleteConfirm)} className="flex-1 bg-red-500 text-white py-2 rounded-xl text-sm md:text-base hover:bg-red-600 transition-colors">نعم، حذف</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 bg-black/10 py-2 rounded-xl text-sm md:text-base hover:bg-black/20 transition-colors">إلغاء</button>
             </div>
           </div>
         </div>

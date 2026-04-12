@@ -1,4 +1,3 @@
-// components/ProductCard.tsx
 'use client';
 
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
@@ -20,6 +19,41 @@ interface CartItemSelection {
   quantity: number;
   id: string;
 }
+
+// دالة حساب الكمية المتاحة من stockItems
+const getAvailableStock = (product: Product, size?: string, color?: string): number => {
+  if (product.stockItems && Array.isArray(product.stockItems)) {
+    if (size && color) {
+      const stockItem = product.stockItems.find(
+        (item: any) => item.size === size && item.colorCode === color
+      );
+      return stockItem?.quantity || 0;
+    }
+    return product.stockItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+  }
+  return product.stock || 0;
+};
+
+const getColorName = (colorCode: string): string => {
+  const colorMap: Record<string, string> = {
+    '#000000': 'أسود',
+    '#FFFFFF': 'أبيض',
+    '#808080': 'رمادي',
+    '#FF0000': 'أحمر',
+    '#0000FF': 'أزرق',
+    '#008000': 'أخضر',
+    '#FFFF00': 'أصفر',
+    '#FFC0CB': 'وردي',
+    '#A52A2A': 'بني',
+    '#800080': 'بنفسجي',
+    '#FFA500': 'برتقالي',
+    '#00FFFF': 'سماوي',
+    '#FF69B4': 'زهري',
+    '#C0C0C0': 'فضي',
+    '#FFD700': 'ذهبي',
+  };
+  return colorMap[colorCode.toUpperCase()] || colorCode;
+};
 
 const ProductCard = memo(function ProductCard({ product, priority = false }: ProductCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -43,6 +77,10 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   const hasSizes = product.sizes && product.sizes.length > 0;
   const hasColors = product.colors && product.colors.length > 0;
 
+  const totalStock = getAvailableStock(product);
+  const isLowStock = totalStock <= 5 && totalStock > 0;
+  const isOutOfStock = totalStock === 0;
+
   const hasValidSelections = () => {
     for (const selection of selections) {
       if (hasSizes && !selection.size) return false;
@@ -61,39 +99,34 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   const mountedRef = useRef(true);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
-    // ✅ دالة للتحقق إذا كان المنتج جديد (أقل من 3 أيام)
-    const isRecentlyAdded = useCallback(() => {
-      if (!product.createdAt) return false;
-      const createdDate = new Date(product.createdAt);
-      const now = new Date();
-      const diffDays = (now.getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
-      return diffDays < 3;
-    }, [product.createdAt]);
+  // دالة للتحقق إذا كان المنتج جديد (أقل من 3 أيام)
+  const isRecentlyAdded = useCallback(() => {
+    if (!product.createdAt) return false;
+    const createdDate = new Date(product.createdAt);
+    const now = new Date();
+    const diffDays = (now.getTime() - createdDate.getTime()) / (1000 * 3600 * 24);
+    return diffDays < 3;
+  }, [product.createdAt]);
 
-    // ✅ دالة للتحقق إذا كان المنتج من الأكثر مبيعاً
-    const isBestSeller = product.salesCount !== undefined && product.salesCount > 10;
+  // دالة للتحقق إذا كان المنتج من الأكثر مبيعاً
+  const isBestSeller = product.salesCount !== undefined && product.salesCount > 10;
 
-    const isLowStock = product.stock !== undefined && product.stock <= 5 && product.stock > 0;
-    const isOutOfStock = product.stock === 0;
+  // حساب الخصم المئوي من السعر القديم والسعر الحالي
+  const discountPercent = product.oldPrice && product.oldPrice > product.price 
+    ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
+    : 0;
 
-    // ✅ حساب الخصم المئوي من السعر القديم والسعر الحالي
-    const discountPercent = product.oldPrice && product.oldPrice > product.price 
-      ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
-      : 0;
+  // ترتيب الـ Badges
+  const showNewBadge = isRecentlyAdded() && !isOutOfStock;
+  const showBestSellerBadge = isBestSeller && !isOutOfStock;
+  const showDiscountBadge = discountPercent > 0 && !isOutOfStock;
+  const showLowStockBadge = isLowStock && !isOutOfStock;
 
-    // ✅ ترتيب الـ Badges
-    const showNewBadge = isRecentlyAdded() && !isOutOfStock;
-    const showBestSellerBadge = isBestSeller && !isOutOfStock;
-    const showDiscountBadge = discountPercent > 0 && !isOutOfStock;
-    const showLowStockBadge = isLowStock && !isOutOfStock;  // ← من غير شروط
-
-  // ✅ دالة حساب السعر بعد خصم الكمية (معدلة لاستخدام tiers)
+  // دالة حساب السعر بعد خصم الكمية
   const getQuantityDiscountPrice = (quantity: number) => {
     if (!product.quantityDiscount?.enabled) return product.price * quantity;
     
     const { tiers } = product.quantityDiscount;
-    
-    // البحث عن أعلى مستوى خصم ينطبق على الكمية
     let applicableTier = null;
     for (let i = tiers.length - 1; i >= 0; i--) {
       if (quantity >= tiers[i].minQuantity) {
@@ -103,13 +136,11 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     }
     
     if (!applicableTier) return product.price * quantity;
-    
-    // تطبيق الخصم على كل القطع
     const discountedPrice = product.price - applicableTier.discountPerItem;
     return quantity * discountedPrice;
   };
 
-  // ✅ دالة للحصول على مستوى الخصم المناسب
+  // دالة للحصول على مستوى الخصم المناسب
   const getApplicableTier = (quantity: number) => {
     if (!product.quantityDiscount?.enabled) return null;
     const { tiers } = product.quantityDiscount;
@@ -259,17 +290,21 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
   const confirmSelections = () => {
     if (hasValidSelections()) {
-      let totalQuantity = selections.reduce((sum, s) => sum + s.quantity, 0);
-      if (product.stock !== undefined && totalQuantity > product.stock) {
-        window.dispatchEvent(new CustomEvent('showToast', {
-          detail: {
-            message: `⚠️ العدد المطلوب (${toArabicNumber(totalQuantity)}) يتجاوز المتاح (${toArabicNumber(product.stock)})`,
-            type: 'warning'
-          }
-        }));
-        return;
+      // التحقق من الكمية لكل قطعة على حدة
+      for (const selection of selections) {
+        const availableStock = getAvailableStock(product, selection.size, selection.color);
+        if (selection.quantity > availableStock) {
+          window.dispatchEvent(new CustomEvent('showToast', {
+            detail: {
+              message: `⚠️ العدد المطلوب (${toArabicNumber(selection.quantity)}) للقطعة ${selection.size} ${getColorName(selection.color)} يتجاوز المتاح (${toArabicNumber(availableStock)})`,
+              type: 'warning'
+            }
+          }));
+          return;
+        }
       }
       
+      // إضافة للسلة
       for (const selection of selections) {
         for (let i = 0; i < selection.quantity; i++) {
           addToCart(product, selection.size || undefined, selection.color || undefined, 1);
@@ -293,27 +328,6 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     return brightness > 128;
   };
 
-  const getColorName = (colorCode: string): string => {
-    const colorMap: Record<string, string> = {
-      '#000000': 'أسود',
-      '#FFFFFF': 'أبيض',
-      '#808080': 'رمادي',
-      '#FF0000': 'أحمر',
-      '#0000FF': 'أزرق',
-      '#008000': 'أخضر',
-      '#FFFF00': 'أصفر',
-      '#FFC0CB': 'وردي',
-      '#A52A2A': 'بني',
-      '#800080': 'بنفسجي',
-      '#FFA500': 'برتقالي',
-      '#00FFFF': 'سماوي',
-      '#FF69B4': 'زهري',
-      '#C0C0C0': 'فضي',
-      '#FFD700': 'ذهبي',
-    };
-    return colorMap[colorCode.toUpperCase()] || colorCode;
-  };
-
   const totalItems = selections.reduce((sum, s) => sum + s.quantity, 0);
   const totalPrice = totalItems * product.price;
   const applicableTier = getApplicableTier(totalItems);
@@ -323,13 +337,13 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     <>
       <article className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden relative h-full flex flex-col">
         <div 
-          className="relative aspect-square w-full bg-gray-50 overflow-hidden cursor-pointer flex items-center justify-center"
+          className="relative aspect-square w-full bg-black/5 overflow-hidden cursor-pointer flex items-center justify-center"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
           <Link 
             href={`/products/${product.id}`} 
-            className="relative block h-full w-full focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+            className="relative block h-full w-full focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2"
             aria-label={`عرض تفاصيل ${product.name}`}
           >
             <Image
@@ -386,7 +400,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             )}
             {showLowStockBadge && (
               <span className="bg-linear-to-r from-orange-500 to-amber-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md animate-pulse flex items-center gap-1">
-                <span className="text-[11px]">⏳</span> {formatStock(product.stock)}
+                <span className="text-[11px]">⏳</span> {formatStock(totalStock)}
               </span>
             )}
             {isOutOfStock && (
@@ -483,7 +497,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
               </div>
             )}
 
-            <h3 className="text-xs md:text-sm font-bold text-black mb-1 line-clamp-2 hover:text-gray-600 transition">
+            <h3 className="text-xs md:text-sm font-bold text-black mb-1 line-clamp-2 hover:text-black/60 transition">
               {product.name}
             </h3>
             <p className="text-black font-bold text-[10px] md:text-xs mb-2 opacity-70">{product.category}</p>
@@ -493,7 +507,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                 {formatPrice(product.price)}
               </span>
               {product.oldPrice && product.oldPrice > product.price && (
-                <span className="text-[10px] md:text-xs text-gray-500 line-through font-bold">
+                <span className="text-[10px] md:text-xs text-black/40 line-through font-bold">
                   {formatPrice(product.oldPrice)}
                 </span>
               )}
@@ -510,7 +524,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             href={`/products/${product.id}`}
             className={`block text-center text-white font-bold text-[10px] md:text-xs py-2 rounded-full transition-all mt-2 ${
               isOutOfStock 
-                ? 'bg-gray-400 cursor-not-allowed' 
+                ? 'bg-black/40 cursor-not-allowed' 
                 : 'bg-linear-to-r from-sky-400 via-blue-500 to-indigo-500 hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg'
             }`}
             aria-label={`عرض تفاصيل ${product.name}`}
@@ -529,7 +543,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             className="bg-white rounded-2xl w-[calc(100%-2rem)] sm:w-120 md:w-130 lg:w-140 xl:w-150 max-h-[85vh] overflow-y-auto shadow-2xl animate-scale-in mx-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white p-4 border-b border-gray-100 z-10">
+            <div className="sticky top-0 bg-white p-4 border-b border-black/10 z-10">
               <h3 className="text-xl font-bold text-black text-center">إضافة إلى السلة</h3>
               <p className="text-xs font-bold text-black text-center mt-1 opacity-70">
                 اختر المقاسات والألوان المطلوبة
@@ -537,8 +551,8 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             </div>
 
             <div className="p-4 space-y-4">
-              <div className="flex gap-3 pb-3 border-b border-gray-100">
-                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
+              <div className="flex gap-3 pb-3 border-b border-black/10">
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-black/10 shrink-0 flex items-center justify-center">
                   <Image 
                     src={product.mainImage} 
                     alt={product.name} 
@@ -554,7 +568,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
               <div className="space-y-4">
                 {selections.map((selection, index) => (
-                  <div key={selection.id} className="bg-gray-50 rounded-xl p-3 relative">
+                  <div key={selection.id} className="bg-black/5 rounded-xl p-3 relative">
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-xs font-bold text-black opacity-70">القطعة {toArabicNumber(index + 1)}</span>
                       {selections.length > 1 && (
@@ -581,7 +595,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                               className={`min-w-10 px-3 py-1 text-sm font-bold rounded-lg transition-all ${
                                 selection.size === size
                                   ? 'bg-black text-white shadow-md'
-                                  : 'bg-white text-black hover:bg-gray-100 border border-gray-300'
+                                  : 'bg-white text-black hover:bg-black/10 border border-black/20'
                               }`}
                             >
                               {size}
@@ -605,7 +619,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                                 className={`relative w-8 h-8 rounded-full transition-all duration-200 ring-2 ring-offset-1 ${
                                   isSelected 
                                     ? 'ring-black scale-110' 
-                                    : 'ring-gray-300 hover:ring-gray-500'
+                                    : 'ring-black/20 hover:ring-black/40'
                                 }`}
                                 style={{ backgroundColor: color }}
                                 title={getColorName(color)}
@@ -631,15 +645,31 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                       <p className="text-xs font-bold text-black mb-1.5">الكمية</p>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => updateSelection(selection.id, 'quantity', Math.max(1, selection.quantity - 1))}
-                          className="w-7 h-7 rounded-full bg-white border border-gray-300 text-black font-bold hover:bg-gray-100 transition flex items-center justify-center"
+                          onClick={() => {
+                            const newQuantity = Math.max(1, selection.quantity - 1);
+                            updateSelection(selection.id, 'quantity', newQuantity);
+                          }}
+                          className="w-7 h-7 rounded-full bg-white border border-black/20 text-black font-bold hover:bg-black/10 transition flex items-center justify-center"
                         >
                           -
                         </button>
                         <span className="w-10 text-center font-bold text-sm text-black">{toArabicNumber(selection.quantity)}</span>
                         <button
-                          onClick={() => updateSelection(selection.id, 'quantity', selection.quantity + 1)}
-                          className="w-7 h-7 rounded-full bg-white border border-gray-300 text-black font-bold hover:bg-gray-100 transition flex items-center justify-center"
+                          onClick={() => {
+                            const availableStock = getAvailableStock(product, selection.size, selection.color);
+                            const newQuantity = selection.quantity + 1;
+                            if (newQuantity <= availableStock) {
+                              updateSelection(selection.id, 'quantity', newQuantity);
+                            } else {
+                              window.dispatchEvent(new CustomEvent('showToast', {
+                                detail: {
+                                  message: `⚠️ لا يتوفر أكثر من ${toArabicNumber(availableStock)} قطع من هذا المنتج (مقاس ${selection.size}، لون ${getColorName(selection.color)})`,
+                                  type: 'warning'
+                                }
+                              }));
+                            }
+                          }}
+                          className="w-7 h-7 rounded-full bg-white border border-black/20 text-black font-bold hover:bg-black/10 transition flex items-center justify-center"
                         >
                           +
                         </button>
@@ -651,12 +681,12 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
               <button
                 onClick={addSelection}
-                className="w-full py-2 rounded-xl border-2 border-dashed border-gray-400 text-black text-sm font-bold hover:border-gray-600 hover:text-black transition-all opacity-70 hover:opacity-100"
+                className="w-full py-2 rounded-xl border-2 border-dashed border-black/30 text-black text-sm font-bold hover:border-black/50 hover:text-black transition-all opacity-70 hover:opacity-100"
               >
                 + إضافة قطعة أخرى
               </button>
 
-              <div className="bg-gray-100 rounded-xl p-3">
+              <div className="bg-black/10 rounded-xl p-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-bold text-black opacity-70">إجمالي القطع:</span>
                   <span className="text-sm font-bold text-black">{toArabicNumber(totalItems)} قطعة</span>
@@ -673,14 +703,14 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-white p-4 border-t border-gray-100 flex gap-3 rounded-b-2xl">
+            <div className="sticky bottom-0 bg-white p-4 border-t border-black/10 flex gap-3 rounded-b-2xl">
               <button
                 onClick={confirmSelections}
                 disabled={!hasValidSelections()}
                 className={`flex-1 py-2.5 rounded-xl font-bold transition-all ${
                   hasValidSelections()
                     ? 'bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white hover:scale-[1.02] shadow-md'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-black/10 text-black/40 cursor-not-allowed'
                 }`}
               >
                 إضافة ({toArabicNumber(totalItems)}) إلى السلة

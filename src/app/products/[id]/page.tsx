@@ -1,4 +1,3 @@
-// app/products/[id]/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,6 +13,14 @@ import RelatedProducts from '@/components/product/RelatedProducts';
 import ProductSkeleton from '@/components/product/ProductSkeleton';
 
 export const dynamic = 'force-dynamic';
+
+// دالة حساب إجمالي الكمية من stockItems
+const getTotalStock = (product: any): number => {
+  if (product.stockItems && Array.isArray(product.stockItems)) {
+    return product.stockItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+  }
+  return product.stock || 0;
+};
 
 export default function ProductPage() {
   const params = useParams();
@@ -75,7 +82,7 @@ export default function ProductPage() {
         <div className="text-center">
           <div className="text-6xl mb-4">🔍</div>
           <h1 className="text-2xl font-black text-black mb-2">المنتج غير موجود</h1>
-          <p className="text-black font-bold opacity-60 mb-6">عذراً، المنتج الذي تبحث عنه غير متوفر</p>
+          <p className="text-black/60 font-bold mb-6">عذراً، المنتج الذي تبحث عنه غير متوفر</p>
           <Link 
             href="/products" 
             className="inline-flex items-center gap-2 bg-linear-to-r from-sky-400 via-blue-500 to-indigo-500 text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition-all duration-300 shadow-lg"
@@ -91,7 +98,7 @@ export default function ProductPage() {
   }
 
   const allImages = [product.mainImage, ...product.subImages];
-  const stock = product.stock || 0;
+  const stock = getTotalStock(product);
 
   return (
     <>
@@ -107,7 +114,7 @@ export default function ProductPage() {
             {/* زر الرئيسية - جرادينت */}
             <Link 
               href="/" 
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-linear-to-r from-slate-700 via-slate-600 to-slate-500 hover:from-slate-600 hover:via-slate-500 hover:to-slate-400 text-white rounded-full transition-all duration-300 text-sm font-bold shadow-md hover:shadow-lg hover:scale-105"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-linear-to-r from-black via-black/80 to-black/60 hover:from-black/80 hover:via-black/60 hover:to-black/40 text-white rounded-full transition-all duration-300 text-sm font-bold shadow-md hover:shadow-lg hover:scale-105"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -115,8 +122,8 @@ export default function ProductPage() {
               <span>الرئيسية</span>
             </Link>
 
-            {/* سهم ذهبي/برتقالي */}
-            <svg className="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* سهم */}
+            <svg className="w-3 h-3 text-black/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
 
@@ -131,8 +138,8 @@ export default function ProductPage() {
               <span>المنتجات</span>
             </Link>
 
-            {/* سهم ذهبي/برتقالي */}
-            <svg className="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* سهم */}
+            <svg className="w-3 h-3 text-black/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
 
@@ -159,8 +166,8 @@ export default function ProductPage() {
               <span>{product.category}</span>
             </Link>
 
-            {/* سهم ذهبي/برتقالي */}
-            <svg className="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* سهم */}
+            <svg className="w-3 h-3 text-black/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
 

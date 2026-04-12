@@ -1,4 +1,3 @@
-// components/OrderModal.tsx
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -16,8 +15,10 @@ interface OrderItem {
   mainImage: string;
   quantityDiscount?: {
     enabled: boolean;
-    minQuantity: number;
-    discountPerItem: number;
+    tiers: Array<{
+      minQuantity: number;
+      discountPerItem: number;
+    }>;
   };
 }
 
@@ -37,6 +38,42 @@ interface OrderModalProps {
   onCartCleared?: () => void;
 }
 
+// دالة حساب السعر بعد خصم الكمية (باستخدام tiers)
+const getItemTotalPrice = (item: OrderItem) => {
+  if (!item.quantityDiscount?.enabled) return item.price * item.quantity;
+  
+  const { tiers } = item.quantityDiscount;
+  let applicableTier = null;
+  for (let i = tiers.length - 1; i >= 0; i--) {
+    if (item.quantity >= tiers[i].minQuantity) {
+      applicableTier = tiers[i];
+      break;
+    }
+  }
+  
+  if (!applicableTier) return item.price * item.quantity;
+  const discountedPrice = item.price - applicableTier.discountPerItem;
+  return item.quantity * discountedPrice;
+};
+
+const getColorName = (colorCode: string): string => {
+  const colorMap: Record<string, string> = {
+    '#000000': 'أسود',
+    '#FFFFFF': 'أبيض',
+    '#808080': 'رمادي',
+    '#FF0000': 'أحمر',
+    '#0000FF': 'أزرق',
+    '#008000': 'أخضر',
+    '#FFFF00': 'أصفر',
+    '#FFC0CB': 'وردي',
+    '#A52A2A': 'بني',
+    '#800080': 'بنفسجي',
+    '#FFA500': 'برتقالي',
+    '#00FFFF': 'سماوي',
+  };
+  return colorMap[colorCode] || colorCode;
+};
+
 export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartCleared }: OrderModalProps) {
   const [formData, setFormData] = useState({
     name: '',
@@ -54,21 +91,6 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
   
   const modalRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
-
-  // ✅ دالة حساب السعر بعد خصم الكمية
-  const getItemTotalPrice = (item: OrderItem) => {
-    if (!item.quantityDiscount?.enabled) return item.price * item.quantity;
-    
-    const { minQuantity, discountPerItem } = item.quantityDiscount;
-    
-    if (item.quantity < minQuantity) return item.price * item.quantity;
-    
-    const normalCount = minQuantity - 1;
-    const discountedCount = item.quantity - normalCount;
-    const discountedPrice = item.price - discountPerItem;
-    
-    return (normalCount * item.price) + (discountedCount * discountedPrice);
-  };
 
   const loadSavedCustomerData = useCallback(() => {
     try {
@@ -114,7 +136,6 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
         if (tempData) {
           const data = JSON.parse(tempData);
           setCartItems(data.items);
-          // حساب الإجمالي مع خصم الكمية
           const total = data.items.reduce((sum: number, item: OrderItem) => sum + getItemTotalPrice(item), 0);
           setTotalAmount(total);
           setIsMultiOrder(true);
@@ -246,24 +267,6 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
     if (errors[field]) setErrors(prev => { const newErrors = { ...prev }; delete newErrors[field]; return newErrors; });
   };
 
-  const getColorName = (colorCode: string): string => {
-    const colorMap: Record<string, string> = {
-      '#000000': 'أسود',
-      '#FFFFFF': 'أبيض',
-      '#808080': 'رمادي',
-      '#FF0000': 'أحمر',
-      '#0000FF': 'أزرق',
-      '#008000': 'أخضر',
-      '#FFFF00': 'أصفر',
-      '#FFC0CB': 'وردي',
-      '#A52A2A': 'بني',
-      '#800080': 'بنفسجي',
-      '#FFA500': 'برتقالي',
-      '#00FFFF': 'سماوي',
-    };
-    return colorMap[colorCode] || colorCode;
-  };
-
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   if (!isOpen) return null;
@@ -275,11 +278,11 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header - ثابت */}
-        <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex justify-between items-center z-20">
+        <div className="sticky top-0 bg-white border-b border-black/10 p-4 flex justify-between items-center z-20">
           <h2 className="text-xl font-bold text-black">
             {isMultiOrder ? `طلب متعدد (${toArabicNumber(cartItems.length)} منتج)` : 'طلب المنتج'}
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition" aria-label="إغلاق">
+          <button onClick={onClose} className="p-2 hover:bg-black/10 rounded-full transition" aria-label="إغلاق">
             <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -287,10 +290,10 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
         </div>
 
         {/* قسم المنتجات */}
-        <div className="p-4 border-b border-gray-100 bg-gray-50">
+        <div className="p-4 border-b border-black/10 bg-black/5">
           {cartItems.map((item, idx) => (
-            <div key={idx} className="flex gap-3 mb-3 last:mb-0 pb-3 last:pb-0 border-b last:border-b-0 border-gray-200">
-              <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+            <div key={idx} className="flex gap-3 mb-3 last:mb-0 pb-3 last:pb-0 border-b last:border-b-0 border-black/10">
+              <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-black/10 shrink-0">
                 <Image src={item.mainImage} alt={item.name} fill className="object-cover" />
               </div>
               <div className="flex-1 min-w-0">
@@ -298,24 +301,33 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
                 <div className="flex flex-wrap gap-1 mt-1">
                   <p className="text-xs font-bold text-black">{formatPrice(item.price)} × {toArabicNumber(item.quantity)}</p>
                   {item.selectedSize && (
-                    <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full font-bold text-black">مقاس: {item.selectedSize}</span>
+                    <span className="text-xs bg-black/10 px-2 py-0.5 rounded-full font-bold text-black">مقاس: {item.selectedSize}</span>
                   )}
                   {item.selectedColor && (
-                    <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full font-bold text-black flex items-center gap-1">
+                    <span className="text-xs bg-black/10 px-2 py-0.5 rounded-full font-bold text-black flex items-center gap-1">
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.selectedColor }} />
                       لون: {getColorName(item.selectedColor)}
                     </span>
                   )}
                 </div>
-                {item.quantityDiscount?.enabled && item.quantity >= item.quantityDiscount.minQuantity && (
-                  <div className="mt-1 text-xs text-emerald-600 font-bold">
-                    🎉 خصم الكمية: {toArabicNumber(item.quantityDiscount.discountPerItem)} جنيه لكل قطعة إضافية
-                  </div>
-                )}
+                {item.quantityDiscount?.enabled && (() => {
+                  let applicableTier = null;
+                  for (let i = (item.quantityDiscount.tiers?.length || 0) - 1; i >= 0; i--) {
+                    if (item.quantity >= item.quantityDiscount.tiers[i].minQuantity) {
+                      applicableTier = item.quantityDiscount.tiers[i];
+                      break;
+                    }
+                  }
+                  return applicableTier && (
+                    <div className="mt-1 text-xs text-emerald-600 font-bold">
+                      🎉 خصم الكمية: {toArabicNumber(applicableTier.discountPerItem)} جنيه لكل قطعة
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           ))}
-          <div className="mt-2 pt-2 border-t border-gray-200">
+          <div className="mt-2 pt-2 border-t border-black/10">
             <div className="flex justify-between items-center">
               <p className="text-sm font-bold text-black">إجمالي القطع:</p>
               <p className="text-sm font-bold text-black">{toArabicNumber(totalItems)} قطعة</p>
@@ -337,7 +349,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
               type="text" 
               value={formData.name} 
               onChange={(e) => handleInputChange('name', e.target.value)} 
-              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.name ? 'border-red-500' : 'border-gray-300'}`} 
+              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.name ? 'border-red-500' : 'border-black/20'}`} 
               placeholder="أدخل اسمك الكامل" 
               disabled={loading} 
               autoComplete="name"
@@ -351,7 +363,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
               type="tel" 
               value={formData.phone} 
               onChange={(e) => handleInputChange('phone', e.target.value)} 
-              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.phone ? 'border-red-500' : 'border-gray-300'}`} 
+              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.phone ? 'border-red-500' : 'border-black/20'}`} 
               placeholder="مثال: 01012345678" 
               disabled={loading} 
               autoComplete="tel"
@@ -365,7 +377,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
               type="tel" 
               value={formData.altPhone} 
               onChange={(e) => handleInputChange('altPhone', e.target.value)} 
-              className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black" 
+              className="w-full p-2.5 border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black" 
               placeholder="رقم آخر للتواصل" 
               disabled={loading} 
               autoComplete="tel"
@@ -378,7 +390,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
               rows={3} 
               value={formData.address} 
               onChange={(e) => handleInputChange('address', e.target.value)} 
-              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black resize-none ${errors.address ? 'border-red-500' : 'border-gray-300'}`} 
+              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black resize-none ${errors.address ? 'border-red-500' : 'border-black/20'}`} 
               placeholder="المحافظة - المنطقة - الشارع - رقم المنزل" 
               disabled={loading} 
               autoComplete="address-line1"
@@ -392,7 +404,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
               type="text" 
               value={formData.landmark} 
               onChange={(e) => handleInputChange('landmark', e.target.value)} 
-              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.landmark ? 'border-red-500' : 'border-gray-300'}`} 
+              className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black ${errors.landmark ? 'border-red-500' : 'border-black/20'}`} 
               placeholder="مثال: بجوار مسجد النور، أمام مدرسة العبور" 
               disabled={loading} 
             />
@@ -405,7 +417,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
               rows={2} 
               value={formData.notes} 
               onChange={(e) => handleInputChange('notes', e.target.value)} 
-              className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black resize-none" 
+              className="w-full p-2.5 border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-black font-bold text-black resize-none" 
               placeholder="أي تفاصيل إضافية لتوصيل الطلب" 
               disabled={loading} 
             />
@@ -413,7 +425,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
         </form>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4">
+        <div className="sticky bottom-0 bg-white border-t border-black/10 p-4">
           <div className="flex gap-3">
             <button type="submit" onClick={handleSubmit} disabled={loading} className="flex-1 bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white font-bold py-2.5 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 shadow-md">
               {loading ? 'جاري الإرسال...' : 'تأكيد الطلب'}

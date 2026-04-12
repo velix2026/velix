@@ -1,4 +1,3 @@
-// app/api/products/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import Redis from 'ioredis';
@@ -70,7 +69,21 @@ export async function POST(request: NextRequest) {
     const mainImage = formData.get('mainImage') as File;
     const subImages = formData.getAll('subImages') as File[];
     
-    const stock = parseInt(formData.get('stock') as string);
+    // ✅ معالجة stockItems الجديد
+    let stockItems: Array<{ colorCode: string; size: string; quantity: number }> = [];
+    const stockItemsRaw = formData.get('stockItems') as string;
+    if (stockItemsRaw && stockItemsRaw !== '') {
+      try {
+        stockItems = JSON.parse(stockItemsRaw);
+        console.log('✅ Parsed stockItems:', stockItems.length);
+      } catch (e) {
+        console.error('Error parsing stockItems:', e);
+      }
+    }
+    
+    // ✅ معالجة stock القديم (للتوافق مع الإصدارات السابقة)
+    const stockRaw = formData.get('stock') as string;
+    const stock = stockRaw ? parseInt(stockRaw) : 0;
     
     // ✅ معالجة oldPrice بشكل صحيح
     const oldPriceRaw = formData.get('oldPrice') as string;
@@ -122,15 +135,16 @@ export async function POST(request: NextRequest) {
       description,
       mainImage: mainImageUrl,
       subImages: subImagesUrls,
-      inStock: stock > 0,
-      stock,
+      inStock: stockItems.length > 0 ? stockItems.some(item => item.quantity > 0) : stock > 0,
+      stock: stock, // للتوافق مع الإصدارات السابقة
+      stockItems: stockItems, // ✅ النظام الجديد
       sizes,
       colors,
       isNew,
       salesCount: 0,
       rating: 0,
       createdAt,
-      quantityDiscount, // ✅ خصم الكمية
+      quantityDiscount,
     };
     
     products.push(newProduct);

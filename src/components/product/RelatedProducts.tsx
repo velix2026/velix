@@ -1,4 +1,3 @@
-// components/product/RelatedProducts.tsx
 'use client';
 
 import { useRef } from 'react';
