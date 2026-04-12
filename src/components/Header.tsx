@@ -32,18 +32,37 @@ export default function Header() {
   const organizationData = {
     '@context': 'https://schema.org',
     '@type': 'ClothingStore',
-    name: 'VELIX',
-    url: 'https://velix-eg.store',
-    logo: 'https://velix-eg.store/images/logo.png', // ✅ تم التحديث للمسار الصحيح
-    sameAs: [
+    'name': 'VELIX',
+    'url': 'https://velix-eg.store',
+    'logo': 'https://velix-eg.store/images/logo.png',
+    'image': 'https://velix-eg.store/images/og-image.jpg',
+    'description': 'براند ملابس مصري بيقدم ستايل عصري للشباب. جودة عالية وتفاصيل مميزة مع دفع عند الاستلام.',
+    'telephone': '+201500125133',
+    'priceRange': '$$',
+    'paymentAccepted': 'Cash on Delivery',
+    'areaServed': 'EG',
+    'address': {
+      '@type': 'PostalAddress',
+      'addressCountry': 'EG',
+      'addressRegion': 'Qalyubia',
+      'addressLocality': 'Shubra El-Kheima',
+      'streetAddress': 'شبرا الخيمة، القليوبية',
+      'postalCode': '13766'
+    },
+    'contactPoint': {
+      '@type': 'ContactPoint',
+      'telephone': '+201500125133',
+      'contactType': 'customer service',
+      'availableLanguage': ['Arabic', 'English'],
+      'areaServed': 'EG'
+    },
+    'sameAs': [
       'https://instagram.com/velix.2026',
       'https://facebook.com/velix2026',
-      'https://tiktok.com/@velix2026'
+      'https://tiktok.com/@velix2026',
+      'https://wa.me/201500125133'
     ],
-    address: {
-      '@type': 'PostalAddress',
-      addressCountry: 'EG'
-    }
+    'openingHours': ['Mo-Sa 10:00-22:00']
   };
 
   return (

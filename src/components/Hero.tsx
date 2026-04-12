@@ -11,7 +11,7 @@ export default function Hero() {
     setIsVisible(true);
   }, []);
 
-  // ✅ Hero Schema for SEO - نسخة كاملة بدون تحذيرات
+  // ✅ Hero Schema for SEO - نسخة كاملة
   const heroSchema = {
     '@context': 'https://schema.org',
     '@type': 'ClothingStore',
