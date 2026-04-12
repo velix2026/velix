@@ -1,9 +1,10 @@
-// app/page.tsx
 import Hero from '@/components/Hero';
 import BrandFeatures from '@/components/BrandFeatures';
 import FeaturedProducts from '@/components/FeaturedProducts';
 import Newsletter from '@/components/Newsletter';
 import { getProducts } from '@/lib/products';
+
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const products = await getProducts();
