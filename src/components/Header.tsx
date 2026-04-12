@@ -1,4 +1,3 @@
-// components/Header.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -35,7 +34,7 @@ export default function Header() {
     '@type': 'ClothingStore',
     name: 'VELIX',
     url: 'https://velixstore.vercel.app',
-    logo: 'https://velixstore.vercel.app/logo.png',
+    logo: 'https://velixstore.vercel.app/images/logo.png', // ✅ تم التحديث للمسار الصحيح
     sameAs: [
       'https://instagram.com/velix.2026',
       'https://facebook.com/velix2026',
@@ -59,14 +58,14 @@ export default function Header() {
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled
-            ? 'bg-white/70 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.06)] border-b border-gray-200/40 py-2'
+            ? 'bg-white/70 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.06)] border-b border-black/10 py-2' // ✅ غيرت border-gray-200 لـ border-black/10
             : 'bg-transparent py-4'
         }`}
         role="banner"
         aria-label="الرأس الرئيسي لموقع VELIX"
       >
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-          {/* Logo with SEO */}
+          {/* Logo with SEO - نسخة محسنة */}
           <Link
             href="/"
             className="flex items-center gap-2 group"
@@ -75,14 +74,17 @@ export default function Header() {
           >
             <div className="relative w-10 h-10 md:w-12 md:h-12 transition-transform duration-300 group-hover:scale-105">
               <Image
-                src="/logo.png"
+                src="/images/logo.png" // ✅ تم التحديث للمسار الصحيح
                 alt="VELIX - براند ملابس مصري عصري"
                 title="VELIX براند ملابس مصري"
                 fill
                 className="object-contain"
                 priority
+                sizes="(max-width: 768px) 40px, 48px"
+                quality={75}
               />
             </div>
+            {/* ✅ نص بديل لتحسين SEO - يظهر فقط للقراءات الصوتية */}
             <span className="sr-only">VELIX - براند ملابس مصري</span>
           </Link>
 
@@ -101,7 +103,7 @@ export default function Header() {
                 key={link.href}
                 href={link.href}
                 className={`relative text-sm font-semibold transition-all duration-300 ${
-                  isActive(link.href) ? 'text-black' : 'text-black hover:text-black'
+                  isActive(link.href) ? 'text-black' : 'text-black/70 hover:text-black'
                 }`}
                 aria-current={isActive(link.href) ? 'page' : undefined}
                 title={link.title}
@@ -215,7 +217,7 @@ export default function Header() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-sm font-semibold text-black hover:text-black py-2 transition-all"
+                  className="text-sm font-semibold text-black hover:text-black/70 py-2 transition-all"
                 >
                   {link.label}
                 </Link>

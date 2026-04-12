@@ -1,4 +1,3 @@
-// app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import { Cairo } from 'next/font/google';
 import "./globals.css";
@@ -77,7 +76,6 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "",
   },
-  // إضافة meta tags محسنة للـ mobile
   other: {
     'format-detection': 'telephone=no',
     'msapplication-tap-highlight': 'no',
@@ -107,36 +105,39 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" className={cairo.variable}>
       <head>
         {/* Favicon and Icons */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/logo.png" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        
+        {/* ✅ Meta tags للـ PWA - النسخة الحديثة */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        {/* ❌ اشيل السطر ده: <meta name="apple-mobile-web-app-capable" content="yes" /> */}
+        
+        <meta name="theme-color" content="#ffffff" />
+        <meta name="msapplication-TileColor" content="#ffffff" />
+        <meta name="msapplication-TileImage" content="/android-chrome-192x192.png" />
         
         {/* Preconnect for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
-        {/* Preload critical assets */}
-        <link rel="preload" href="/logo.png" as="image" />
+        {/* ❌ اشيل الـ preload ده: <link rel="preload" href="/images/logo.png" as="image" /> */}
         
-        {/* Sitemap and RSS - for better SEO */}
+        {/* Sitemap and RSS */}
         <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
         
-        {/* DNS Prefetch for external resources */}
+        {/* DNS Prefetch */}
         <link rel="dns-prefetch" href="https://wa.me" />
         <link rel="dns-prefetch" href="https://instagram.com" />
       </head>
       <body className="flex flex-col min-h-screen bg-white font-sans antialiased">
-        {/* Toast Provider for notifications */}
         <ToastProvider />
-        
-        {/* Header */}
         <Header />
-        
-        {/* Main Content */}
         <main className="grow">
           {children}
         </main>
-        
-        {/* Footer */}
         <Footer />
       </body>
     </html>

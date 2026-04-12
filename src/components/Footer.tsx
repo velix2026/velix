@@ -1,4 +1,3 @@
-// components/Footer.tsx
 'use client'; // ✅ Add this at the top
 
 import Link from 'next/link';
@@ -19,7 +18,7 @@ export default function Footer() {
     '@type': 'Organization',
     name: 'VELIX',
     url: 'https://velixstore.vercel.app',
-    logo: 'https://velixstore.vercel.app/logo.png',
+    logo: 'https://velixstore.vercel.app/images/logo.png', // ✅ تم التحديث للمسار الصحيح
     sameAs: [
       'https://instagram.com/velix.2026',
       'https://facebook.com/velix2026',
@@ -44,7 +43,7 @@ export default function Footer() {
       />
       
       <footer 
-        className="bg-linear-to-b from-gray-50 to-white border-t border-gray-200" 
+        className="bg-white border-t border-black/10" // ✅ غيرت bg-linear-to-b من gray-50 لـ bg-white، وغيرت border-gray-200 لـ border-black/10
         itemScope 
         itemType="https://schema.org/WPFooter"
         role="contentinfo"
@@ -57,30 +56,31 @@ export default function Footer() {
               <Link href="/" className="block mb-3 group" aria-label="VELIX - الصفحة الرئيسية">
                 <div className="relative w-20 h-20 md:w-24 md:h-24 transition-transform duration-300 group-hover:scale-105">
                   <Image
-                    src="/logo.png"
+                    src="/images/logo.png" // ✅ تم التحديث للمسار الصحيح
                     alt="VELIX - براند ملابس مصري عصري"
                     title="VELIX براند ملابس مصري"
                     fill
                     sizes="(max-width: 768px) 80px, 96px"
                     className="object-contain"
                     priority={false}
+                    quality={75}
                   />
                 </div>
               </Link>
-              <p className="text-gray-700 text-xs leading-relaxed max-w-xs">
+              <p className="text-black/60 text-xs leading-relaxed max-w-xs font-medium"> {/* ✅ غيرت text-gray-700 لـ text-black/60 */}
                 براند ملابس مصري بيقدم ستايل عصري يناسب الشباب اللي بيحبوا يبانوا بشكل مختلف 👕🔥
                 <br className="hidden md:block" />
                 بنركز على الجودة والتفاصيل علشان نطلعلك منتج يليق بيك في أي وقت وأي مكان 👌
               </p>
               {/* Trust Badge */}
               <div className="mt-3 flex gap-2">
-                <span className="inline-flex items-center gap-1 text-[10px] text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                <span className="inline-flex items-center gap-1 text-[10px] text-green-700 bg-green-50 px-2 py-1 rounded-full font-bold">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                   دفع عند الاستلام
                 </span>
-                <span className="inline-flex items-center gap-1 text-[10px] text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                <span className="inline-flex items-center gap-1 text-[10px] text-blue-700 bg-blue-50 px-2 py-1 rounded-full font-bold">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
@@ -91,14 +91,14 @@ export default function Footer() {
 
             {/* Quick Links */}
             <div className="text-center md:text-right">
-              <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 pb-2 border-b-2 border-gray-200 inline-block">
+              <h4 className="text-sm font-black text-black uppercase tracking-wider mb-4 pb-2 border-b-2 border-black/20 inline-block"> {/* ✅ غيرت text-gray-800 لـ text-black، border-gray-200 لـ border-black/20 */}
                 روابط سريعة
               </h4>
               <ul className="space-y-2 mt-2" aria-label="روابط سريعة">
                 <li>
                   <Link 
                     href="/" 
-                    className="text-gray-600 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group"
+                    className="text-black/60 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group font-medium" // ✅ غيرت text-gray-600 لـ text-black/60
                   >
                     <span className="group-hover:translate-x-1 transition-transform">الرئيسية</span>
                   </Link>
@@ -106,7 +106,7 @@ export default function Footer() {
                 <li>
                   <Link 
                     href="/products" 
-                    className="text-gray-600 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group"
+                    className="text-black/60 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group font-medium"
                   >
                     <span className="group-hover:translate-x-1 transition-transform">المنتجات</span>
                   </Link>
@@ -114,7 +114,7 @@ export default function Footer() {
                 <li>
                   <Link 
                     href="/about" 
-                    className="text-gray-600 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group"
+                    className="text-black/60 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group font-medium"
                   >
                     <span className="group-hover:translate-x-1 transition-transform">عن البراند</span>
                   </Link>
@@ -122,7 +122,7 @@ export default function Footer() {
                 <li>
                   <Link 
                     href="/contact" 
-                    className="text-gray-600 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group"
+                    className="text-black/60 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group font-medium"
                   >
                     <span className="group-hover:translate-x-1 transition-transform">اتصل بنا</span>
                   </Link>
@@ -132,14 +132,14 @@ export default function Footer() {
 
             {/* Policies */}
             <div className="text-center md:text-right">
-              <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 pb-2 border-b-2 border-gray-200 inline-block">
+              <h4 className="text-sm font-black text-black uppercase tracking-wider mb-4 pb-2 border-b-2 border-black/20 inline-block"> {/* ✅ غيرت text-gray-800 لـ text-black، border-gray-200 لـ border-black/20 */}
                 سياسات
               </h4>
               <ul className="space-y-2 mt-2" aria-label="سياسات الموقع">
                 <li>
                   <Link 
                     href="/shipping" 
-                    className="text-gray-600 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group"
+                    className="text-black/60 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group font-medium"
                   >
                     <span className="group-hover:translate-x-1 transition-transform">الشحن والتوصيل</span>
                   </Link>
@@ -147,7 +147,7 @@ export default function Footer() {
                 <li>
                   <Link 
                     href="/returns" 
-                    className="text-gray-600 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group"
+                    className="text-black/60 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group font-medium"
                   >
                     <span className="group-hover:translate-x-1 transition-transform">الاستبدال والاسترجاع</span>
                   </Link>
@@ -155,7 +155,7 @@ export default function Footer() {
                 <li>
                   <Link 
                     href="/privacy" 
-                    className="text-gray-600 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group"
+                    className="text-black/60 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group font-medium"
                   >
                     <span className="group-hover:translate-x-1 transition-transform">سياسة الخصوصية</span>
                   </Link>
@@ -163,7 +163,7 @@ export default function Footer() {
                 <li>
                   <Link 
                     href="/terms" 
-                    className="text-gray-600 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group"
+                    className="text-black/60 hover:text-black hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group font-medium"
                   >
                     <span className="group-hover:translate-x-1 transition-transform">شروط الاستخدام</span>
                   </Link>
@@ -175,7 +175,7 @@ export default function Footer() {
             <div className="text-center md:text-right">
               {/* Contact */}
               <div className="mb-6">
-                <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 pb-2 border-b-2 border-gray-200 inline-block">
+                <h4 className="text-sm font-black text-black uppercase tracking-wider mb-4 pb-2 border-b-2 border-black/20 inline-block"> {/* ✅ غيرت text-gray-800 لـ text-black، border-gray-200 لـ border-black/20 */}
                   تواصل معنا
                 </h4>
                 <ul className="space-y-2 mt-2" aria-label="طرق التواصل">
@@ -195,7 +195,7 @@ export default function Footer() {
                       href="https://wa.me/201500125133" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-gray-600 hover:text-green-600 text-sm transition-colors"
+                      className="text-black/60 hover:text-green-600 text-sm transition-colors font-medium"
                     >
                       واتساب
                     </a>
@@ -214,7 +214,7 @@ export default function Footer() {
                     />
                     <a 
                       href="mailto:velix2026@gmail.com"
-                      className="text-gray-600 hover:text-red-600 text-sm transition-colors"
+                      className="text-black/60 hover:text-red-600 text-sm transition-colors font-medium"
                     >
                       البريد الإلكتروني
                     </a>
@@ -224,7 +224,7 @@ export default function Footer() {
 
               {/* Social Media */}
               <div>
-                <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 pb-2 border-b-2 border-gray-200 inline-block">
+                <h4 className="text-sm font-black text-black uppercase tracking-wider mb-4 pb-2 border-b-2 border-black/20 inline-block"> {/* ✅ غيرت text-gray-800 لـ text-black، border-gray-200 لـ border-black/20 */}
                   تابعنا
                 </h4>
                 <div className="flex gap-3 mt-2 justify-center md:justify-start" aria-label="صفحات التواصل الاجتماعي">
@@ -275,16 +275,16 @@ export default function Footer() {
           </div>
 
           {/* Copyright with Back to Top */}
-          <div className="border-t border-gray-200 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
-            <p className="text-gray-400 text-xs">
+          <div className="border-t border-black/10 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-3"> {/* ✅ غيرت border-gray-200 لـ border-black/10 */}
+            <p className="text-black/40 text-xs font-medium"> {/* ✅ غيرت text-gray-400 لـ text-black/40 */}
               © {currentYear} VELIX. جميع الحقوق محفوظة
             </p>
-            <p className="text-gray-400 text-xs">
+            <p className="text-black/40 text-xs font-medium"> {/* ✅ غيرت text-gray-400 لـ text-black/40 */}
               براند ملابس مصري - جودة عالية وتصميم عصري
             </p>
             <button
               onClick={scrollToTop}
-              className="text-gray-400 hover:text-black text-xs flex items-center gap-1 transition-colors"
+              className="text-black/40 hover:text-black text-xs flex items-center gap-1 transition-colors font-medium"
               aria-label="العودة للأعلى"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
