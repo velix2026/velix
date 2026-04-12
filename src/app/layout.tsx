@@ -12,7 +12,6 @@ const cairo = Cairo({
   weight: ['400', '500', '600', '700', '800'],
 });
 
-// ✅ أضف الـ metadata هنا عشان يشتغل الـ metadataBase
 export const metadata: Metadata = {
   metadataBase: new URL('https://velix-eg.store'),
   title: {
@@ -42,6 +41,8 @@ export const metadata: Metadata = {
     description: "اكتشف أحدث تشكيلة من VELIX. جودة عالمية، تصميم عصري، ودفع عند الاستلام.",
     images: ["/images/og-image.jpg"],
   },
+  // ✅ أضف الـ manifest هنا عشان العملاء العاديين
+  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
@@ -68,7 +69,7 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="manifest" href="/manifest.json" />
         
         {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
@@ -134,6 +135,21 @@ export default function RootLayout({
                 "unitCode": "DAY"
               }
             })
+          }}
+        />
+        
+        {/* ✅ تسجيل Service Worker للموقع العادي */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW registered for main site'))
+                    .catch(err => console.log('SW error:', err));
+                });
+              }
+            `,
           }}
         />
       </head>
