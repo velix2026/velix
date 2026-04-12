@@ -37,7 +37,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
     return `${toArabicNumber(hours)}:${toArabicNumber(minutes)}:${toArabicNumber(seconds)}`;
   };
 
-  const stock = getTotalStock(product);
+  const totalStock = getTotalStock(product);
   const rating = product.rating || 0;
 
   return (
@@ -114,23 +114,23 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         </p>
       </div>
 
-      {/* حالة المخزون */}
+      {/* حالة المخزون - نسخة بسيطة ونظيفة */}
       <div className="mb-6 p-5 bg-black/5 rounded-2xl">
         <div className="flex justify-between items-center mb-3">
           <span className="text-sm font-bold text-black">المخزون:</span>
-          {stock > 0 ? (
+          {totalStock > 0 ? (
             <span className="text-green-600 text-sm font-bold">
-              {stock <= 10 ? `⚠️ باقي ${toArabicNumber(stock)} قطع فقط` : '✅ متوفر'}
+              {totalStock <= 10 ? `⚠️ باقي ${toArabicNumber(totalStock)} قطع فقط` : '✅ متوفر'}
             </span>
           ) : (
             <span className="text-red-500 text-sm font-bold">❌ غير متوفر</span>
           )}
         </div>
-        {stock > 0 && stock <= 10 && (
+        {totalStock > 0 && totalStock <= 10 && (
           <div className="w-full bg-black/10 rounded-full h-2">
             <div 
               className="bg-linear-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all duration-500"
-              style={{ width: `${(stock / 50) * 100}%` }}
+              style={{ width: `${(totalStock / 50) * 100}%` }}
             />
           </div>
         )}
@@ -169,8 +169,8 @@ export default function ProductInfo({ product }: ProductInfoProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span className="text-black font-bold opacity-60">الحالة:</span>
-            <span className={`font-bold ${stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
-              {stock > 0 ? 'متوفر' : 'غير متوفر'}
+            <span className={`font-bold ${totalStock > 0 ? 'text-green-600' : 'text-red-500'}`}>
+              {totalStock > 0 ? 'متوفر' : 'غير متوفر'}
             </span>
           </div>
           <div className="flex items-center gap-2">

@@ -288,15 +288,45 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     ));
   };
 
+  // ✅ دالة مخصصة لاختيار نفس المقاس واللون لجميع القطع
+  const applyToAll = (field: 'size' | 'color', value: string) => {
+    setSelections(prev => prev.map(sel => ({ ...sel, [field]: value })));
+  };
+
+  // ✅ دالة لضبط جميع الكميات لنفس العدد
+  const setAllQuantities = (quantity: number) => {
+    setSelections(prev => prev.map(sel => ({ ...sel, quantity })));
+  };
+
+  // ✅ دالة لدمج القطع المتطابقة (نفس المقاس واللون)
+  const mergeIdenticalSelections = (selectionsList: CartItemSelection[]) => {
+    const merged = new Map<string, CartItemSelection>();
+    
+    for (const sel of selectionsList) {
+      const key = `${sel.size}|${sel.color}`;
+      if (merged.has(key)) {
+        const existing = merged.get(key)!;
+        existing.quantity += sel.quantity;
+      } else {
+        merged.set(key, { ...sel, id: sel.id });
+      }
+    }
+    
+    return Array.from(merged.values());
+  };
+
   const confirmSelections = () => {
     if (hasValidSelections()) {
-      // التحقق من الكمية لكل قطعة على حدة
-      for (const selection of selections) {
+      // دمج القطع المتطابقة أولاً
+      const mergedSelections = mergeIdenticalSelections(selections);
+      
+      // التحقق من الكمية لكل قطعة
+      for (const selection of mergedSelections) {
         const availableStock = getAvailableStock(product, selection.size, selection.color);
         if (selection.quantity > availableStock) {
           window.dispatchEvent(new CustomEvent('showToast', {
             detail: {
-              message: `⚠️ العدد المطلوب (${toArabicNumber(selection.quantity)}) للقطعة ${selection.size} ${getColorName(selection.color)} يتجاوز المتاح (${toArabicNumber(availableStock)})`,
+              message: `⚠️ العدد المطلوب (${toArabicNumber(selection.quantity)}) للقطعة (مقاس ${selection.size || 'غير محدد'}، لون ${getColorName(selection.color)}) يتجاوز المتاح (${toArabicNumber(availableStock)})`,
               type: 'warning'
             }
           }));
@@ -305,11 +335,12 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
       }
       
       // إضافة للسلة
-      for (const selection of selections) {
+      for (const selection of mergedSelections) {
         for (let i = 0; i < selection.quantity; i++) {
           addToCart(product, selection.size || undefined, selection.color || undefined, 1);
         }
       }
+      
       setShowSelectionModal(false);
       setSelections([{ size: '', color: '', quantity: 1, id: Date.now().toString() }]);
     }
@@ -540,25 +571,21 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           onClick={cancelSelection}
         >
           <div 
-            className="bg-white rounded-2xl w-[calc(100%-2rem)] sm:w-120 md:w-130 lg:w-140 xl:w-150 max-h-[85vh] overflow-y-auto shadow-2xl animate-scale-in mx-auto"
+            className="bg-white rounded-2xl w-[calc(100%-2rem)] sm:w-[95%] md:w-[90%] lg:w-[85%] xl:w-[80%] max-w-5xl max-h-[85vh] overflow-y-auto shadow-2xl animate-scale-in mx-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white p-4 border-b border-black/10 z-10">
               <h3 className="text-xl font-bold text-black text-center">إضافة إلى السلة</h3>
               <p className="text-xs font-bold text-black text-center mt-1 opacity-70">
-                اختر المقاسات والألوان المطلوبة
+                اختر المقاسات والألوان المطلوبة - يمكنك إضافة عدة قطع دفعة واحدة
               </p>
             </div>
 
             <div className="p-4 space-y-4">
+              {/* معلومات المنتج */}
               <div className="flex gap-3 pb-3 border-b border-black/10">
                 <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-black/10 shrink-0 flex items-center justify-center">
-                  <Image 
-                    src={product.mainImage} 
-                    alt={product.name} 
-                    fill 
-                    className="object-contain p-1" 
-                  />
+                  <Image src={product.mainImage} alt={product.name} fill className="object-contain p-1" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-sm text-black line-clamp-2">{product.name}</h4>
@@ -566,7 +593,47 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                 </div>
               </div>
 
-              <div className="space-y-4">
+              {/* أزرار الإجراءات السريعة */}
+              {(hasSizes || hasColors) && selections.length > 1 && (
+                <div className="bg-black/5 rounded-xl p-3">
+                  <p className="text-xs font-bold text-black mb-2">إجراءات سريعة:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {hasSizes && (
+                      <select 
+                        onChange={(e) => applyToAll('size', e.target.value)}
+                        className="text-xs px-2 py-1 border border-black/20 rounded-lg bg-white text-black"
+                        defaultValue=""
+                      >
+                        <option value="" disabled>تطبيق مقاس على الكل</option>
+                        {product.sizes?.map(size => (
+                          <option key={size} value={size}>{size}</option>
+                        ))}
+                      </select>
+                    )}
+                    {hasColors && (
+                      <select 
+                        onChange={(e) => applyToAll('color', e.target.value)}
+                        className="text-xs px-2 py-1 border border-black/20 rounded-lg bg-white text-black"
+                        defaultValue=""
+                      >
+                        <option value="" disabled>تطبيق لون على الكل</option>
+                        {product.colors?.map(color => (
+                          <option key={color} value={color}>{getColorName(color)}</option>
+                        ))}
+                      </select>
+                    )}
+                    <button
+                      onClick={() => setAllQuantities(1)}
+                      className="text-xs px-2 py-1 border border-black/20 rounded-lg bg-white text-black hover:bg-black/5"
+                    >
+                      ضبط الكل على 1
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* قائمة القطع */}
+              <div className="space-y-4 max-h-[40vh] overflow-y-auto p-1">
                 {selections.map((selection, index) => (
                   <div key={selection.id} className="bg-black/5 rounded-xl p-3 relative">
                     <div className="flex justify-between items-center mb-3">
@@ -584,64 +651,66 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                       )}
                     </div>
 
-                    {hasSizes && (
-                      <div className="mb-3">
-                        <p className="text-xs font-bold text-black mb-1.5">المقاس <span className="text-red-500">*</span></p>
-                        <div className="flex flex-wrap gap-2">
-                          {product.sizes?.map((size) => (
-                            <button
-                              key={size}
-                              onClick={() => updateSelection(selection.id, 'size', size)}
-                              className={`min-w-10 px-3 py-1 text-sm font-bold rounded-lg transition-all ${
-                                selection.size === size
-                                  ? 'bg-black text-white shadow-md'
-                                  : 'bg-white text-black hover:bg-black/10 border border-black/20'
-                              }`}
-                            >
-                              {size}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {hasColors && (
-                      <div className="mb-3">
-                        <p className="text-xs font-bold text-black mb-1.5">اللون <span className="text-red-500">*</span></p>
-                        <div className="flex flex-wrap gap-2">
-                          {product.colors?.map((color) => {
-                            const isSelected = selection.color === color;
-                            const isLight = isLightColor(color);
-                            return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {hasSizes && (
+                        <div>
+                          <p className="text-xs font-bold text-black mb-1.5">المقاس <span className="text-red-500">*</span></p>
+                          <div className="flex flex-wrap gap-2">
+                            {product.sizes?.map((size) => (
                               <button
-                                key={color}
-                                onClick={() => updateSelection(selection.id, 'color', color)}
-                                className={`relative w-8 h-8 rounded-full transition-all duration-200 ring-2 ring-offset-1 ${
-                                  isSelected 
-                                    ? 'ring-black scale-110' 
-                                    : 'ring-black/20 hover:ring-black/40'
+                                key={size}
+                                onClick={() => updateSelection(selection.id, 'size', size)}
+                                className={`min-w-10 px-3 py-1 text-sm font-bold rounded-lg transition-all ${
+                                  selection.size === size
+                                    ? 'bg-black text-white shadow-md'
+                                    : 'bg-white text-black hover:bg-black/10 border border-black/20'
                                 }`}
-                                style={{ backgroundColor: color }}
-                                title={getColorName(color)}
                               >
-                                {isSelected && (
-                                  <svg 
-                                    className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 ${isLight ? 'text-black' : 'text-white'}`}
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                )}
+                                {size}
                               </button>
-                            );
-                          })}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    <div>
+                      {hasColors && (
+                        <div>
+                          <p className="text-xs font-bold text-black mb-1.5">اللون <span className="text-red-500">*</span></p>
+                          <div className="flex flex-wrap gap-2">
+                            {product.colors?.map((color) => {
+                              const isSelected = selection.color === color;
+                              const isLight = isLightColor(color);
+                              return (
+                                <button
+                                  key={color}
+                                  onClick={() => updateSelection(selection.id, 'color', color)}
+                                  className={`relative w-8 h-8 rounded-full transition-all duration-200 ring-2 ring-offset-1 ${
+                                    isSelected 
+                                      ? 'ring-black scale-110' 
+                                      : 'ring-black/20 hover:ring-black/40'
+                                  }`}
+                                  style={{ backgroundColor: color }}
+                                  title={getColorName(color)}
+                                >
+                                  {isSelected && (
+                                    <svg 
+                                      className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 ${isLight ? 'text-black' : 'text-white'}`}
+                                      fill="none" 
+                                      stroke="currentColor" 
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-3">
                       <p className="text-xs font-bold text-black mb-1.5">الكمية</p>
                       <div className="flex items-center gap-2">
                         <button
@@ -663,7 +732,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                             } else {
                               window.dispatchEvent(new CustomEvent('showToast', {
                                 detail: {
-                                  message: `⚠️ لا يتوفر أكثر من ${toArabicNumber(availableStock)} قطع من هذا المنتج (مقاس ${selection.size}، لون ${getColorName(selection.color)})`,
+                                  message: `⚠️ لا يتوفر أكثر من ${toArabicNumber(availableStock)} قطع من هذا المنتج (مقاس ${selection.size || 'غير محدد'}، لون ${getColorName(selection.color)})`,
                                   type: 'warning'
                                 }
                               }));
