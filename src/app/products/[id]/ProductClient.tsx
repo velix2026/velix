@@ -1,4 +1,3 @@
-// app/products/[id]/ProductClient.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -80,6 +79,40 @@ const generateProductSchema = (product: any, url: string) => {
   };
 };
 
+// ✅ دالة توليد Breadcrumbs JSON-LD للمنتج
+const generateBreadcrumbSchema = (product: any, categoryName: string) => {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "الرئيسية",
+        "item": "https://velix-eg.store/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "المنتجات",
+        "item": "https://velix-eg.store/products"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": categoryName,
+        "item": `https://velix-eg.store/products?category=${encodeURIComponent(categoryName)}`
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": product.name,
+        "item": `https://velix-eg.store/products/${product.id}`
+      }
+    ]
+  };
+};
+
 interface ProductClientProps {
   product: any;
   relatedProducts: any[];
@@ -115,14 +148,28 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
   const allImages = [product.mainImage, ...product.subImages];
   const stock = getTotalStock(product);
   const productUrl = `https://velix-eg.store/products/${product.id}`;
+  
+  // اسم التصنيف بالعربي
+  const categoryName = product.category === 'تيشرتات' ? 'تيشرتات' 
+    : product.category === 'هوديز' ? 'هوديز' 
+    : product.category === 'شروال' ? 'شروال' 
+    : product.category;
 
   return (
     <>
-      {/* ✅ JSON-LD للمنتج - أهم حاجة للسيو */}
+      {/* ✅ JSON-LD للمنتج */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(generateProductSchema(product, productUrl))
+        }}
+      />
+      
+      {/* ✅ JSON-LD للـ Breadcrumbs */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(generateBreadcrumbSchema(product, categoryName))
         }}
       />
       
