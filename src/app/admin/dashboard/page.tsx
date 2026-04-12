@@ -1,14 +1,22 @@
-// app/admin/dashboard/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { usePWA } from '@/components/AdminPWAProvider';
+
+// ✅ Interface لحدث التثبيت
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => void;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { showInstall, handleInstall, notificationPermission, requestNotificationPermission, isOnline } = usePWA();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showInstall, setShowInstall] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
   const [stats, setStats] = useState({
     orders: 0,
     products: 0,
@@ -16,9 +24,54 @@ export default function AdminDashboard() {
     revenue: 0,
   });
 
+  // ✅ التحقق من صلاحية الأدمن
   useEffect(() => {
-    fetchStats();
+    const auth = sessionStorage.getItem('adminAuth');
+    if (auth === 'true') {
+      setIsAuthenticated(true);
+      fetchStats();
+    } else {
+      router.push('/admin/login');
+    }
+    setLoading(false);
+  }, [router]);
+
+  // ✅ حدث تثبيت التطبيق
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setShowInstall(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    
+    // ✅ حالة الاتصال بالإنترنت
+    setIsOnline(navigator.onLine);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
+
+  const handleInstall = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((result) => {
+        if (result.outcome === 'accepted') {
+          console.log('✅ Admin app installed');
+        }
+        setDeferredPrompt(null);
+        setShowInstall(false);
+      });
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -58,6 +111,19 @@ export default function AdminDashboard() {
     { title: 'الإيرادات', icon: '💰', href: '#', color: 'bg-emerald-500', count: `${stats.revenue.toLocaleString()} ج.م` },
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="font-bold">جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null;
+
   return (
     <div className="min-h-screen bg-black pt-20 pb-24">
       <div className="container mx-auto px-4 max-w-md">
@@ -74,17 +140,10 @@ export default function AdminDashboard() {
             onClick={handleInstall}
             className="w-full mb-4 bg-emerald-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2"
           >
-            📲 تثبيت تطبيق VELIX Admin
-          </button>
-        )}
-
-        {/* زر تفعيل الإشعارات */}
-        {notificationPermission !== 'granted' && (
-          <button
-            onClick={requestNotificationPermission}
-            className="w-full mb-4 bg-blue-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2"
-          >
-            🔔 تفعيل الإشعارات
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17 9V7a5 5 0 00-10 0v2M7 9h10a2 2 0 012 2v7a2 2 0 01-2 2H7a2 2 0 01-2-2v-7a2 2 0 012-2z" />
+            </svg>
+            تثبيت تطبيق VELIX Admin
           </button>
         )}
 
