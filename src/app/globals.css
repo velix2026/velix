@@ -169,3 +169,54 @@ a,
 [role="button"] {
   touch-action: manipulation;
 }
+
+/* ======================================== */
+/* 🚀 تحسينات الأداء على الموبايل */
+/* ======================================== */
+
+/* 1. تقليل الـ animations على الموبايل */
+@media (max-width: 768px) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  /* إلغاء hover effects على الموبايل */
+  .hover\:scale-105:hover,
+  .hover\:scale-110:hover,
+  .group:hover .group-hover\:scale-105,
+  .group:hover .group-hover\:scale-110 {
+    transform: none !important;
+  }
+  
+  /* تقليل الـ box-shadow على الموبايل */
+  .shadow-md, .shadow-lg, .shadow-xl {
+    box-shadow: none !important;
+  }
+}
+
+/* 2. تحسين عرض الصور (منع الـ layout shift) */
+img {
+  content-visibility: auto;
+  contain: paint;
+}
+
+/* 3. منع إعادة الرسم غير الضرورية */
+section, div, article {
+  will-change: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 4. تحسين أداء الـ WebView في التطبيق */
+iframe, webview {
+  contain: strict;
+}
+
+/* 5. منع الـ repaints الزائدة */
+.fixed, .sticky {
+  transform: translateZ(0);
+  will-change: transform;
+}
