@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo } from 'next/font/google';
+import Script from "next/script";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -68,16 +69,15 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        {/* ✅ أضف data-main عشان نميزه عن manifest الأدمن */}
         <link rel="manifest" href="/manifest.json" data-main="true" />
         
-        {/* PWA Meta Tags - مع دعم الزوم للمستخدمين */}
+        {/* PWA Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#ffffff" />
         <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="msapplication-TileImage" content="/android-chrome-192x192.png" />
         
-        {/* ✅ Viewport مع دعم الزوم (user-scalable=yes) */}
+        {/* Viewport مع دعم الزوم */}
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         
         {/* تحسين الأداء */}
@@ -145,9 +145,19 @@ export default function RootLayout({
             })
           }}
         />
+      </head>
+      <body className="flex flex-col min-h-screen bg-white font-sans antialiased">
+        <ToastProvider />
+        <Header />
+        <main className="grow">
+          {children}
+        </main>
+        <Footer />
         
-        {/* ✅ تسجيل Service Worker للموقع العادي */}
-        <script
+        {/* ✅ تسجيل Service Worker باستخدام Script component */}
+        <Script
+          id="service-worker"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
@@ -160,14 +170,6 @@ export default function RootLayout({
             `,
           }}
         />
-      </head>
-      <body className="flex flex-col min-h-screen bg-white font-sans antialiased">
-        <ToastProvider />
-        <Header />
-        <main className="grow">
-          {children}
-        </main>
-        <Footer />
       </body>
     </html>
   );
