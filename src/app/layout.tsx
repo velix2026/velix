@@ -71,11 +71,19 @@ export default function RootLayout({
         {/* ✅ أضف data-main عشان نميزه عن manifest الأدمن */}
         <link rel="manifest" href="/manifest.json" data-main="true" />
         
-        {/* PWA Meta Tags */}
+        {/* PWA Meta Tags - مع دعم الزوم للمستخدمين */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#ffffff" />
         <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="msapplication-TileImage" content="/android-chrome-192x192.png" />
+        
+        {/* ✅ Viewport مع دعم الزوم (user-scalable=yes) */}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        
+        {/* تحسين الأداء */}
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
         
         {/* Preconnect for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

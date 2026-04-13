@@ -220,3 +220,69 @@ iframe, webview {
   transform: translateZ(0);
   will-change: transform;
 }
+
+/* ======================================== */
+/* 🔥 تحسينات إضافية للأداء القصوى */
+/* ======================================== */
+
+/* 1. منع الـ repaints أثناء السكرول */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 2. تحسين أداء الـ images الكبيرة */
+img[loading="lazy"] {
+  content-visibility: auto;
+  contain: paint;
+}
+
+/* 3. تقليل استخدام الـ filters و blur على الموبايل */
+@media (max-width: 768px) {
+  .blur-2xl, .blur-xl, .blur-lg {
+    display: none !important;
+  }
+  
+  /* تقليل الـ backdrops */
+  .backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur-lg {
+    backdrop-filter: none !important;
+  }
+  
+  /* تحسين السكرول السلس */
+  html {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 4. منع إعادة حساب الـ layout */
+.fixed, .absolute, .relative {
+  contain: layout;
+}
+
+/* 5. تحسين أداء الـ WebView في التطبيق */
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeSpeed;
+}
+
+/* ✅ تعطيل دارك مود نهائياً */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #ffffff !important;
+    --foreground: #171717 !important;
+  }
+}
+
+/* ✅ منع أي تأثير لدارك مود على الصفحات */
+html {
+  color-scheme: light only !important;
+}
+
+body {
+  background-color: #ffffff !important;
+  color: #171717 !important;
+}
