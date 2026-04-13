@@ -15,16 +15,41 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isFavoritesDrawerOpen, setIsFavoritesDrawerOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const [appInstalled, setAppInstalled] = useState(false);
   const pathname = usePathname();
 
   const { favorites, favoritesCount, removeFromFavorites } = useFavorites();
   const { cart, cartCount, updateCartQuantity, removeFromCart, addToCart } = useCart();
 
+  // ✅ كشف بيئة التشغيل (تطبيق Tauri أو WebView APK)
+  const isTauriApp = typeof window !== 'undefined' && !!(window as any).__TAURI__;
+  
+  // ✅ كشف WebView في تطبيقات Android العادية
+  const isWebView = () => {
+    if (typeof window === 'undefined') return false;
+    const userAgent = navigator.userAgent.toLowerCase();
+    return userAgent.includes('wv') || // WebView
+           userAgent.includes('android webview') ||
+           (userAgent.includes('android') && !userAgent.includes('chrome')); // متصفح أندرويد العادي ليس WebView
+  };
+
+  // ✅ الحالة النهائية: هل المستخدم داخل التطبيق الذي صنعته؟
+  const isAppEnvironment = isTauriApp || isWebView();
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
     window.addEventListener('scroll', handleScroll);
+    
+    // ✅ التحقق من تثبيت التطبيق
+    const installed = localStorage.getItem('app_installed') === 'true';
+    setAppInstalled(installed);
+    
+    if (isAppEnvironment) {
+      setAppInstalled(true);
+    }
+    
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isAppEnvironment]);
 
   const isActive = (path: string) => pathname === path;
 
@@ -77,7 +102,7 @@ export default function Header() {
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled
-            ? 'bg-white/70 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.06)] border-b border-black/10 py-2' // ✅ غيرت border-gray-200 لـ border-black/10
+            ? 'bg-white/70 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.06)] border-b border-black/10 py-2'
             : 'bg-transparent py-4'
         }`}
         role="banner"
@@ -93,7 +118,7 @@ export default function Header() {
           >
             <div className="relative w-10 h-10 md:w-12 md:h-12 transition-transform duration-300 group-hover:scale-105">
               <Image
-                src="/images/logo.png" // ✅ تم التحديث للمسار الصحيح
+                src="/images/logo.png"
                 alt="VELIX - براند ملابس مصري عصري"
                 title="VELIX براند ملابس مصري"
                 fill
@@ -103,7 +128,6 @@ export default function Header() {
                 quality={75}
               />
             </div>
-            {/* ✅ نص بديل لتحسين SEO - يظهر فقط للقراءات الصوتية */}
             <span className="sr-only">VELIX - براند ملابس مصري</span>
           </Link>
 
@@ -282,6 +306,20 @@ export default function Header() {
           <path d="M20.52 3.48A11.94 11.94 0 0012.05 0C5.5 0 .2 5.3.2 11.84c0 2.08.54 4.1 1.57 5.88L0 24l6.46-1.68a11.82 11.82 0 005.6 1.43h.01c6.55 0 11.85-5.3 11.85-11.84 0-3.16-1.23-6.12-3.4-8.43zM12.06 21.2h-.01a9.3 9.3 0 01-4.74-1.3l-.34-.2-3.83 1 1.02-3.73-.22-.38a9.23 9.23 0 01-1.42-4.92c0-5.12 4.18-9.3 9.32-9.3 2.49 0 4.82.97 6.58 2.74a9.22 9.22 0 012.73 6.57c0 5.13-4.18 9.32-9.29 9.32zm5.2-6.94c-.28-.14-1.66-.82-1.92-.91-.26-.1-.45-.14-.64.14-.19.28-.73.91-.9 1.1-.16.19-.33.21-.61.07-.28-.14-1.17-.43-2.23-1.36-.83-.74-1.38-1.65-1.54-1.93-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.5.14-.17.19-.28.28-.47.1-.19.05-.36-.02-.5-.07-.14-.64-1.54-.88-2.12-.23-.56-.47-.48-.64-.49h-.55c-.19 0-.5.07-.76.36-.26.28-1 1-.97 2.43.03 1.43 1.04 2.8 1.19 3 .14.19 2.05 3.12 5.02 4.38.7.3 1.24.48 1.66.62.7.22 1.33.19 1.83.11.56-.08 1.66-.68 1.9-1.33.23-.65.23-1.2.16-1.33-.07-.12-.26-.19-.54-.33z"/>
         </svg>
       </a>
+
+      {/* ✅ زر تحميل التطبيق - يظهر بس للمستخدمين العاديين (مش في التطبيق) */}
+      {!isAppEnvironment && !appInstalled && (
+        <a
+          href="/downloads/VELIX_Store_1.0.0.apk"
+          download
+          className="fixed bottom-36 right-6 z-50 w-12 h-12 rounded-full bg-linear-to-r from-blue-500 to-blue-700 flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 group"
+          aria-label="تحميل تطبيق VELIX"
+        >
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </a>
+      )}
     </>
   );
 }

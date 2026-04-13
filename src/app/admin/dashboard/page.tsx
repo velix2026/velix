@@ -4,17 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => void;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
-
 export default function AdminDashboard() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showInstall, setShowInstall] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [stats, setStats] = useState({
     orders: 0,
@@ -35,14 +28,6 @@ export default function AdminDashboard() {
   }, [router]);
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowInstall(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    
     setIsOnline(navigator.onLine);
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -50,24 +35,10 @@ export default function AdminDashboard() {
     window.addEventListener('offline', handleOffline);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
-
-  const handleInstall = () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((result) => {
-        if (result.outcome === 'accepted') {
-          console.log('✅ VELIX Admin app installed');
-        }
-        setDeferredPrompt(null);
-        setShowInstall(false);
-      });
-    }
-  };
 
   const fetchStats = async () => {
     try {
@@ -135,26 +106,13 @@ export default function AdminDashboard() {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 pb-24">
+    <div className="min-h-screen bg-gray-50 pt-20 pb-12">
       <div className="container mx-auto px-4 max-w-md">
         {/* حالة الاتصال */}
         {!isOnline && (
           <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-3 text-center">
             <p className="text-red-500 font-bold text-sm">⚠️ لا يوجد اتصال بالإنترنت - بيانات مخزنة مؤقتاً</p>
           </div>
-        )}
-
-        {/* زر تثبيت التطبيق */}
-        {showInstall && (
-          <button
-            onClick={handleInstall}
-            className="w-full mb-4 bg-linear-to-r from-black to-gray-800 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17 9V7a5 5 0 00-10 0v2M7 9h10a2 2 0 012 2v7a2 2 0 01-2 2H7a2 2 0 01-2-2v-7a2 2 0 012-2z" />
-            </svg>
-            تثبيت تطبيق VELIX Admin
-          </button>
         )}
 
         {/* Header */}
@@ -200,7 +158,7 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {/* Quick Actions - 4 أزرار بدل 3 */}
+        {/* Quick Actions - 4 أزرار */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-black font-bold text-lg">إجراءات سريعة</h2>
@@ -234,36 +192,6 @@ export default function AdminDashboard() {
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <span>لا توجد نشاطات حديثة</span>
             </div>
-          </div>
-        </div>
-
-        {/* Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-black/10 py-3 shadow-lg">
-          <div className="flex justify-around items-center max-w-md mx-auto">
-            <Link href="/admin/dashboard" className="text-black flex flex-col items-center gap-1">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-              </svg>
-              <span className="text-[10px] font-bold">الرئيسية</span>
-            </Link>
-            <Link href="/admin/orders" className="text-black/40 flex flex-col items-center gap-1">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-              </svg>
-              <span className="text-[10px] font-bold">الطلبات</span>
-            </Link>
-            <Link href="/admin/products" className="text-black/40 flex flex-col items-center gap-1">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
-              </svg>
-              <span className="text-[10px] font-bold">المنتجات</span>
-            </Link>
-            <Link href="/admin" className="text-black/40 flex flex-col items-center gap-1">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/>
-              </svg>
-              <span className="text-[10px] font-bold">إضافة</span>
-            </Link>
           </div>
         </div>
       </div>

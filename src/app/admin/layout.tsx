@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
 export default function AdminLayout({
@@ -15,6 +15,20 @@ export default function AdminLayout({
 
   const isLoginPage = pathname === '/admin/login';
 
+  // ✅ إخفاء الهيدر والفوتر في صفحات الأدمن
+  useEffect(() => {
+    const header = document.querySelector('header');
+    const footer = document.querySelector('footer');
+    
+    if (header) header.style.display = 'none';
+    if (footer) footer.style.display = 'none';
+    
+    return () => {
+      if (header) header.style.display = '';
+      if (footer) footer.style.display = '';
+    };
+  }, []);
+
   useEffect(() => {
     const auth = sessionStorage.getItem('adminAuth');
     if (auth === 'true') {
@@ -25,15 +39,13 @@ export default function AdminLayout({
     setLoading(false);
   }, [router, isLoginPage]);
 
-  // ✅ إزالة manifest الموقع العادي وإضافة manifest الأدمن (يشتغل فوراً)
+  // ✅ إزالة manifest الموقع العادي وإضافة manifest الأدمن
   useEffect(() => {
-    // إزالة manifest الموقع العادي (اللي معاه data-main)
     const mainManifest = document.querySelector('link[rel="manifest"][data-main="true"]');
     if (mainManifest) {
       mainManifest.remove();
     }
     
-    // إضافة manifest الأدمن
     let adminManifest = document.querySelector('link[rel="manifest"][data-admin="true"]');
     if (!adminManifest) {
       adminManifest = document.createElement('link');
@@ -43,7 +55,6 @@ export default function AdminLayout({
       document.head.appendChild(adminManifest);
     }
     
-    // ✅ تغيير عنوان الصفحة
     let title = 'VELIX Admin - لوحة التحكم';
     if (pathname === '/admin/products') title = 'إدارة المنتجات - VELIX Admin';
     if (pathname === '/admin/orders') title = 'إدارة الطلبات - VELIX Admin';
@@ -51,7 +62,6 @@ export default function AdminLayout({
     if (pathname === '/admin') title = 'إضافة منتج - VELIX Admin';
     document.title = title;
     
-    // ✅ تغيير meta tags للتطبيق
     let appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
     if (!appleTitle) {
       appleTitle = document.createElement('meta');
@@ -67,12 +77,10 @@ export default function AdminLayout({
       document.head.appendChild(appName);
     }
     appName.setAttribute('content', 'VELIX Admin');
-  }, [pathname]); // ✅ اشتغل عند كل تغيير في المسار
+  }, [pathname]);
 
-  // ✅ كمان خلي المؤثر ده يشتغل بعد التحميل مباشرة
   useEffect(() => {
     if (!isLoginPage) {
-      // إزالة manifest الموقع العادي
       const mainManifest = document.querySelector('link[rel="manifest"][data-main="true"]');
       if (mainManifest) {
         mainManifest.remove();
