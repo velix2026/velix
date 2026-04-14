@@ -58,6 +58,45 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://instagram.com" />
         <link rel="dns-prefetch" href="https://facebook.com" />
         <link rel="dns-prefetch" href="https://tiktok.com" />
+
+        {/* ✅ Schema 1: Website - عشان جوجل تعرف اسم الموقع */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "VELIX",
+              "url": "https://velix-eg.store",
+              "alternateName": "VELIX Store",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://velix-eg.store/products?search={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            })
+          }}
+        />
+
+        {/* ✅ Schema 2: Organization - تأكيد إضافي لجوجل */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "VELIX",
+              "url": "https://velix-eg.store",
+              "logo": "https://velix-eg.store/images/logo.png",
+              "sameAs": [
+                "https://instagram.com/velixstore.eg",
+                "https://facebook.com/velixstore.eg",
+                "https://tiktok.com/@velixstore.eg",
+                "https://wa.me/201500125133"
+              ]
+            })
+          }}
+        />
       </head>
       <body className="flex flex-col min-h-screen bg-white font-sans antialiased">
         <SplashScreen />

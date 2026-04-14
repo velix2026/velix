@@ -49,51 +49,13 @@ export default function Hero() {
     'openingHours': ['Mo-Sa 10:00-22:00']
   };
 
-  const productSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    'itemListElement': [
-      {
-        '@type': 'ListItem',
-        'position': 1,
-        'item': {
-          '@type': 'Product',
-          'name': 'VELIX هودي أوفر سايز',
-          'image': 'https://velix-eg.store/images/hoodie-flat.png'
-        }
-      },
-      {
-        '@type': 'ListItem',
-        'position': 2,
-        'item': {
-          '@type': 'Product',
-          'name': 'VELIX شروال رياضي',
-          'image': 'https://velix-eg.store/images/pants-flat.png'
-        }
-      },
-      {
-        '@type': 'ListItem',
-        'position': 3,
-        'item': {
-          '@type': 'Product',
-          'name': 'VELIX تيشرت كلاسيك',
-          'image': 'https://velix-eg.store/images/tshirt-flat.png'
-        }
-      }
-    ]
-  };
-
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(heroSchema) }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
-      />
-
+      
       <section className="min-h-screen flex items-center bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] pt-24 md:pt-28 overflow-hidden">
         <div className="container mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
