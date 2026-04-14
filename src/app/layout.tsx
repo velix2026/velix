@@ -97,6 +97,24 @@ export default function RootLayout({
             })
           }}
         />
+
+        {/* ✅ Google Analytics */}
+        <Script
+          strategy="afterInteractive"
+          src="https://www.googletagmanager.com/gtag/js?id=G-SJWDM5GQ6B"
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-SJWDM5GQ6B');
+            `,
+          }}
+        />
       </head>
       <body className="flex flex-col min-h-screen bg-white font-sans antialiased">
         <SplashScreen />
