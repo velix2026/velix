@@ -1,14 +1,21 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Product } from '@/lib/products';
+import { getColorByCode } from '@/lib/colors';
+
+export interface CartVariation {
+  variationId: string;
+  size?: string;
+  color?: string;
+  quantity: number;
+}
 
 export interface CartItem extends Product {
   cartItemId: string;
   quantity: number;
-  selectedSize?: string;
-  selectedColor?: string;
+  variations: CartVariation[];
 }
 
-// ✅ دالة حساب الكمية المتاحة من stockItems
+// دالة حساب الكمية المتاحة من stockItems
 const getAvailableStock = (product: Product, selectedSize?: string, selectedColor?: string): number => {
   if (product.stockItems && Array.isArray(product.stockItems)) {
     if (selectedSize && selectedColor) {
@@ -17,60 +24,55 @@ const getAvailableStock = (product: Product, selectedSize?: string, selectedColo
       );
       return stockItem?.quantity || 0;
     }
-    // إذا لم يتم اختيار مقاس ولون، نرجع إجمالي الكمية
     return product.stockItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
   }
   return product.stock || 0;
 };
 
-// ✅ دالة حساب السعر بعد خصم الكمية (باستخدام tiers)
-const getDiscountedPricePerItem = (item: CartItem): number => {
+const getColorName = (colorCode: string): string => {
+  const color = getColorByCode(colorCode);
+  return color.name || colorCode;
+};
+
+// دالة حساب السعر بعد خصم الكمية
+const getDiscountedPricePerItem = (item: CartItem, quantityForDiscount: number): number => {
   if (!item.quantityDiscount?.enabled) return item.price;
-  
   const { tiers } = item.quantityDiscount;
   let applicableTier = null;
   for (let i = tiers.length - 1; i >= 0; i--) {
-    if (item.quantity >= tiers[i].minQuantity) {
+    if (quantityForDiscount >= tiers[i].minQuantity) {
       applicableTier = tiers[i];
       break;
     }
   }
-  
   if (!applicableTier) return item.price;
   return item.price - applicableTier.discountPerItem;
 };
 
-const getEffectivePrice = (item: CartItem | Product): number => {
-  // إذا كان CartItem وله quantityDiscount
-  if ('quantity' in item && item.quantityDiscount?.enabled) {
-    return getDiscountedPricePerItem(item as CartItem);
-  }
-  if (item.oldPrice && item.oldPrice > item.price) {
-    return item.price;
-  }
-  return item.price;
-};
-
 const getItemTotalPrice = (item: CartItem): number => {
-  const effectivePrice = getEffectivePrice(item);
-  return effectivePrice * item.quantity;
+  const totalQuantity = item.variations.reduce((sum, v) => sum + v.quantity, 0);
+  const effectivePrice = getDiscountedPricePerItem(item, totalQuantity);
+  return effectivePrice * totalQuantity;
 };
 
-const getSavingsForCartItem = (item: CartItem): number => {
-  const originalPrice = (item.oldPrice && item.oldPrice > item.price) ? item.oldPrice : item.price;
-  const effectivePrice = getEffectivePrice(item);
-  return (originalPrice - effectivePrice) * item.quantity;
+const getVariationTotalPrice = (item: CartItem, variation: CartVariation): number => {
+  const totalQuantity = item.variations.reduce((sum, v) => sum + v.quantity, 0);
+  const effectivePrice = getDiscountedPricePerItem(item, totalQuantity);
+  return effectivePrice * variation.quantity;
+};
+
+const generateCartItemId = (productId: number): string => {
+  return `${productId}-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+};
+
+const generateVariationId = (): string => {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
 };
 
 const trackCartEvent = (eventName: string, data: any) => {
   if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', eventName, {
-      ...data,
-      event_category: 'cart',
-      event_label: data.productName || 'cart_interaction'
-    });
+    (window as any).gtag('event', eventName, { ...data, event_category: 'cart' });
   }
-  
   try {
     const cartEvents = JSON.parse(localStorage.getItem('cart_events') || '[]');
     cartEvents.push({ event: eventName, data, timestamp: new Date().toISOString() });
@@ -78,10 +80,6 @@ const trackCartEvent = (eventName: string, data: any) => {
   } catch (error) {
     console.error('Error tracking cart event:', error);
   }
-};
-
-const generateCartItemId = (productId: number, size?: string, color?: string): string => {
-  return `${productId}-${size || 'nosize'}-${color || 'nocolor'}-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
 };
 
 export function useCart() {
@@ -93,16 +91,14 @@ export function useCart() {
 
   const updateCartSchema = (cartItems: CartItem[]) => {
     if (typeof document === 'undefined') return;
-    
     const existingScript = document.getElementById('cart-schema');
     if (existingScript) existingScript.remove();
-    
     if (cartItems.length === 0) return;
-    
+
     const cartSchema = {
       '@context': 'https://schema.org',
       '@type': 'Cart',
-      'name': 'سلة تسوق Velix',
+      'name': 'سلة VELIX',
       'totalItems': cartItems.reduce((acc, item) => acc + item.quantity, 0),
       'totalPrice': {
         '@type': 'PriceSpecification',
@@ -114,21 +110,12 @@ export function useCart() {
         'quantity': item.quantity,
         'hasProduct': {
           '@type': 'Product',
-          'name': `${item.name}${item.selectedSize ? ` - مقاس ${item.selectedSize}` : ''}${item.selectedColor ? ` - لون ${item.selectedColor}` : ''}`,
+          'name': `${item.name}${item.variations.length > 1 ? ` (${item.variations.length} مقاس/لون)` : ''}`,
           'sku': `VELIX-${item.id}`,
-          'offers': {
-            '@type': 'Offer',
-            'price': getEffectivePrice(item),
-            'priceCurrency': 'EGP',
-            'availability': (() => {
-              const stock = getAvailableStock(item, item.selectedSize, item.selectedColor);
-              return stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
-            })()
-          }
+          'offers': { '@type': 'Offer', 'price': item.price, 'priceCurrency': 'EGP' }
         }
       }))
     };
-    
     const script = document.createElement('script');
     script.id = 'cart-schema';
     script.type = 'application/ld+json';
@@ -136,35 +123,45 @@ export function useCart() {
     document.head.appendChild(script);
   };
 
+  const calculateCartStats = useCallback((cartItems: CartItem[]) => {
+    const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    const total = cartItems.reduce((sum, item) => sum + getItemTotalPrice(item), 0);
+    return { totalQuantity, total };
+  }, []);
+
+  const saveCart = useCallback((cartItems: CartItem[]) => {
+    const toSave = cartItems.map(({ variations, quantity, ...rest }) => ({ ...rest, variations, quantity }));
+    localStorage.setItem('cart', JSON.stringify(toSave));
+    const { totalQuantity, total } = calculateCartStats(cartItems);
+    setCartCount(totalQuantity);
+    setCartTotal(total);
+    updateCartSchema(cartItems);
+    setTimeout(() => window.dispatchEvent(new CustomEvent('cartUpdated')), 0);
+  }, [calculateCartStats]);
+
   const loadCart = useCallback(() => {
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
-    
+    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
     updateTimeoutRef.current = setTimeout(() => {
       if (!isMountedRef.current) return;
-      
       try {
         const saved = localStorage.getItem('cart');
         if (saved) {
           const cartItems = JSON.parse(saved);
-          const totalQuantity = cartItems.reduce((sum: number, item: CartItem) => {
-            return sum + (item.quantity || 1);
-          }, 0);
-          setCartCount(totalQuantity);
-          
-          const total = cartItems.reduce((sum: number, item: CartItem) => {
-            return sum + getItemTotalPrice(item);
-          }, 0);
-          setCartTotal(total);
-          
-          const cartWithQuantity = cartItems.map((item: CartItem) => ({ 
-            ...item, 
-            quantity: item.quantity || 1 
+          const itemsWithDefaults = cartItems.map((item: any) => ({
+            ...item,
+            variations: item.variations || (item.selectedSize || item.selectedColor ? [{
+              variationId: generateVariationId(),
+              size: item.selectedSize,
+              color: item.selectedColor,
+              quantity: item.quantity || 1
+            }] : [{ variationId: generateVariationId(), quantity: item.quantity || 1 }]),
+            quantity: item.variations?.reduce((sum: number, v: any) => sum + v.quantity, 0) || item.quantity || 1
           }));
-          setCart(cartWithQuantity);
-          
-          updateCartSchema(cartWithQuantity);
+          setCart(itemsWithDefaults);
+          const { totalQuantity, total } = calculateCartStats(itemsWithDefaults);
+          setCartCount(totalQuantity);
+          setCartTotal(total);
+          updateCartSchema(itemsWithDefaults);
         } else {
           setCart([]);
           setCartCount(0);
@@ -177,301 +174,176 @@ export function useCart() {
         setCartTotal(0);
       }
     }, 0);
-  }, []);
+  }, [calculateCartStats]);
 
-  // ✅ تحديث الكمية مع التحقق من المخزون من stockItems
-  const updateCartQuantity = useCallback((cartItemId: string, newQuantity: number) => {
+  const addToCart = useCallback((product: Product, selectedSize?: string, selectedColor?: string, quantity: number = 1) => {
+    const availableStock = getAvailableStock(product, selectedSize, selectedColor);
+    if (availableStock === 0) {
+      setTimeout(() => window.dispatchEvent(new CustomEvent('showToast', {
+        detail: { message: `⚠️ المنتج ده (مقاس ${selectedSize || 'غير محدد'}، لون ${getColorName(selectedColor || 'غير محدد')}) خلص من عندنا`, type: 'warning' }
+      })), 0);
+      return;
+    }
+    if (quantity > availableStock) {
+      setTimeout(() => window.dispatchEvent(new CustomEvent('showToast', {
+        detail: { message: `⚠️ معندناش غير ${availableStock} قطعة من المنتج ده`, type: 'warning' }
+      })), 0);
+      return;
+    }
+
+    setCart(prevCart => {
+      const existingItem = prevCart.find(item => item.id === product.id);
+      
+      if (existingItem) {
+        const existingVariation = existingItem.variations.find(v => v.size === selectedSize && v.color === selectedColor);
+        
+        if (existingVariation) {
+          const newQuantity = existingVariation.quantity + quantity;
+          if (newQuantity > availableStock) {
+            setTimeout(() => window.dispatchEvent(new CustomEvent('showToast', {
+              detail: { message: `⚠️ معندناش غير ${availableStock} قطعة من المنتج ده`, type: 'warning' }
+            })), 0);
+            return prevCart;
+          }
+          const newVariations = existingItem.variations.map(v =>
+            v.variationId === existingVariation.variationId ? { ...v, quantity: newQuantity } : v
+          );
+          const newTotalQuantity = newVariations.reduce((sum, v) => sum + v.quantity, 0);
+          const updatedItem = { ...existingItem, variations: newVariations, quantity: newTotalQuantity };
+          const newCart = prevCart.map(item => item.id === product.id ? updatedItem : item);
+          saveCart(newCart);
+          
+          setTimeout(() => window.dispatchEvent(new CustomEvent('showToast', {
+            detail: { message: `✅ اتضاف ${quantity} × "${product.name}"${selectedSize ? ` (مقاس ${selectedSize})` : ''}${selectedColor ? ` (لون ${getColorName(selectedColor)})` : ''} للسلة`, type: 'success' }
+          })), 0);
+          return newCart;
+        } else {
+          const newVariations = [...existingItem.variations, {
+            variationId: generateVariationId(),
+            size: selectedSize,
+            color: selectedColor,
+            quantity
+          }];
+          const newTotalQuantity = newVariations.reduce((sum, v) => sum + v.quantity, 0);
+          const updatedItem = { ...existingItem, variations: newVariations, quantity: newTotalQuantity };
+          const newCart = prevCart.map(item => item.id === product.id ? updatedItem : item);
+          saveCart(newCart);
+          
+          setTimeout(() => window.dispatchEvent(new CustomEvent('showToast', {
+            detail: { message: `✅ اتضاف ${quantity} × "${product.name}"${selectedSize ? ` (مقاس ${selectedSize})` : ''}${selectedColor ? ` (لون ${getColorName(selectedColor)})` : ''} للسلة`, type: 'success' }
+          })), 0);
+          return newCart;
+        }
+      } else {
+        const newItem: CartItem = {
+          ...product,
+          cartItemId: generateCartItemId(product.id),
+          quantity: quantity,
+          variations: [{
+            variationId: generateVariationId(),
+            size: selectedSize,
+            color: selectedColor,
+            quantity
+          }]
+        };
+        const newCart = [...prevCart, newItem];
+        saveCart(newCart);
+        
+        setTimeout(() => window.dispatchEvent(new CustomEvent('showToast', {
+          detail: { message: `✅ اتضاف ${quantity} × "${product.name}"${selectedSize ? ` (مقاس ${selectedSize})` : ''}${selectedColor ? ` (لون ${getColorName(selectedColor)})` : ''} للسلة`, type: 'success' }
+        })), 0);
+        return newCart;
+      }
+    });
+  }, [saveCart]);
+
+  const updateVariationQuantity = useCallback((productId: number, variationId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
     
     setCart(prevCart => {
-      const item = prevCart.find(item => item.cartItemId === cartItemId);
+      const item = prevCart.find(i => i.id === productId);
+      if (!item) return prevCart;
       
-      // ✅ التحقق من المخزون من stockItems
-      if (item) {
-        const availableStock = getAvailableStock(item, item.selectedSize, item.selectedColor);
-        if (newQuantity > availableStock) {
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('showToast', {
-              detail: {
-                message: `⚠️ لا يتوفر أكثر من ${availableStock} قطع من هذا المنتج (مقاس ${item.selectedSize || 'غير محدد'}، لون ${item.selectedColor || 'غير محدد'})`,
-                type: 'warning'
-              }
-            }));
-          }, 0);
-          return prevCart;
-        }
+      const variation = item.variations.find(v => v.variationId === variationId);
+      if (!variation) return prevCart;
+      
+      const availableStock = getAvailableStock(item, variation.size, variation.color);
+      if (newQuantity > availableStock) {
+        setTimeout(() => window.dispatchEvent(new CustomEvent('showToast', {
+          detail: { message: `⚠️ معندناش غير ${availableStock} قطعة من المنتج ده`, type: 'warning' }
+        })), 0);
+        return prevCart;
       }
       
-      const updatedCart = prevCart.map(item =>
-        item.cartItemId === cartItemId ? { ...item, quantity: newQuantity } : item
-      );
-      
-      const totalQuantity = updatedCart.reduce((sum, item) => sum + item.quantity, 0);
-      const total = updatedCart.reduce((sum, item) => sum + getItemTotalPrice(item), 0);
-      
-      setCartCount(totalQuantity);
-      setCartTotal(total);
-      
-      const toSave = updatedCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
-      localStorage.setItem('cart', JSON.stringify(toSave));
-      
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('cartUpdated'));
-      }, 0);
-      
-      trackCartEvent('update_quantity', {
-        cartItemId,
-        quantity: newQuantity,
-        cartTotal: total,
-        cartCount: totalQuantity
-      });
-      
-      updateCartSchema(updatedCart);
-      
-      return updatedCart;
-    });
-  }, []);
-
-  const removeFromCart = useCallback((cartItemId: string, productName?: string) => {
-    setCart(prevCart => {
-      const removedItem = prevCart.find(item => item.cartItemId === cartItemId);
-      const newCart = prevCart.filter(item => item.cartItemId !== cartItemId);
-      const totalQuantity = newCart.reduce((sum, item) => sum + item.quantity, 0);
-      const total = newCart.reduce((sum, item) => sum + getItemTotalPrice(item), 0);
-      
-      setCartCount(totalQuantity);
-      setCartTotal(total);
-      
-      const toSave = newCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
-      localStorage.setItem('cart', JSON.stringify(toSave));
-      
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('cartUpdated'));
-      }, 0);
-      
-      trackCartEvent('remove_from_cart', {
-        cartItemId,
-        productName: productName || removedItem?.name,
-        cartTotal: total,
-        cartCount: totalQuantity
-      });
-      
-      updateCartSchema(newCart);
-      
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('showToast', {
-          detail: {
-            message: `🗑️ تم إزالة "${productName || removedItem?.name || 'المنتج'}" من السلة`,
-            type: 'info'
-          }
-        }));
-      }, 0);
-      
+      const newVariations = item.variations.map(v => v.variationId === variationId ? { ...v, quantity: newQuantity } : v);
+      const newTotalQuantity = newVariations.reduce((sum, v) => sum + v.quantity, 0);
+      const updatedItem = { ...item, variations: newVariations, quantity: newTotalQuantity };
+      const newCart = prevCart.map(i => i.id === productId ? updatedItem : i);
+      saveCart(newCart);
       return newCart;
     });
-  }, []);
+  }, [saveCart]);
+
+  const removeVariation = useCallback((productId: number, variationId: string, productName?: string, variationDesc?: string) => {
+    setCart(prevCart => {
+      const item = prevCart.find(i => i.id === productId);
+      if (!item) return prevCart;
+      
+      const newVariations = item.variations.filter(v => v.variationId !== variationId);
+      let newCart;
+      if (newVariations.length === 0) {
+        newCart = prevCart.filter(i => i.id !== productId);
+      } else {
+        const newTotalQuantity = newVariations.reduce((sum, v) => sum + v.quantity, 0);
+        const updatedItem = { ...item, variations: newVariations, quantity: newTotalQuantity };
+        newCart = prevCart.map(i => i.id === productId ? updatedItem : i);
+      }
+      saveCart(newCart);
+      
+      setTimeout(() => window.dispatchEvent(new CustomEvent('showToast', {
+        detail: { message: `🗑️ اتشال "${productName || item.name}${variationDesc ? ` (${variationDesc})` : ''}" من السلة`, type: 'info' }
+      })), 0);
+      return newCart;
+    });
+  }, [saveCart]);
 
   const removeFromCartByProductId = useCallback((productId: number, productName?: string) => {
-    const itemToRemove = cart.find(item => item.id === productId);
-    
-    if (itemToRemove) {
-      removeFromCart(itemToRemove.cartItemId, productName);
-      return true;
-    }
-    
-    console.warn(`Product with id ${productId} not found in cart`);
-    return false;
-  }, [cart, removeFromCart]);
-
-  const addToCart = useCallback((product: Product, selectedSize?: string, selectedColor?: string, quantity: number = 1) => {
-    // ✅ التحقق من المخزون من stockItems
-    const availableStock = getAvailableStock(product, selectedSize, selectedColor);
-    if (availableStock === 0) {
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('showToast', {
-          detail: {
-            message: `⚠️ هذا المنتج (مقاس ${selectedSize || 'غير محدد'}، لون ${selectedColor || 'غير محدد'}) غير متوفر حالياً`,
-            type: 'warning'
-          }
-        }));
-      }, 0);
-      return;
-    }
-    
-    if (quantity > availableStock) {
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('showToast', {
-          detail: {
-            message: `⚠️ لا يتوفر أكثر من ${availableStock} قطع من هذا المنتج (مقاس ${selectedSize || 'غير محدد'}، لون ${selectedColor || 'غير محدد'})`,
-            type: 'warning'
-          }
-        }));
-      }, 0);
-      return;
-    }
-    
     setCart(prevCart => {
-      // ✅ التحقق من وجود نفس المنتج بنفس المقاس واللون
-      const existingItem = prevCart.find(
-        item => item.id === product.id && 
-        item.selectedSize === selectedSize && 
-        item.selectedColor === selectedColor
-      );
-      
-      if (existingItem) {
-        // تحديث الكمية بدلاً من إضافة عنصر جديد
-        const newQuantity = existingItem.quantity + quantity;
-        if (newQuantity > availableStock) {
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('showToast', {
-              detail: {
-                message: `⚠️ لا يمكن إضافة أكثر من ${availableStock} قطع من هذا المنتج`,
-                type: 'warning'
-              }
-            }));
-          }, 0);
-          return prevCart;
-        }
-        
-        const updatedCart = prevCart.map(item =>
-          item.cartItemId === existingItem.cartItemId 
-            ? { ...item, quantity: newQuantity }
-            : item
-        );
-        
-        const totalQuantity = updatedCart.reduce((sum, item) => sum + item.quantity, 0);
-        const total = updatedCart.reduce((sum, item) => sum + getItemTotalPrice(item), 0);
-        
-        setCartCount(totalQuantity);
-        setCartTotal(total);
-        
-        const toSave = updatedCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
-        localStorage.setItem('cart', JSON.stringify(toSave));
-        
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('cartUpdated'));
-        }, 0);
-        
-        trackCartEvent('add_to_cart', {
-          productId: product.id,
-          productName: product.name,
-          selectedSize,
-          selectedColor,
-          quantity,
-          cartTotal: total,
-          cartCount: totalQuantity
-        });
-        
-        updateCartSchema(updatedCart);
-        
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('showToast', {
-            detail: {
-              message: `✅ تم إضافة ${quantity} × "${product.name}"${selectedSize ? ` (مقاس ${selectedSize})` : ''}${selectedColor ? ` (لون ${selectedColor})` : ''} إلى السلة`,
-              type: 'success'
-            }
-          }));
-        }, 0);
-        
-        return updatedCart;
-      }
-      
-      // إضافة عنصر جديد
-      const newCartItem: CartItem = {
-        ...product,
-        cartItemId: generateCartItemId(product.id, selectedSize, selectedColor),
-        quantity: quantity,
-        selectedSize,
-        selectedColor
-      };
-      
-      const newCart = [...prevCart, newCartItem];
-      
-      const totalQuantity = newCart.reduce((sum, item) => sum + item.quantity, 0);
-      const total = newCart.reduce((sum, item) => sum + getItemTotalPrice(item), 0);
-      
-      setCartCount(totalQuantity);
-      setCartTotal(total);
-      
-      const toSave = newCart.map(({ quantity, ...rest }) => ({ ...rest, quantity }));
-      localStorage.setItem('cart', JSON.stringify(toSave));
-      
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('cartUpdated'));
-      }, 0);
-      
-      trackCartEvent('add_to_cart', {
-        productId: product.id,
-        productName: product.name,
-        selectedSize,
-        selectedColor,
-        quantity,
-        cartTotal: total,
-        cartCount: totalQuantity
-      });
-      
-      updateCartSchema(newCart);
-      
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('showToast', {
-          detail: {
-            message: `✅ تم إضافة ${quantity} × "${product.name}"${selectedSize ? ` (مقاس ${selectedSize})` : ''}${selectedColor ? ` (لون ${selectedColor})` : ''} إلى السلة`,
-            type: 'success'
-          }
-        }));
-      }, 0);
-      
+      const item = prevCart.find(i => i.id === productId);
+      if (!item) return prevCart;
+      const newCart = prevCart.filter(i => i.id !== productId);
+      saveCart(newCart);
+      setTimeout(() => window.dispatchEvent(new CustomEvent('showToast', {
+        detail: { message: `🗑️ اتشال "${productName || item.name}" من السلة`, type: 'info' }
+      })), 0);
       return newCart;
     });
-  }, []);
-  
+  }, [saveCart]);
+
   const clearCart = useCallback(() => {
     setCart([]);
     setCartCount(0);
     setCartTotal(0);
     localStorage.removeItem('cart');
-    
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('cartUpdated'));
-    }, 0);
-    
-    trackCartEvent('cart_cleared', {
-      timestamp: new Date().toISOString()
-    });
-    
+    setTimeout(() => window.dispatchEvent(new CustomEvent('cartUpdated')), 0);
     const existingScript = document.getElementById('cart-schema');
     if (existingScript) existingScript.remove();
   }, []);
-  
+
   const isInCart = useCallback((productId: number) => {
     return cart.some(item => item.id === productId);
   }, [cart]);
-  
-  const uniqueItemsCount = cart.length;
-  const totalSavings = cart.reduce((sum, item) => sum + getSavingsForCartItem(item), 0);
 
   useEffect(() => {
     isMountedRef.current = true;
     loadCart();
-    
-    const handleCartUpdate = () => {
-      loadCart();
-    };
-    
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'cart') {
-        loadCart();
-      }
-    };
-    
+    const handleCartUpdate = () => loadCart();
+    const handleStorageChange = (e: StorageEvent) => { if (e.key === 'cart') loadCart(); };
     window.addEventListener('cartUpdated', handleCartUpdate);
     window.addEventListener('storage', handleStorageChange);
-    
     return () => {
       isMountedRef.current = false;
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-      }
+      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
       window.removeEventListener('cartUpdated', handleCartUpdate);
       window.removeEventListener('storage', handleStorageChange);
     };
@@ -481,12 +353,10 @@ export function useCart() {
     cart,
     cartCount,
     cartTotal,
-    uniqueItemsCount,
-    totalSavings,
-    updateCartQuantity,
-    removeFromCart,
-    removeFromCartByProductId,
     addToCart,
+    updateVariationQuantity,
+    removeVariation,
+    removeFromCartByProductId,
     clearCart,
     isInCart,
   };

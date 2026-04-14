@@ -7,6 +7,7 @@ import { Product } from '@/lib/products';
 import { useCart } from '@/hooks/useCart';
 import { useFavorites } from '@/hooks/useFavorites';
 import { toArabicNumber, formatPrice, formatDiscount, formatStock } from '@/lib/utils';
+import { getColorByCode } from '@/lib/colors';
 
 interface ProductCardProps {
   product: Product;
@@ -34,25 +35,10 @@ const getAvailableStock = (product: Product, size?: string, color?: string): num
   return product.stock || 0;
 };
 
+// ✅ استخدام الألوان من lib/colors
 const getColorName = (colorCode: string): string => {
-  const colorMap: Record<string, string> = {
-    '#000000': 'أسود',
-    '#FFFFFF': 'أبيض',
-    '#808080': 'رمادي',
-    '#FF0000': 'أحمر',
-    '#0000FF': 'أزرق',
-    '#008000': 'أخضر',
-    '#FFFF00': 'أصفر',
-    '#FFC0CB': 'وردي',
-    '#A52A2A': 'بني',
-    '#800080': 'بنفسجي',
-    '#FFA500': 'برتقالي',
-    '#00FFFF': 'سماوي',
-    '#FF69B4': 'زهري',
-    '#C0C0C0': 'فضي',
-    '#FFD700': 'ذهبي',
-  };
-  return colorMap[colorCode.toUpperCase()] || colorCode;
+  const color = getColorByCode(colorCode);
+  return color.name || colorCode;
 };
 
 const ProductCard = memo(function ProductCard({ product, priority = false }: ProductCardProps) {
@@ -99,7 +85,6 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   const mountedRef = useRef(true);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
-  // دالة للتحقق إذا كان المنتج جديد (أقل من 3 أيام)
   const isRecentlyAdded = useCallback(() => {
     if (!product.createdAt) return false;
     const createdDate = new Date(product.createdAt);
@@ -108,21 +93,18 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     return diffDays < 3;
   }, [product.createdAt]);
 
-  // دالة للتحقق إذا كان المنتج من الأكثر مبيعاً
   const isBestSeller = product.salesCount !== undefined && product.salesCount > 10;
 
-  // حساب الخصم المئوي من السعر القديم والسعر الحالي
   const discountPercent = product.oldPrice && product.oldPrice > product.price 
     ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
     : 0;
 
-  // ترتيب الـ Badges
+  // 🎨 بادجات نحاسية فخمة
   const showNewBadge = isRecentlyAdded() && !isOutOfStock;
   const showBestSellerBadge = isBestSeller && !isOutOfStock;
   const showDiscountBadge = discountPercent > 0 && !isOutOfStock;
   const showLowStockBadge = isLowStock && !isOutOfStock;
 
-  // دالة حساب السعر بعد خصم الكمية
   const getQuantityDiscountPrice = (quantity: number) => {
     if (!product.quantityDiscount?.enabled) return product.price * quantity;
     
@@ -140,7 +122,6 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     return quantity * discountedPrice;
   };
 
-  // دالة للحصول على مستوى الخصم المناسب
   const getApplicableTier = (quantity: number) => {
     if (!product.quantityDiscount?.enabled) return null;
     const { tiers } = product.quantityDiscount;
@@ -288,17 +269,14 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     ));
   };
 
-  // ✅ دالة مخصصة لاختيار نفس المقاس واللون لجميع القطع
   const applyToAll = (field: 'size' | 'color', value: string) => {
     setSelections(prev => prev.map(sel => ({ ...sel, [field]: value })));
   };
 
-  // ✅ دالة لضبط جميع الكميات لنفس العدد
   const setAllQuantities = (quantity: number) => {
     setSelections(prev => prev.map(sel => ({ ...sel, quantity })));
   };
 
-  // ✅ دالة لدمج القطع المتطابقة (نفس المقاس واللون)
   const mergeIdenticalSelections = (selectionsList: CartItemSelection[]) => {
     const merged = new Map<string, CartItemSelection>();
     
@@ -317,16 +295,14 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
   const confirmSelections = () => {
     if (hasValidSelections()) {
-      // دمج القطع المتطابقة أولاً
       const mergedSelections = mergeIdenticalSelections(selections);
       
-      // التحقق من الكمية لكل قطعة
       for (const selection of mergedSelections) {
         const availableStock = getAvailableStock(product, selection.size, selection.color);
         if (selection.quantity > availableStock) {
           window.dispatchEvent(new CustomEvent('showToast', {
             detail: {
-              message: `⚠️ العدد المطلوب (${toArabicNumber(selection.quantity)}) للقطعة (مقاس ${selection.size || 'غير محدد'}، لون ${getColorName(selection.color)}) يتجاوز المتاح (${toArabicNumber(availableStock)})`,
+              message: `⚠️ العدد المطلوب (${toArabicNumber(selection.quantity)}) للقطعة (مقاس ${selection.size || 'غير محدد'}، لون ${getColorName(selection.color)}) أكتر من المتاح (${toArabicNumber(availableStock)})`,
               type: 'warning'
             }
           }));
@@ -334,7 +310,6 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
         }
       }
       
-      // إضافة للسلة
       for (const selection of mergedSelections) {
         for (let i = 0; i < selection.quantity; i++) {
           addToCart(product, selection.size || undefined, selection.color || undefined, 1);
@@ -366,15 +341,15 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
   return (
     <>
-      <article className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden relative h-full flex flex-col">
+      <article className="group bg-white rounded-xl shadow-md hover:shadow-rose-gold/20 transition-all duration-300 overflow-hidden relative h-full flex flex-col border border-rose-gold/10 hover:border-rose-gold/30">
         <div 
-          className="relative aspect-square w-full bg-black/5 overflow-hidden cursor-pointer flex items-center justify-center"
+          className="relative aspect-square w-full bg-rose-gold/5 overflow-hidden cursor-pointer flex items-center justify-center"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
           <Link 
             href={`/products/${product.id}`} 
-            className="relative block h-full w-full focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2"
+            className="relative block h-full w-full focus:outline-none focus:ring-2 focus:ring-rose-gold/20 focus:ring-offset-2"
             aria-label={`عرض تفاصيل ${product.name}`}
           >
             <Image
@@ -394,7 +369,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             <>
               <button
                 onClick={prevImage}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1.5 shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-rose-gold/10 rounded-full p-1.5 shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
                 aria-label="الصورة السابقة"
               >
                 <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -403,7 +378,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
               </button>
               <button
                 onClick={nextImage}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1.5 shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-rose-gold/10 rounded-full p-1.5 shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
                 aria-label="الصورة التالية"
               >
                 <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -413,30 +388,31 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             </>
           )}
 
+          {/* 🎨 بادجات نحاسية فخمة */}
           <div className="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none z-10">
             {showNewBadge && (
-              <span className="bg-linear-to-r from-emerald-500 to-green-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
-                <span className="text-[11px]">🎉</span> جديد
+              <span className="bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
+                <span className="text-[11px]">🆕</span> جديد
               </span>
             )}
             {showBestSellerBadge && (
-              <span className="bg-linear-to-r from-yellow-500 to-amber-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
+              <span className="bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
                 <span className="text-[11px]">⭐</span> الأكثر مبيعاً
               </span>
             )}
             {showDiscountBadge && (
-              <span className="bg-linear-to-r from-red-500 to-rose-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
+              <span className="bg-linear-to-r from-rose-gold-dark via-red-600 to-rose-gold-dark text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
                 <span className="text-[11px]">🏷️</span> {formatDiscount(discountPercent)}
               </span>
             )}
             {showLowStockBadge && (
-              <span className="bg-linear-to-r from-orange-500 to-amber-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md animate-pulse flex items-center gap-1">
+              <span className="bg-linear-to-r from-amber-600 via-orange-600 to-amber-700 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md animate-pulse flex items-center gap-1">
                 <span className="text-[11px]">⏳</span> {formatStock(totalStock)}
               </span>
             )}
             {isOutOfStock && (
               <span className="bg-linear-to-r from-gray-600 to-gray-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
-                <span className="text-[11px]">🚫</span> نفذت الكمية
+                <span className="text-[11px]">🚫</span> خلص من عندنا
               </span>
             )}
           </div>
@@ -447,10 +423,10 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
               onTouchStart={handleFavoriteClick}
               className={`p-1.5 md:p-2 rounded-full shadow-md transition-all duration-300 backdrop-blur-sm ${
                 isFavoritedState 
-                  ? 'bg-red-500 text-white hover:bg-red-600 scale-110' 
-                  : 'bg-white/90 text-black hover:bg-white hover:scale-110'
+                  ? 'bg-rose-gold text-white hover:bg-copper scale-110' 
+                  : 'bg-white/90 text-black hover:bg-rose-gold/20 hover:text-rose-gold hover:scale-110'
               }`}
-              aria-label={isFavoritedState ? `إزالة ${product.name} من المفضلة` : `إضافة ${product.name} إلى المفضلة`}
+              aria-label={isFavoritedState ? `شيل ${product.name} من المفضلة` : `ضيف ${product.name} للمفضلة`}
             >
               <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill={isFavoritedState ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -462,10 +438,10 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
               onTouchStart={handleCartClick}
               className={`p-1.5 md:p-2 rounded-full shadow-md transition-all duration-300 backdrop-blur-sm ${
                 isInCartState 
-                  ? 'bg-green-600 text-white hover:bg-green-700 scale-110' 
-                  : 'bg-white/90 text-black hover:bg-white hover:scale-110'
+                  ? 'bg-rose-gold text-white hover:bg-copper scale-110' 
+                  : 'bg-white/90 text-black hover:bg-rose-gold/20 hover:text-rose-gold hover:scale-110'
               }`}
-              aria-label={isInCartState ? `إزالة ${product.name} من السلة` : `إضافة ${product.name} إلى السلة`}
+              aria-label={isInCartState ? `شيل ${product.name} من السلة` : `ضيف ${product.name} للسلة`}
               disabled={isOutOfStock}
             >
               <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -498,10 +474,10 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                     }}
                     className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
                       currentImageIndex === idx 
-                        ? 'bg-white w-3' 
-                        : 'bg-white/50 hover:bg-white/80'
+                        ? 'bg-rose-gold w-3' 
+                        : 'bg-white/50 hover:bg-rose-gold/50'
                     }`}
-                    aria-label={`انتقال إلى الصورة ${idx + 1}`}
+                    aria-label={`انتقال للصورة ${idx + 1}`}
                   />
                 ))}
               </div>
@@ -513,28 +489,28 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           <Link href={`/products/${product.id}`} className="block flex-1">
             {rating > 0 && (
               <div className="flex items-center gap-0.5 mb-1.5">
-                <div className="flex items-center text-yellow-400 text-[10px] md:text-xs">
+                <div className="flex items-center text-rose-gold text-[10px] md:text-xs">
                   {[...Array(fullStars)].map((_, i) => (
                     <span key={i}>★</span>
                   ))}
                   {hasHalfStar && <span>½</span>}
                   {[...Array(emptyStars)].map((_, i) => (
-                    <span key={i} className="text-gray-300">★</span>
+                    <span key={i} className="text-rose-gold/30">★</span>
                   ))}
                 </div>
-                <span className="text-black font-bold text-[9px] md:text-[10px] mr-1">
+                <span className="text-black/50 font-bold text-[9px] md:text-[10px] mr-1">
                   ({toArabicNumber(product.salesCount || rating)})
                 </span>
               </div>
             )}
 
-            <h3 className="text-xs md:text-sm font-bold text-black mb-1 line-clamp-2 hover:text-black/60 transition">
+            <h3 className="text-xs md:text-sm font-bold text-black mb-1 line-clamp-2 hover:text-rose-gold transition">
               {product.name}
             </h3>
-            <p className="text-black font-bold text-[10px] md:text-xs mb-2 opacity-70">{product.category}</p>
+            <p className="text-black/50 font-bold text-[10px] md:text-xs mb-2">{product.category}</p>
 
             <div className="flex items-center gap-1.5 mb-1.5">
-              <span className="text-sm md:text-base font-bold text-black">
+              <span className="text-sm md:text-base font-bold text-rose-gold">
                 {formatPrice(product.price)}
               </span>
               {product.oldPrice && product.oldPrice > product.price && (
@@ -545,7 +521,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             </div>
 
             {product.price > 500 && (
-              <p className="text-green-700 font-bold text-[9px] md:text-[10px]">
+              <p className="text-rose-gold font-bold text-[9px] md:text-[10px]">
                 🚚 شحن مجاني
               </p>
             )}
@@ -556,52 +532,51 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             className={`block text-center text-white font-bold text-[10px] md:text-xs py-2 rounded-full transition-all mt-2 ${
               isOutOfStock 
                 ? 'bg-black/40 cursor-not-allowed' 
-                : 'bg-linear-to-r from-sky-400 via-blue-500 to-indigo-500 hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg'
+                : 'bg-linear-to-r from-rose-gold-light via-rose-gold to-copper hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-rose-gold/30'
             }`}
             aria-label={`عرض تفاصيل ${product.name}`}
           >
-            {isOutOfStock ? 'نفذت الكمية' : 'اطلع على المنتج'}
+            {isOutOfStock ? 'خلص من عندنا' : 'اطلع على المنتج'}
           </Link>
         </div>
       </article>
 
+      {/* Selection Modal - نحاسي فخم */}
       {showSelectionModal && (
         <div 
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-60 flex items-center justify-center p-4 transition-all duration-300"
           onClick={cancelSelection}
         >
           <div 
-            className="bg-white rounded-2xl w-[calc(100%-2rem)] sm:w-[95%] md:w-[90%] lg:w-[85%] xl:w-[80%] max-w-5xl max-h-[85vh] overflow-y-auto shadow-2xl animate-scale-in mx-auto"
+            className="bg-white rounded-2xl w-[calc(100%-2rem)] sm:w-[95%] md:w-[90%] lg:w-[85%] xl:w-[80%] max-w-5xl max-h-[85vh] overflow-y-auto shadow-2xl animate-scale-in mx-auto border border-rose-gold/20"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white p-4 border-b border-black/10 z-10">
-              <h3 className="text-xl font-bold text-black text-center">إضافة إلى السلة</h3>
-              <p className="text-xs font-bold text-black text-center mt-1 opacity-70">
-                اختر المقاسات والألوان المطلوبة - يمكنك إضافة عدة قطع دفعة واحدة
+            <div className="sticky top-0 bg-white p-4 border-b border-rose-gold/20 z-10">
+              <h3 className="text-xl font-bold text-black text-center">إضافة للسلة</h3>
+              <p className="text-xs font-bold text-black/60 text-center mt-1">
+                اختار المقاسات والألوان - تقدر تضيف أكتر من قطعة مرة واحدة
               </p>
             </div>
 
             <div className="p-4 space-y-4">
-              {/* معلومات المنتج */}
-              <div className="flex gap-3 pb-3 border-b border-black/10">
-                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-black/10 shrink-0 flex items-center justify-center">
+              <div className="flex gap-3 pb-3 border-b border-rose-gold/20">
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-rose-gold/5 shrink-0 flex items-center justify-center">
                   <Image src={product.mainImage} alt={product.name} fill className="object-contain p-1" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-sm text-black line-clamp-2">{product.name}</h4>
-                  <p className="text-sm font-bold text-black mt-1">{formatPrice(product.price)}</p>
+                  <p className="text-sm font-bold text-rose-gold mt-1">{formatPrice(product.price)}</p>
                 </div>
               </div>
 
-              {/* أزرار الإجراءات السريعة */}
               {(hasSizes || hasColors) && selections.length > 1 && (
-                <div className="bg-black/5 rounded-xl p-3">
+                <div className="bg-rose-gold/5 rounded-xl p-3 border border-rose-gold/10">
                   <p className="text-xs font-bold text-black mb-2">إجراءات سريعة:</p>
                   <div className="flex flex-wrap gap-2">
                     {hasSizes && (
                       <select 
                         onChange={(e) => applyToAll('size', e.target.value)}
-                        className="text-xs px-2 py-1 border border-black/20 rounded-lg bg-white text-black"
+                        className="text-xs px-2 py-1 border border-rose-gold/20 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-rose-gold"
                         defaultValue=""
                       >
                         <option value="" disabled>تطبيق مقاس على الكل</option>
@@ -613,7 +588,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                     {hasColors && (
                       <select 
                         onChange={(e) => applyToAll('color', e.target.value)}
-                        className="text-xs px-2 py-1 border border-black/20 rounded-lg bg-white text-black"
+                        className="text-xs px-2 py-1 border border-rose-gold/20 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-rose-gold"
                         defaultValue=""
                       >
                         <option value="" disabled>تطبيق لون على الكل</option>
@@ -624,7 +599,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                     )}
                     <button
                       onClick={() => setAllQuantities(1)}
-                      className="text-xs px-2 py-1 border border-black/20 rounded-lg bg-white text-black hover:bg-black/5"
+                      className="text-xs px-2 py-1 border border-rose-gold/20 rounded-lg bg-white text-black hover:bg-rose-gold/10 transition"
                     >
                       ضبط الكل على 1
                     </button>
@@ -632,12 +607,11 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                 </div>
               )}
 
-              {/* قائمة القطع */}
               <div className="space-y-4 max-h-[40vh] overflow-y-auto p-1">
                 {selections.map((selection, index) => (
-                  <div key={selection.id} className="bg-black/5 rounded-xl p-3 relative">
+                  <div key={selection.id} className="bg-rose-gold/5 rounded-xl p-3 relative border border-rose-gold/10">
                     <div className="flex justify-between items-center mb-3">
-                      <span className="text-xs font-bold text-black opacity-70">القطعة {toArabicNumber(index + 1)}</span>
+                      <span className="text-xs font-bold text-black/70">القطعة {toArabicNumber(index + 1)}</span>
                       {selections.length > 1 && (
                         <button
                           onClick={() => removeSelection(selection.id)}
@@ -654,7 +628,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {hasSizes && (
                         <div>
-                          <p className="text-xs font-bold text-black mb-1.5">المقاس <span className="text-red-500">*</span></p>
+                          <p className="text-xs font-bold text-black mb-1.5">المقاس <span className="text-rose-gold">*</span></p>
                           <div className="flex flex-wrap gap-2">
                             {product.sizes?.map((size) => (
                               <button
@@ -662,8 +636,8 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                                 onClick={() => updateSelection(selection.id, 'size', size)}
                                 className={`min-w-10 px-3 py-1 text-sm font-bold rounded-lg transition-all ${
                                   selection.size === size
-                                    ? 'bg-black text-white shadow-md'
-                                    : 'bg-white text-black hover:bg-black/10 border border-black/20'
+                                    ? 'bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white shadow-md'
+                                    : 'bg-white text-black hover:bg-rose-gold/10 border border-rose-gold/20'
                                 }`}
                               >
                                 {size}
@@ -675,7 +649,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
                       {hasColors && (
                         <div>
-                          <p className="text-xs font-bold text-black mb-1.5">اللون <span className="text-red-500">*</span></p>
+                          <p className="text-xs font-bold text-black mb-1.5">اللون <span className="text-rose-gold">*</span></p>
                           <div className="flex flex-wrap gap-2">
                             {product.colors?.map((color) => {
                               const isSelected = selection.color === color;
@@ -686,8 +660,8 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                                   onClick={() => updateSelection(selection.id, 'color', color)}
                                   className={`relative w-8 h-8 rounded-full transition-all duration-200 ring-2 ring-offset-1 ${
                                     isSelected 
-                                      ? 'ring-black scale-110' 
-                                      : 'ring-black/20 hover:ring-black/40'
+                                      ? 'ring-rose-gold scale-110' 
+                                      : 'ring-rose-gold/20 hover:ring-rose-gold/40'
                                   }`}
                                   style={{ backgroundColor: color }}
                                   title={getColorName(color)}
@@ -718,7 +692,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                             const newQuantity = Math.max(1, selection.quantity - 1);
                             updateSelection(selection.id, 'quantity', newQuantity);
                           }}
-                          className="w-7 h-7 rounded-full bg-white border border-black/20 text-black font-bold hover:bg-black/10 transition flex items-center justify-center"
+                          className="w-7 h-7 rounded-full bg-white border border-rose-gold/20 text-black font-bold hover:bg-rose-gold/10 transition flex items-center justify-center"
                         >
                           -
                         </button>
@@ -732,13 +706,13 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                             } else {
                               window.dispatchEvent(new CustomEvent('showToast', {
                                 detail: {
-                                  message: `⚠️ لا يتوفر أكثر من ${toArabicNumber(availableStock)} قطع من هذا المنتج (مقاس ${selection.size || 'غير محدد'}، لون ${getColorName(selection.color)})`,
+                                  message: `⚠️ معندناش غير ${toArabicNumber(availableStock)} قطعة من المنتج ده`,
                                   type: 'warning'
                                 }
                               }));
                             }
                           }}
-                          className="w-7 h-7 rounded-full bg-white border border-black/20 text-black font-bold hover:bg-black/10 transition flex items-center justify-center"
+                          className="w-7 h-7 rounded-full bg-white border border-rose-gold/20 text-black font-bold hover:bg-rose-gold/10 transition flex items-center justify-center"
                         >
                           +
                         </button>
@@ -750,44 +724,44 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
               <button
                 onClick={addSelection}
-                className="w-full py-2 rounded-xl border-2 border-dashed border-black/30 text-black text-sm font-bold hover:border-black/50 hover:text-black transition-all opacity-70 hover:opacity-100"
+                className="w-full py-2 rounded-xl border-2 border-dashed border-rose-gold/30 text-rose-gold text-sm font-bold hover:border-rose-gold/50 hover:text-copper transition-all"
               >
                 + إضافة قطعة أخرى
               </button>
 
-              <div className="bg-black/10 rounded-xl p-3">
+              <div className="bg-rose-gold/5 rounded-xl p-3 border border-rose-gold/10">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-bold text-black opacity-70">إجمالي القطع:</span>
+                  <span className="text-sm font-bold text-black/70">إجمالي القطع:</span>
                   <span className="text-sm font-bold text-black">{toArabicNumber(totalItems)} قطعة</span>
                 </div>
                 <div className="flex justify-between items-center mt-1">
-                  <span className="text-sm font-bold text-black opacity-70">الإجمالي:</span>
-                  <span className="text-lg font-bold text-black">{formatPrice(getQuantityDiscountPrice(totalItems))}</span>
+                  <span className="text-sm font-bold text-black/70">الإجمالي:</span>
+                  <span className="text-lg font-bold text-rose-gold">{formatPrice(getQuantityDiscountPrice(totalItems))}</span>
                 </div>
                 {hasDiscount && (
-                  <div className="mt-2 text-xs text-emerald-600 font-bold text-center">
+                  <div className="mt-2 text-xs text-rose-gold font-bold text-center">
                     🎉 خصم الكمية: وفرت {formatPrice(totalItems * product.price - getQuantityDiscountPrice(totalItems))}
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-white p-4 border-t border-black/10 flex gap-3 rounded-b-2xl">
+            <div className="sticky bottom-0 bg-white p-4 border-t border-rose-gold/20 flex gap-3 rounded-b-2xl">
               <button
                 onClick={confirmSelections}
                 disabled={!hasValidSelections()}
                 className={`flex-1 py-2.5 rounded-xl font-bold transition-all ${
                   hasValidSelections()
-                    ? 'bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white hover:scale-[1.02] shadow-md'
-                    : 'bg-black/10 text-black/40 cursor-not-allowed'
+                    ? 'bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white hover:scale-[1.02] shadow-md hover:shadow-rose-gold/30'
+                    : 'bg-rose-gold/10 text-rose-gold/40 cursor-not-allowed'
                 }`}
               >
-                إضافة ({toArabicNumber(totalItems)}) إلى السلة
+                أضف ({toArabicNumber(totalItems)}) للسلة
               </button>
 
               <button
                 onClick={cancelSelection}
-                className="flex-1 py-2.5 rounded-xl bg-linear-to-r from-red-500 via-rose-500 to-pink-500 text-white font-bold hover:scale-[1.02] transition-all shadow-md"
+                className="flex-1 py-2.5 rounded-xl bg-linear-to-r from-gray-500 via-gray-600 to-gray-700 text-white font-bold hover:scale-[1.02] transition-all shadow-md"
               >
                 إلغاء
               </button>

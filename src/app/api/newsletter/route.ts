@@ -1,28 +1,41 @@
-// app/api/newsletter/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { sql } from '@vercel/postgres';
+
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
-import nodemailer from 'nodemailer';
+// ✅ دالة للتحقق من صلاحيات الأدمن
+function isAdminAuthorized(request: NextRequest): boolean {
+  // نتحقق من الـ session storage (بيتم إرساله في الـ headers)
+  const authHeader = request.headers.get('authorization');
+  const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
+  
+  // طريقة 1: التحقق من الـ session عبر الـ header (من الـ middleware)
+  // طريقة 2: السماح في development environment
+  if (process.env.NODE_ENV === 'development') {
+    return true;
+  }
+  
+  // التحقق من الباسورد (مؤقت)
+  if (authHeader === `Bearer ${adminPassword}`) {
+    return true;
+  }
+  
+  return false;
+}
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-// ✅ POST - الاشتراك في النشرة البريدية
-export async function POST(request: NextRequest) {
+// ✅ GET - جلب المشتركين
+export async function GET(request: NextRequest) {
+  // التحقق من الصلاحيات
+  if (!isAdminAuthorized(request)) {
+    console.log('🔒 Unauthorized access to newsletter API');
+    return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
+  }
+  
   try {
-    const { email } = await request.json();
+    console.log('🔍 Fetching subscribers...');
     
-    if (!email || !email.includes('@')) {
-      return NextResponse.json({ error: 'البريد الإلكتروني غير صحيح' }, { status: 400 });
-    }
-
+    // نتأكد من وجود الجدول
     await sql`
       CREATE TABLE IF NOT EXISTS newsletter_subscribers (
         id SERIAL PRIMARY KEY,
@@ -33,12 +46,40 @@ export async function POST(request: NextRequest) {
       )
     `;
 
+    const subscribers = await sql`
+      SELECT id, email, subscribed_at, status FROM newsletter_subscribers 
+      ORDER BY subscribed_at DESC
+    `;
+    
+    console.log(`✅ Found ${subscribers.rows.length} subscribers`);
+    return NextResponse.json(subscribers.rows);
+    
+  } catch (error) {
+    console.error('❌ Error fetching subscribers:', error);
+    return NextResponse.json({ 
+      error: 'حدث خطأ في جلب المشتركين'
+    }, { status: 500 });
+  }
+}
+
+// ✅ POST - إضافة مشترك
+export async function POST(request: NextRequest) {
+  if (!isAdminAuthorized(request)) {
+    return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
+  }
+  
+  try {
+    const { email } = await request.json();
+    
+    if (!email || !email.includes('@')) {
+      return NextResponse.json({ error: 'البريد الإلكتروني غير صحيح' }, { status: 400 });
+    }
+
     const existing = await sql`
-      SELECT email, status FROM newsletter_subscribers WHERE email = ${email}
+      SELECT id, status FROM newsletter_subscribers WHERE email = ${email}
     `;
 
     if (existing.rows.length > 0) {
-      // لو كان ملغي الاشتراك قبل كدة، نفعله تاني
       if (existing.rows[0].status === 'inactive') {
         await sql`
           UPDATE newsletter_subscribers 
@@ -48,134 +89,50 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ 
           success: true, 
           reactivated: true,
-          message: 'تم إعادة تفعيل اشتراكك بنجاح!'
+          message: 'تم إعادة تفعيل المشترك'
         });
       }
-      
       return NextResponse.json({ 
         alreadySubscribed: true,
-        message: 'هذا البريد مسجل بالفعل'
+        message: 'البريد مسجل بالفعل'
       });
     }
 
-    const ip = request.headers.get('x-forwarded-for') || 'unknown';
-    
     await sql`
-      INSERT INTO newsletter_subscribers (email, ip_address, status)
-      VALUES (${email}, ${ip}, 'active')
-    `;
-
-    try {
-      await transporter.sendMail({
-        from: `"VELIX Store" <${process.env.EMAIL_USER}>`,
-        to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
-        subject: `📧 مشترك جديد في النشرة البريدية - ${email}`,
-        html: `<div dir="rtl"><h2>📧 مشترك جديد!</h2><p><strong>البريد:</strong> ${email}</p><p><strong>التاريخ:</strong> ${new Date().toLocaleString('ar-EG')}</p></div>`,
-      });
-    } catch (emailError) {
-      console.error('Admin email error:', emailError);
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      message: 'تم الإشتراك بنجاح! شكراً لك'
-    });
-
-  } catch (error) {
-    console.error('Newsletter subscription error:', error);
-    return NextResponse.json({ error: 'حدث خطأ، حاول مرة أخرى' }, { status: 500 });
-  }
-}
-
-// ✅ PUT - تحديث الإيميل (تغيير البريد)
-export async function PUT(request: NextRequest) {
-  try {
-    const { oldEmail, newEmail } = await request.json();
-    
-    if (!oldEmail || !newEmail || !newEmail.includes('@')) {
-      return NextResponse.json({ error: 'بيانات غير صحيحة' }, { status: 400 });
-    }
-
-    // التحقق من وجود الإيميل القديم
-    const existing = await sql`
-      SELECT id FROM newsletter_subscribers WHERE email = ${oldEmail}
-    `;
-
-    if (existing.rows.length === 0) {
-      return NextResponse.json({ error: 'البريد غير مسجل في النشرة' }, { status: 404 });
-    }
-
-    // التحقق من عدم وجود الإيميل الجديد
-    const newEmailExists = await sql`
-      SELECT id FROM newsletter_subscribers WHERE email = ${newEmail}
-    `;
-
-    if (newEmailExists.rows.length > 0) {
-      return NextResponse.json({ error: 'البريد الجديد مسجل بالفعل' }, { status: 400 });
-    }
-
-    // تحديث الإيميل
-    await sql`
-      UPDATE newsletter_subscribers 
-      SET email = ${newEmail}, subscribed_at = CURRENT_TIMESTAMP
-      WHERE email = ${oldEmail}
+      INSERT INTO newsletter_subscribers (email, status)
+      VALUES (${email}, 'active')
     `;
 
     return NextResponse.json({ 
       success: true, 
-      message: 'تم تحديث بريدك الإلكتروني بنجاح'
+      message: 'تم إضافة المشترك بنجاح'
     });
-
   } catch (error) {
-    console.error('Update email error:', error);
-    return NextResponse.json({ error: 'حدث خطأ' }, { status: 500 });
+    console.error('Error adding subscriber:', error);
+    return NextResponse.json({ error: 'حدث خطأ في الإضافة' }, { status: 500 });
   }
 }
 
-// ✅ DELETE - إلغاء الاشتراك
+// ✅ DELETE - حذف مشترك
 export async function DELETE(request: NextRequest) {
-  try {
-    const { email } = await request.json();
-    
-    if (!email) {
-      return NextResponse.json({ error: 'البريد الإلكتروني مطلوب' }, { status: 400 });
-    }
-
-    // تحديث الحالة إلى inactive بدل حذف البيانات
-    await sql`
-      UPDATE newsletter_subscribers 
-      SET status = 'inactive'
-      WHERE email = ${email}
-    `;
-
-    return NextResponse.json({ 
-      success: true, 
-      message: 'تم إلغاء الاشتراك بنجاح'
-    });
-
-  } catch (error) {
-    console.error('Unsubscribe error:', error);
-    return NextResponse.json({ error: 'حدث خطأ' }, { status: 500 });
-  }
-}
-
-// ✅ GET - جلب المشتركين (للأدمن فقط)
-export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
-  
-  if (authHeader !== `Bearer ${adminPassword}` && process.env.NODE_ENV !== 'development') {
+  if (!isAdminAuthorized(request)) {
     return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
   }
-
+  
   try {
-    const subscribers = await sql`
-      SELECT id, email, subscribed_at, status FROM newsletter_subscribers 
-      ORDER BY subscribed_at DESC
-    `;
-    return NextResponse.json(subscribers.rows);
+    const { id, email } = await request.json();
+    
+    if (id) {
+      await sql`DELETE FROM newsletter_subscribers WHERE id = ${id}`;
+      return NextResponse.json({ success: true, message: 'تم حذف المشترك' });
+    } else if (email) {
+      await sql`DELETE FROM newsletter_subscribers WHERE email = ${email}`;
+      return NextResponse.json({ success: true, message: 'تم حذف المشترك' });
+    } else {
+      return NextResponse.json({ error: 'ID أو البريد مطلوب' }, { status: 400 });
+    }
   } catch (error) {
-    console.error('Error fetching subscribers:', error);
-    return NextResponse.json({ error: 'حدث خطأ' }, { status: 500 });
+    console.error('Error deleting subscriber:', error);
+    return NextResponse.json({ error: 'حدث خطأ في الحذف' }, { status: 500 });
   }
 }

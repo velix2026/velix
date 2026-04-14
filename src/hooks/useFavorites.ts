@@ -76,7 +76,7 @@ export function useFavorites() {
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('showToast', {
             detail: {
-              message: `❤️ تم إضافة "${product.name}" إلى المفضلة`,
+              message: `❤️ اتضاف "${product.name}" للمفضلة`,
               type: 'success'
             }
           }));
@@ -87,7 +87,7 @@ export function useFavorites() {
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('showToast', {
             detail: {
-              message: `⚠️ "${product.name}" موجود بالفعل في المفضلة`,
+              message: `ℹ️ "${product.name}" موجود في المفضلة بالفعل`,
               type: 'info'
             }
           }));
@@ -119,7 +119,7 @@ export function useFavorites() {
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('showToast', {
           detail: {
-            message: `🗑️ تم إزالة "${productName || removedItem?.name || 'المنتج'}" من المفضلة`,
+            message: `🗑️ اتشال "${productName || removedItem?.name || 'المنتج'}" من المفضلة`,
             type: 'info'
           }
         }));

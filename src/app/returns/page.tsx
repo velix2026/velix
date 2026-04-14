@@ -1,11 +1,10 @@
-// app/returns/page.tsx
 import ReturnsClient from './ReturnsClient';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "سياسة الاستبدال والاسترجاع | VELIX - رضاك مضمون 100%",
+  title: "سياسة الاستبدال والاسترجاع | VELIX",
   description: "تعرف على سياسة الاستبدال والاسترجاع في VELIX. استبدال أو استرجاع خلال 14 يوم، خدمة مجانية، رضاك هو أولويتنا.",
-  keywords: "سياسة الاستبدال, استرجاع المنتجات, VELIX, خدمة العملاء, استبدال مجاني, ضمان الرضا",
+  keywords: ["سياسة الاستبدال", "استرجاع المنتجات", "VELIX", "خدمة العملاء", "استبدال مجاني", "ضمان الرضا"],
   openGraph: {
     title: "سياسة الاستبدال والاسترجاع | VELIX",
     description: "استبدال أو استرجاع خلال 14 يوم - خدمة مجانية ورضاك مضمون",

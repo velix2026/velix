@@ -1,39 +1,43 @@
 import Hero from '@/components/Hero';
 import BrandFeatures from '@/components/BrandFeatures';
 import FeaturedProducts from '@/components/FeaturedProducts';
+import BrandStory from '@/components/BrandStory';
 import Newsletter from '@/components/Newsletter';
 import { getProducts } from '@/lib/products';
 
 export const dynamic = 'force-dynamic';
 
-// ✅ SEO للصفحة الرئيسية
 export const metadata = {
-  title: "VELIX | أقوى براند ملابس مصري - تسوق أحدث التيشرتات والهوديز",
+  title: "VELIX | براند ملابس مصري فاخر",
   description: "اكتشف VELIX، أول براند ملابس مصري يجمع بين الجودة العالمية والتصميم العصري. تشكيلة رائعة من التيشرتات والهوديز والشروال. دفع عند الاستلام وتوصيل لجميع محافظات مصر.",
   keywords: [
-    "براند ملابس مصري VELIX",
-    "تيشرتات رجالي مصر",
+    "براند ملابس مصري",
+    "VELIX",
+    "تيشرتات رجالي",
     "هوديز مصر",
-    "ملابس شباب مصر",
+    "ملابس شباب",
     "ستريت وير مصر",
+    "صناعة مصرية",
   ],
   openGraph: {
-    title: "VELIX | براند ملابس مصري - تسوق الآن",
+    title: "VELIX | براند ملابس مصري فاخر",
     description: "تشكيلة رائعة من التيشرتات والهوديز. جودة عالمية وتصميم عصري. دفع عند الاستلام.",
     url: "https://velix-eg.store",
     siteName: "VELIX",
+    locale: "ar_EG",
+    type: "website",
     images: [
       {
         url: "/images/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "VELIX - براند ملابس مصري",
+        alt: "VELIX - براند ملابس مصري فاخر",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "VELIX | براند ملابس مصري",
+    title: "VELIX | براند ملابس مصري فاخر",
     description: "تسوق أحدث تشكيلة من التيشرتات والهوديز. جودة عالمية وتصميم عصري.",
     images: ["/images/og-image.jpg"],
   },
@@ -45,14 +49,10 @@ export const metadata = {
 export default async function Home() {
   const products = await getProducts();
 
-  // ✅ جميع المنتجات
-  const allProducts = products;
-  
-  // ✅ بيانات منظمة للصفحة الرئيسية (JSON-LD)
   const homePageSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "name": "VELIX - براند ملابس مصري",
+    "name": "VELIX - براند ملابس مصري فاخر",
     "description": "براند ملابس مصري بيقدم تشكيلة رائعة من التيشرتات والهوديز والشروال بجودة عالمية وتصميم عصري",
     "url": "https://velix-eg.store",
     "mainEntity": {
@@ -87,53 +87,24 @@ export default async function Home() {
     }
   };
 
-  // ✅ إحصائيات الموقع
-  const stats = {
-    productsCount: products.length,
-    categories: ["تيشرتات", "هوديز", "شروال"],
-    deliveryInfo: "توصيل لجميع محافظات مصر خلال 2-5 أيام",
-    paymentInfo: "الدفع عند الاستلام",
-  };
-
   return (
     <>
-      {/* ✅ JSON-LD للصفحة الرئيسية */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homePageSchema) }}
       />
       
-      {/* ✅ Hero Section */}
       <Hero />
-      
-      {/* ✅ Brand Features */}
       <BrandFeatures />
       
-      {/* ✅ منتجاتنا المميزة - يظهر بس لو فيه منتجات */}
-      {allProducts.length > 0 && (
-        <section>
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-8">
-              <span className="text-xs text-black/40 tracking-[0.2em] uppercase font-bold mb-3 block">
-                أحدث المجموعات
-              </span>
-              <h1 className="text-3xl md:text-4xl font-bold text-black">
-                منتجاتنا المميزة
-              </h1>
-              <div className="w-16 h-0.5 bg-black/20 mx-auto mt-4 mb-6" />
-              <p className="text-black/60 font-bold text-base max-w-2xl mx-auto">
-                اكتشف تشكيلتنا المميزة من التيشرتات والهوديز بتصميم عصري وجودة عالية
-              </p>
-            </div>
-          </div>
-          <FeaturedProducts key={allProducts.length} products={allProducts} />
-        </section>
+      {products.length > 0 && (
+        <FeaturedProducts products={products} />
       )}
       
-      {/* ✅ Newsletter */}
+      <BrandStory />
       <Newsletter />
       
-      {/* ✅ Hidden SEO Text */}
+      {/* نص مخفي للسيو */}
       <div className="sr-only" aria-hidden="true">
         <h2>VELIX - براند ملابس مصري رائد</h2>
         <p>
@@ -151,14 +122,10 @@ export default async function Home() {
           <li>خامات قطن فاخرة مريحة في الارتداء</li>
           <li>أسعار مناسبة وجودة عالمية</li>
         </ul>
-      </div>
-      
-      {/* ✅ إحصائيات سريعة للسيو */}
-      <div className="sr-only" aria-hidden="true">
-        <p>عدد المنتجات: {stats.productsCount} منتج</p>
-        <p>الأقسام: {stats.categories.join('، ')}</p>
-        <p>سياسة التوصيل: {stats.deliveryInfo}</p>
-        <p>طرق الدفع: {stats.paymentInfo}</p>
+        <p>عدد المنتجات: {products.length} منتج</p>
+        <p>الأقسام: تيشرتات، هوديز، شروال</p>
+        <p>سياسة التوصيل: توصيل لجميع محافظات مصر خلال 2-5 أيام</p>
+        <p>طرق الدفع: الدفع عند الاستلام</p>
       </div>
     </>
   );

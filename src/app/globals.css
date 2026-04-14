@@ -1,22 +1,49 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FDFDFD;
+  --foreground: #1A1A1A;
+  
+  /* 🏆 ألوان البراند النحاسية - المستوحاة من اللوجو */
+  --rose-gold: #B76E79;
+  --rose-gold-light: #D4AF37;
+  --rose-gold-dark: #8B5A5B;
+  --copper: #B87333;
+  --copper-light: #DA8A67;
+  --copper-dark: #8B4513;
+  --bronze: #CD7F32;
+  
+  /* جرادينتات نحاسية فاخرة */
+  --gradient-copper: linear-gradient(135deg, var(--rose-gold-light), var(--rose-gold), var(--copper));
+  --gradient-rose: linear-gradient(135deg, #E8B4B8, #B76E79, #8B5A5B);
+  --gradient-bronze: linear-gradient(135deg, #D4A373, #CD7F32, #8B5A2E);
+  --gradient-dark: linear-gradient(135deg, #1A1A1A, #2A2A2A);
+  
+  /* ألوان ناعمة للخلفيات والنصوص */
+  --black-soft: #1A1A1A;
+  --gray-soft: #666666;
+  --gray-light: #F5F5F5;
+  --beige-light: #FDF8F5;
+  --cream: #FFFDF9;
 }
 
+/* إلغاء الدارك مود نهائياً */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #FDFDFD !important;
+    --foreground: #1A1A1A !important;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Cairo', system-ui, -apple-system, sans-serif;
 }
+
+/* ======================================== */
+/* 🎨 أنيميشنز وخواص عامة */
+/* ======================================== */
 
 @keyframes slideDown {
   from {
@@ -89,7 +116,7 @@ body {
   animation: slide-down 0.3s ease-out;
 }
 
-@keyframes slide-up {
+@keyframes slide-up-key {
   from {
     opacity: 0;
     transform: translate(-50%, 20px);
@@ -101,7 +128,7 @@ body {
 }
 
 .animate-slide-up {
-  animation: slide-up 0.3s ease-out;
+  animation: slide-up-key 0.3s ease-out;
 }
 
 @keyframes scale-in {
@@ -119,17 +146,84 @@ body {
   animation: scale-in 0.2s ease-out;
 }
 
+@keyframes metallic-shine {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-metallic {
+  background: linear-gradient(90deg, var(--copper), var(--rose-gold-light), var(--copper));
+  background-size: 200% auto;
+  animation: metallic-shine 3s linear infinite;
+}
+
 /* ======================================== */
-/* ✅ تحسينات خفيفة - بدون مشاكل للصور */
+/* ✨ كلاسات مخصصة للأزرار النحاسية */
 /* ======================================== */
 
-/* منع الـ Flickering فقط */
+.btn-copper {
+  background: linear-gradient(135deg, var(--rose-gold-light), var(--rose-gold), var(--copper));
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(183, 110, 121, 0.3);
+}
+
+.btn-copper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(183, 110, 121, 0.4);
+}
+
+.btn-copper-outline {
+  background: transparent;
+  border: 2px solid var(--rose-gold);
+  color: var(--rose-gold);
+  transition: all 0.3s ease;
+}
+
+.btn-copper-outline:hover {
+  background: var(--rose-gold);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* ======================================== */
+/* ✨ كلاسات للبطاقات والفخامة */
+/* ======================================== */
+
+.card-luxury {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s ease;
+  border: 1px solid rgba(183, 110, 121, 0.1);
+}
+
+.card-luxury:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(183, 110, 121, 0.15);
+  border-color: rgba(183, 110, 121, 0.3);
+}
+
+.copper-border {
+  border-image: linear-gradient(135deg, var(--rose-gold-light), var(--rose-gold), var(--copper)) 1;
+  border-width: 1px;
+  border-style: solid;
+}
+
+/* ======================================== */
+/* 📱 تحسينات الأداء والموبايل */
+/* ======================================== */
+
 html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
+  color-scheme: light only !important;
 }
 
-/* تحسين السكرول للموبايل */
 @media (max-width: 768px) {
   body {
     -webkit-overflow-scrolling: touch;
@@ -139,31 +233,24 @@ html {
   .container {
     overflow-x: hidden;
   }
-  
-  /* منع التقطيع أثناء السكرول */
-  section {
-    transform: translateZ(0);
-  }
 }
 
-/* منع أي عنصر من التسبب في horizontal scroll */
 * {
   max-width: 100%;
   box-sizing: border-box;
 }
 
-/* تحسين ظهور الصور */
 img {
   max-width: 100%;
   height: auto;
+  content-visibility: auto;
+  contain: paint;
 }
 
-/* منع الـ rubber-band effect في iOS */
 body {
   overscroll-behavior: none;
 }
 
-/* تحسين الـ touch events */
 button,
 a,
 [role="button"] {
@@ -171,10 +258,9 @@ a,
 }
 
 /* ======================================== */
-/* 🚀 تحسينات الأداء على الموبايل */
+/* 🚀 تحسينات الأداء على الموبايل فقط */
 /* ======================================== */
 
-/* 1. تقليل الـ animations على الموبايل */
 @media (max-width: 768px) {
   * {
     animation-duration: 0.01ms !important;
@@ -183,7 +269,6 @@ a,
     scroll-behavior: auto !important;
   }
   
-  /* إلغاء hover effects على الموبايل */
   .hover\:scale-105:hover,
   .hover\:scale-110:hover,
   .group:hover .group-hover\:scale-105,
@@ -191,98 +276,55 @@ a,
     transform: none !important;
   }
   
-  /* تقليل الـ box-shadow على الموبايل */
   .shadow-md, .shadow-lg, .shadow-xl {
     box-shadow: none !important;
   }
-}
-
-/* 2. تحسين عرض الصور (منع الـ layout shift) */
-img {
-  content-visibility: auto;
-  contain: paint;
-}
-
-/* 3. منع إعادة الرسم غير الضرورية */
-section, div, article {
-  will-change: auto;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-/* 4. تحسين أداء الـ WebView في التطبيق */
-iframe, webview {
-  contain: strict;
-}
-
-/* 5. منع الـ repaints الزائدة */
-.fixed, .sticky {
-  transform: translateZ(0);
-  will-change: transform;
-}
-
-/* ======================================== */
-/* 🔥 تحسينات إضافية للأداء القصوى */
-/* ======================================== */
-
-/* 1. منع الـ repaints أثناء السكرول */
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* 2. تحسين أداء الـ images الكبيرة */
-img[loading="lazy"] {
-  content-visibility: auto;
-  contain: paint;
-}
-
-/* 3. تقليل استخدام الـ filters و blur على الموبايل */
-@media (max-width: 768px) {
+  
   .blur-2xl, .blur-xl, .blur-lg {
     display: none !important;
   }
   
-  /* تقليل الـ backdrops */
   .backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur-lg {
     backdrop-filter: none !important;
   }
   
-  /* تحسين السكرول السلس */
   html {
     scroll-behavior: auto !important;
   }
 }
 
-/* 4. منع إعادة حساب الـ layout */
-.fixed, .absolute, .relative {
-  contain: layout;
+/* ======================================== */
+/* 🔧 تحسينات إضافية */
+/* ======================================== */
+
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* 5. تحسين أداء الـ WebView في التطبيق */
+img[loading="lazy"] {
+  content-visibility: auto;
+  contain: paint;
+}
+
+.fixed, .sticky {
+  will-change: transform;
+}
+
 body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeSpeed;
 }
 
-/* ✅ تعطيل دارك مود نهائياً */
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ======================================== */
+/* 🎨 كلاسات مخصصة للون النحاسي في Tailwind */
+/* ======================================== */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #ffffff !important;
-    --foreground: #171717 !important;
-  }
-}
-
-/* ✅ منع أي تأثير لدارك مود على الصفحات */
-html {
-  color-scheme: light only !important;
-}
-
-body {
-  background-color: #ffffff !important;
-  color: #171717 !important;
+@theme {
+  --color-rose-gold: #B76E79;
+  --color-rose-gold-light: #D4AF37;
+  --color-rose-gold-dark: #8B5A5B;
+  --color-copper: #B87333;
+  --color-copper-light: #DA8A67;
+  --color-copper-dark: #8B4513;
+  --color-bronze: #CD7F32;
 }

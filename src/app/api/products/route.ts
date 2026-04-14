@@ -1,3 +1,5 @@
+// api/products/route.ts - النسخة النظيفة
+
 import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import Redis from 'ioredis';
@@ -8,41 +10,40 @@ export const dynamic = 'force-dynamic';
 const redis = new Redis(process.env.REDIS_URL!);
 const PRODUCTS_KEY = 'products';
 
-// في app/api/products/route.ts - دالة getProducts
-  async function getProducts() {
-    try {
-      const data = await redis.get(PRODUCTS_KEY);
-      if (!data) return [];
-      let products = JSON.parse(data);
-      
-      let changed = false;
-      products = products.map((product: any, index: number) => {
-        if (!product.createdAt) {
-          changed = true;
-          const daysAgo = Math.min(30, (product.id || index + 1) % 31);
-          const fakeDate = new Date();
-          fakeDate.setDate(fakeDate.getDate() - daysAgo);
-          return {
-            ...product,
-            createdAt: product.createdAt || fakeDate.toISOString(),
-            salesCount: product.salesCount || 0,
-            rating: product.rating || 0,
-          };
-        }
-        return product;
-      });
-      
-      // ✅ لو فيه تغييرات، احفظها في Redis
-      if (changed) {
-        await redis.set(PRODUCTS_KEY, JSON.stringify(products));
+// ✅ دالة getProducts مرة واحدة بس
+async function getProducts() {
+  try {
+    const data = await redis.get(PRODUCTS_KEY);
+    if (!data) return [];
+    let products = JSON.parse(data);
+    
+    let changed = false;
+    products = products.map((product: any, index: number) => {
+      if (!product.createdAt) {
+        changed = true;
+        const daysAgo = Math.min(30, (product.id || index + 1) % 31);
+        const fakeDate = new Date();
+        fakeDate.setDate(fakeDate.getDate() - daysAgo);
+        return {
+          ...product,
+          createdAt: product.createdAt || fakeDate.toISOString(),
+          salesCount: product.salesCount || 0,
+          rating: product.rating || 0,
+        };
       }
-      
-      return products;
-    } catch (error) {
-      console.error('Error reading from Redis:', error);
-      return [];
+      return product;
+    });
+    
+    if (changed) {
+      await redis.set(PRODUCTS_KEY, JSON.stringify(products));
     }
+    
+    return products;
+  } catch (error) {
+    console.error('Error reading from Redis:', error);
+    return [];
   }
+}
 
 async function saveProducts(products: any[]) {
   try {
@@ -80,23 +81,19 @@ export async function POST(request: NextRequest) {
     const mainImage = formData.get('mainImage') as File;
     const subImages = formData.getAll('subImages') as File[];
     
-    // ✅ معالجة stockItems الجديد
     let stockItems: Array<{ colorCode: string; size: string; quantity: number }> = [];
     const stockItemsRaw = formData.get('stockItems') as string;
     if (stockItemsRaw && stockItemsRaw !== '') {
       try {
         stockItems = JSON.parse(stockItemsRaw);
-        console.log('✅ Parsed stockItems:', stockItems.length);
       } catch (e) {
         console.error('Error parsing stockItems:', e);
       }
     }
     
-    // ✅ معالجة stock القديم (للتوافق مع الإصدارات السابقة)
     const stockRaw = formData.get('stock') as string;
     const stock = stockRaw ? parseInt(stockRaw) : 0;
     
-    // ✅ معالجة oldPrice بشكل صحيح
     const oldPriceRaw = formData.get('oldPrice') as string;
     const oldPrice = oldPriceRaw && oldPriceRaw !== '' ? parseFloat(oldPriceRaw) : undefined;
     
@@ -106,7 +103,6 @@ export async function POST(request: NextRequest) {
     const colors = JSON.parse(formData.get('colors') as string || '[]');
     const createdAt = formData.get('createdAt') as string || new Date().toISOString();
     
-    // ✅ معالجة quantityDiscount بشكل صحيح
     let quantityDiscount = { enabled: false, tiers: [] };
     const quantityDiscountRaw = formData.get('quantityDiscount') as string;
     if (quantityDiscountRaw && quantityDiscountRaw !== '') {

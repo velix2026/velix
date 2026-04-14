@@ -47,7 +47,7 @@ export async function sendOrderEmail(order: OrderEmailData) {
 
   const customerPhoneFormatted = formatPhoneForWhatsApp(order.phone);
   
-  // رسالة واتساب من غير ايموجي
+  // رسالة واتساب
   const generateWhatsAppMessage = () => {
     let productsList = '';
     order.items.forEach((item, idx) => {
@@ -59,42 +59,39 @@ export async function sendOrderEmail(order: OrderEmailData) {
       if (idx < order.items.length - 1) productsList += `\n   --------------------`;
     });
     
-    return `اهلاً وسهلاً استاذ ${order.name}، اخبار حضرتك ايه؟
+    return `أهلاً وسهلاً أستاذ ${order.name}،
 
 تم استلام طلبك رقم #${order.orderId} من متجر VELIX
 
 تفاصيل طلبك:
 ${productsList}
 
-اجمالي المبلغ: ${order.totalAmount} جنيه
+إجمالي المبلغ: ${order.totalAmount} جنيه
 
 سياسة التوصيل:
-- التسليم بيتم خلال 2 - 5 ايام عمل
-- الدفع عند الاستلام (كاش)
+- التسليم خلال 2 - 5 أيام عمل
+- الدفع عند الاستلام
 
-مهم جدا:
-برجاء ارسال موقعك (لوكيشن) على الواتساب من العنوان المدون لتسهيل عملية التوصيل وشكراً
+مهم جداً:
+برجاء إرسال موقعك (لوكيشن) على الواتساب لتسهيل عملية التوصيل
 
-شكرا لثقتك في VELIX
-نشكرك انك اخترت تتسوق معانا، احنا بنقدرك جدا. بنتمنى طلبك يعجبك ويكون عند حسن ظنك يا رب
-
-للتواصل السريع: رد على هذه الرسالة
+شكراً لثقتك في VELIX
 
 VELIX - فخامة تسوق تستحقها`;
   };
 
   const whatsappLink = `https://wa.me/${customerPhoneFormatted}?text=${encodeURIComponent(generateWhatsAppMessage())}`;
   
-  // بناء HTML الايميل
+  // بناء HTML الإيميل - بنفس ألوان الموقع (نحاسي)
   const itemsHtml = order.items.map((item, idx) => `
-    <div style="background: #f9f9f9; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+    <div style="background: #FDF8F5; border-radius: 12px; padding: 12px; margin-bottom: 12px; border: 1px solid #B76E79/20;">
       <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-        <span style="font-weight: bold;">${idx + 1}. ${item.name}</span>
-        <span style="font-weight: bold;">${item.price} جنيه x ${item.quantity}</span>
+        <span style="font-weight: bold; color: #1A1A1A;">${idx + 1}. ${item.name}</span>
+        <span style="font-weight: bold; color: #B76E79;">${item.price} جنيه × ${item.quantity}</span>
       </div>
       <div style="display: flex; gap: 10px; margin-top: 5px;">
-        ${item.selectedSize ? `<span style="background: #e0e0e0; padding: 4px 8px; border-radius: 8px; font-size: 12px;">مقاس: ${item.selectedSize}</span>` : ''}
-        ${item.selectedColor ? `<span style="background: #e0e0e0; padding: 4px 8px; border-radius: 8px; font-size: 12px;">لون: ${item.selectedColor}</span>` : ''}
+        ${item.selectedSize ? `<span style="background: #B76E79/10; padding: 4px 8px; border-radius: 8px; font-size: 12px; color: #B76E79;">مقاس: ${item.selectedSize}</span>` : ''}
+        ${item.selectedColor ? `<span style="background: #B76E79/10; padding: 4px 8px; border-radius: 8px; font-size: 12px; color: #B76E79;">لون: ${item.selectedColor}</span>` : ''}
       </div>
     </div>
   `).join('');
@@ -107,19 +104,19 @@ VELIX - فخامة تسوق تستحقها`;
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>طلب جديد #${order.orderId}</title>
       <style>
-        body { font-family: 'Cairo', Tahoma, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .header { background: #000; color: white; padding: 20px; text-align: center; }
-        .header h1 { margin: 0; font-size: 24px; }
-        .header p { margin: 5px 0 0; opacity: 0.8; font-size: 14px; }
-        .order-id { background: #f0f0f0; padding: 12px; text-align: center; font-size: 18px; font-weight: bold; color: #333; border-bottom: 1px solid #e0e0e0; }
-        .section { padding: 20px; border-bottom: 1px solid #eee; }
-        .section-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #000; display: inline-block; }
-        .info-row { display: flex; margin-bottom: 10px; padding: 8px 0; border-bottom: 1px dashed #eee; }
+        body { font-family: 'Cairo', Tahoma, sans-serif; background: #F5F3F0; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #B76E79/20; }
+        .header { background: linear-gradient(135deg, #D4AF37, #B76E79, #B87333); color: white; padding: 30px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .header p { margin: 5px 0 0; opacity: 0.9; font-size: 14px; }
+        .order-id { background: #B76E79/10; padding: 12px; text-align: center; font-size: 18px; font-weight: bold; color: #B76E79; border-bottom: 1px solid #B76E79/20; }
+        .section { padding: 20px; border-bottom: 1px solid #B76E79/10; }
+        .section-title { font-size: 18px; font-weight: bold; color: #1A1A1A; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #B76E79; display: inline-block; }
+        .info-row { display: flex; margin-bottom: 10px; padding: 8px 0; border-bottom: 1px dashed #B76E79/10; }
         .info-label { width: 120px; font-weight: bold; color: #666; }
-        .info-value { flex: 1; color: #333; }
-        .total { background: #000; color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; }
-        .footer { background: #f5f5f5; padding: 15px; text-align: center; color: #999; font-size: 12px; }
+        .info-value { flex: 1; color: #1A1A1A; font-weight: 500; }
+        .total { background: linear-gradient(135deg, #D4AF37, #B76E79, #B87333); color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; }
+        .footer { background: #FDF8F5; padding: 15px; text-align: center; color: #999; font-size: 12px; border-top: 1px solid #B76E79/10; }
         .whatsapp-btn { 
           display: inline-block; 
           background: #25D366; 
@@ -133,21 +130,21 @@ VELIX - فخامة تسوق تستحقها`;
           transition: transform 0.2s;
         }
         .whatsapp-btn:hover { transform: scale(1.02); }
-        .contact-card { background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 16px; text-align: center; margin-top: 15px; }
+        .contact-card { background: #FDF8F5; border: 1px solid #B76E79/30; border-radius: 12px; padding: 16px; text-align: center; margin-top: 15px; }
         .phone-number { font-size: 20px; font-weight: bold; color: #25D366; direction: ltr; }
-        .items-container { margin-top: 10px; }
-        .delivery-info { background: #e0f2fe; border-radius: 12px; padding: 12px; margin-top: 15px; }
+        .delivery-info { background: #FDF8F5; border-radius: 12px; padding: 12px; margin-top: 15px; border: 1px solid #B76E79/20; }
+        .delivery-info p { color: #1A1A1A; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
           <h1>VELIX</h1>
-          <p>طلب جديد - تواصل مع العميل</p>
+          <p>فخامة تسوق تستحقها</p>
         </div>
         
         <div class="order-id">
-          رقم الطلب: #${order.orderId}
+          طلب جديد #${order.orderId}
         </div>
         
         <div class="section">
@@ -160,7 +157,6 @@ VELIX - فخامة تسوق تستحقها`;
             <div class="info-label">رقم الهاتف:</div>
             <div class="info-value">
               <span class="phone-number">${order.phone}</span>
-              <span style="color: green; font-size: 12px; margin-right: 10px;">+20</span>
             </div>
           </div>
           ${order.altPhone ? `
@@ -176,11 +172,7 @@ VELIX - فخامة تسوق تستحقها`;
           ${order.landmark ? `
           <div class="info-row">
             <div class="info-label">علامة مميزة:</div>
-            <div class="info-value">
-              <span style="background: #fef9e6; padding: 4px 8px; border-radius: 8px; display: inline-block;">
-                ${order.landmark}
-              </span>
-            </div>
+            <div class="info-value">${order.landmark}</div>
           </div>
           ` : ''}
         </div>
@@ -195,37 +187,37 @@ VELIX - فخامة تسوق تستحقها`;
         ${order.notes ? `
         <div class="section">
           <div class="section-title">ملاحظات العميل</div>
-          <div style="background: #f9f9f9; padding: 12px; border-radius: 8px; margin-top: 10px;">
+          <div style="background: #FDF8F5; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #B76E79/20;">
             ${order.notes}
           </div>
         </div>
         ` : ''}
         
         <div class="total">
-          الاجمالي الكلي: ${order.totalAmount} جنيه
+          الإجمالي الكلي: ${order.totalAmount} جنيه
         </div>
         
-        <div class="section" style="text-align: center; background: #fafafa;">
+        <div class="section" style="text-align: center;">
           <div class="delivery-info">
-            <p style="margin: 0 0 8px 0; font-weight: bold;">سياسة التوصيل</p>
-            <p style="margin: 0; font-size: 13px;">- التسليم خلال 2 - 5 ايام عمل</p>
-            <p style="margin: 5px 0 0; font-size: 13px;">- الدفع عند الاستلام (كاش)</p>
+            <p style="margin: 0 0 8px 0; font-weight: bold; color: #B76E79;">سياسة التوصيل</p>
+            <p style="margin: 0; font-size: 13px;">📦 التسليم خلال 2 - 5 أيام عمل</p>
+            <p style="margin: 5px 0 0; font-size: 13px;">💰 الدفع عند الاستلام</p>
           </div>
           
           <div class="contact-card">
-            <p style="margin: 0 0 8px 0; color: #333; font-weight: bold;">تواصل مع العميل</p>
+            <p style="margin: 0 0 8px 0; color: #1A1A1A; font-weight: bold;">تواصل مع العميل</p>
             <p style="margin: 0 0 12px 0; color: #666; font-size: 13px;">
               اضغط على الزر لفتح محادثة واتساب مع <strong>${order.name}</strong>
             </p>
             <a href="${whatsappLink}" class="whatsapp-btn" target="_blank">
-              تواصل مع العميل عبر واتساب
+              💬 تواصل عبر واتساب
             </a>
           </div>
         </div>
         
         <div class="footer">
-          <p>تم ارسال هذا الاشعار من متجر VELIX</p>
-          <p style="margin-top: 5px;">VELIX - فخامة تسوق تستحقها</p>
+          <p>تم إرسال هذا الإشعار من متجر VELIX</p>
+          <p style="margin-top: 5px; color: #B76E79;">VELIX - فخامة تسوق تستحقها</p>
         </div>
       </div>
     </body>
@@ -235,16 +227,16 @@ VELIX - فخامة تسوق تستحقها`;
   const mailOptions = {
     from: `"VELIX Store" <${process.env.EMAIL_USER}>`,
     to: adminEmail,
-    subject: `طلب جديد #${order.orderId} - ${order.items.length} منتج - ${order.totalAmount} جنيه`,
+    subject: `🛍️ طلب جديد #${order.orderId} - ${order.items.length} منتج - ${order.totalAmount} جنيه`,
     html: htmlContent,
   };
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent for order ${order.orderId}`, info.messageId);
+    console.log(`✅ Email sent for order ${order.orderId}`, info.messageId);
     return true;
   } catch (error) {
-    console.error('Email sending failed:', error);
+    console.error('❌ Email sending failed:', error);
     return false;
   }
 }

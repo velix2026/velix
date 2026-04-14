@@ -2,185 +2,96 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+const ADMIN_SECRET_PATH = 'velix-admin-x7k9m';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'velix@2026';
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const method = request.method;
   
   console.log('🔍 Proxy check:', pathname, method);
   
-  // ✅ المسارات المفتوحة للجميع (العملاء)
-  const publicPaths = [
-    '/api/orders',
-    '/api/orders-simple',
-    '/api/products',
-    '/api/analytics',
-    '/api/test-db',
-    '/api/test-redis',
-    '/api/test',
-    '/api/newsletter',
-    '/api/admin/verify',
-  ];
+  // ==================== 1. السماح لـ API التحقق (verify) ====================
   
-  // ✅ لو المسار مفتوح للجميع، سمح بالدخول
-  if (publicPaths.includes(pathname)) {
-    console.log('✅ Public path allowed:', pathname);
+  if (pathname === `/api/${ADMIN_SECRET_PATH}/verify` && method === 'POST') {
+    console.log('✅ Verify API allowed (public)');
     return NextResponse.next();
   }
   
-  // ✅ GET للمنتجات مفتوح للجميع
+  // ==================== 2. منع الوصول للمسار القديم ====================
+  
+  if (pathname.startsWith('/admin') && !pathname.startsWith(`/${ADMIN_SECRET_PATH}`)) {
+    console.log('🚫 Blocked old admin path:', pathname);
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+  
+  // ==================== 3. مسارات الأدمن (الصفحات) ====================
+  
+  if (pathname.startsWith(`/${ADMIN_SECRET_PATH}`)) {
+    const adminAuth = request.cookies.get('adminAuth')?.value;
+    const isLoginPage = pathname === `/${ADMIN_SECRET_PATH}/login`;
+    
+    if (!isLoginPage && adminAuth !== 'true') {
+      console.log('🔒 Redirecting to login, adminAuth:', adminAuth);
+      const loginUrl = new URL(`/${ADMIN_SECRET_PATH}/login`, request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+    
+    return NextResponse.next();
+  }
+  
+  // ==================== 4. المسارات المفتوحة للجميع ====================
+  
   if (pathname === '/api/products' && method === 'GET') {
     return NextResponse.next();
   }
   
-  // ✅ POST للطلبات مفتوح للجميع
   if (pathname === '/api/orders' && method === 'POST') {
     return NextResponse.next();
   }
   
-  // ✅ POST للنشرة البريدية (اشتراك) مفتوح للجميع
-  if (pathname === '/api/newsletter' && method === 'POST') {
-    console.log('✅ Newsletter POST allowed (public)');
+  if (pathname === '/api/newsletter' && ['POST', 'PUT', 'DELETE'].includes(method)) {
     return NextResponse.next();
   }
   
-  // ✅ PUT للنشرة البريدية (تعديل الإيميل) - مفتوح للجميع
-  if (pathname === '/api/newsletter' && method === 'PUT') {
-    console.log('✅ Newsletter PUT allowed (public)');
-    return NextResponse.next();
-  }
+  // ==================== 5. مسارات API الأدمن (تتحقق من header أو cookie) ====================
   
-  // ✅ DELETE للنشرة البريدية (إلغاء الاشتراك) - مفتوح للجميع
-  if (pathname === '/api/newsletter' && method === 'DELETE') {
-    console.log('✅ Newsletter DELETE allowed (public)');
-    return NextResponse.next();
-  }
-  
-  // ==================== مسارات الأدمن (تتطلب توثيق) ====================
-  
-  // ✅ التحقق العام لمسارات الأدمن
-  const isAdminRoute = pathname.startsWith('/api/admin/');
-  
-  if (isAdminRoute) {
+  if (pathname.startsWith(`/api/${ADMIN_SECRET_PATH}`)) {
+    // ✅ التحقق من Authorization header أولاً
     const authHeader = request.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
-    
-    if (authHeader !== `Bearer ${adminPassword}`) {
-      console.log('🔒 Admin auth required for:', pathname);
-      return NextResponse.json(
-        { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
-        { status: 401 }
-      );
+    if (authHeader === `Bearer ${ADMIN_PASSWORD}`) {
+      console.log('✅ Admin authorized via header:', pathname);
+      return NextResponse.next();
     }
-    console.log('✅ Admin authorized for:', pathname);
-    return NextResponse.next();
+    
+    // ✅ ثم التحقق من الـ cookie
+    const adminAuth = request.cookies.get('adminAuth')?.value;
+    if (adminAuth === 'true') {
+      console.log('✅ Admin authorized via cookie:', pathname);
+      return NextResponse.next();
+    }
+    
+    console.log('🔒 Unauthorized - no valid auth');
+    return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
   }
   
-  // ✅ PATCH للمنتجات (تعديل منتج) - يتطلب توثيق الأدمن
-  if (pathname.startsWith('/api/products/') && method === 'PATCH') {
+  // منع API الأدمن القديم
+  if (pathname.startsWith('/api/admin/')) {
+    return NextResponse.json({ error: 'API غير متاح' }, { status: 404 });
+  }
+  
+  // ==================== 6. PATCH/DELETE للمنتجات ====================
+  
+  if (pathname.startsWith('/api/products/') && (method === 'PATCH' || method === 'DELETE')) {
     const authHeader = request.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
-    
-    if (authHeader !== `Bearer ${adminPassword}`) {
-      console.log('🔒 Admin auth required for PATCH product:', pathname);
-      return NextResponse.json(
-        { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
-        { status: 401 }
-      );
+    if (authHeader === `Bearer ${ADMIN_PASSWORD}`) {
+      return NextResponse.next();
     }
-    console.log('✅ Admin authorized for PATCH product:', pathname);
-    return NextResponse.next();
-  }
-  
-  // ✅ DELETE للمنتجات (حذف منتج) - يتطلب توثيق الأدمن
-  if (pathname.startsWith('/api/products/') && method === 'DELETE') {
-    const authHeader = request.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
-    
-    if (authHeader !== `Bearer ${adminPassword}`) {
-      console.log('🔒 Admin auth required for DELETE product:', pathname);
-      return NextResponse.json(
-        { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
-        { status: 401 }
-      );
+    const adminAuth = request.cookies.get('adminAuth')?.value;
+    if (adminAuth !== 'true') {
+      return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
     }
-    console.log('✅ Admin authorized for DELETE product:', pathname);
     return NextResponse.next();
-  }
-  
-  // ✅ GET للطلبات (جلب الطلبات) - يتطلب توثيق الأدمن
-  if (pathname === '/api/admin/orders' && method === 'GET') {
-    const authHeader = request.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
-    
-    if (authHeader !== `Bearer ${adminPassword}`) {
-      console.log('🔒 Admin auth required for GET /api/admin/orders');
-      return NextResponse.json(
-        { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
-        { status: 401 }
-      );
-    }
-    console.log('✅ Admin authorized for GET /api/admin/orders');
-    return NextResponse.next();
-  }
-  
-  // ✅ DELETE للطلبات - يتطلب توثيق الأدمن
-  if (pathname.startsWith('/api/admin/orders/') && method === 'DELETE') {
-    const authHeader = request.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
-    
-    if (authHeader !== `Bearer ${adminPassword}`) {
-      console.log('🔒 Admin auth required for DELETE:', pathname);
-      return NextResponse.json(
-        { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
-        { status: 401 }
-      );
-    }
-    console.log('✅ Admin authorized for DELETE:', pathname);
-    return NextResponse.next();
-  }
-  
-  // ✅ PATCH للطلبات (تحديث الحالة) - يتطلب توثيق الأدمن
-  if (pathname.startsWith('/api/orders/') && method === 'PATCH') {
-    const authHeader = request.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
-    
-    if (authHeader !== `Bearer ${adminPassword}`) {
-      console.log('🔒 Admin auth required for PATCH:', pathname);
-      return NextResponse.json(
-        { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
-        { status: 401 }
-      );
-    }
-    console.log('✅ Admin authorized for PATCH:', pathname);
-    return NextResponse.next();
-  }
-  
-  // ✅ GET للنشرة البريدية (جلب المشتركين) - يتطلب توثيق الأدمن
-  if (pathname === '/api/newsletter' && method === 'GET') {
-    const authHeader = request.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
-    
-    if (authHeader !== `Bearer ${adminPassword}`) {
-      console.log('🔒 Admin auth required for GET /api/newsletter');
-      return NextResponse.json(
-        { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
-        { status: 401 }
-      );
-    }
-    console.log('✅ Admin authorized for GET /api/newsletter');
-    return NextResponse.next();
-  }
-  
-  // ✅ باقي المسارات تتطلب توثيق للمسؤول
-  const authHeader = request.headers.get('authorization');
-  const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
-  
-  if (authHeader !== `Bearer ${adminPassword}`) {
-    console.log('🔒 Admin auth required for:', pathname);
-    return NextResponse.json(
-      { error: 'غير مصرح به - تحتاج صلاحيات مدير' },
-      { status: 401 }
-    );
   }
   
   return NextResponse.next();

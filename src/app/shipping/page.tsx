@@ -1,14 +1,13 @@
-// app/shipping/page.tsx
 import ShippingClient from './ShippingClient';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "سياسة الشحن | VELIX - توصيل سريع ومجاني للقاهرة والجيزة",
-  description: "تعرف على سياسة الشحن في VELIX. شحن مجاني للقاهرة والجيزة وقليوبية، توصيل خلال 2-5 أيام، متابعة الطلب خطوة بخطوة.",
-  keywords: "سياسة الشحن, توصيل مجاني, VELIX, شحن سريع, توصيل القاهرة, توصيل الجيزة, متابعة الطلب",
+  title: "سياسة الشحن | VELIX",
+  description: "تعرف على سياسة الشحن في VELIX. شحن مجاني لكل مصر، توصيل خلال 2-5 أيام، ومتابعة الطلب خطوة بخطوة.",
+  keywords: ["سياسة الشحن", "توصيل مجاني", "VELIX", "شحن سريع", "توصيل مصر", "متابعة الطلب"],
   openGraph: {
-    title: "سياسة الشحن | VELIX - توصيل سريع ومجاني",
-    description: "شحن مجاني للقاهرة والجيزة وقليوبية - توصيل خلال 2-5 أيام",
+    title: "سياسة الشحن | VELIX",
+    description: "شحن مجاني لكل مصر - توصيل سريع لجميع الطلبات",
     url: "https://velix-eg.store/shipping",
     siteName: "VELIX",
     locale: "ar_EG",

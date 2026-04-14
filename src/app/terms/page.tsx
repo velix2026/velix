@@ -1,11 +1,10 @@
-// app/terms/page.tsx
 import TermsClient from './TermsClient';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "شروط الاستخدام | VELIX - الاتفاقية بينك وبين VELIX",
+  title: "شروط الاستخدام | VELIX",
   description: "تعرف على شروط استخدام متجر VELIX. المنتجات والأسعار، الطلب والدفع، التوصيل، الاستبدال والاسترجاع، والملكية الفكرية.",
-  keywords: "شروط الاستخدام, VELIX, سياسة الموقع, اتفاقية المستخدم, أحكام التسوق",
+  keywords: ["شروط الاستخدام", "VELIX", "سياسة الموقع", "اتفاقية المستخدم", "أحكام التسوق"],
   openGraph: {
     title: "شروط الاستخدام | VELIX",
     description: "تعرف على شروط استخدام متجر VELIX - حقوقك وواجباتك",

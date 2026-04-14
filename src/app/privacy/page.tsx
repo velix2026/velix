@@ -1,11 +1,10 @@
-// app/privacy/page.tsx
 import PrivacyClient from './PrivacyClient';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "سياسة الخصوصية | VELIX - خصوصيتك في أمان",
-  description: "تعرف على سياسة خصوصية VELIX. كيف نحمي بياناتك، ما هي المعلومات التي نجمعها، وكيف نستخدمها. خصوصيتك هي أولويتنا.",
-  keywords: "سياسة الخصوصية, حماية البيانات, VELIX, خصوصية, أمان المعلومات",
+  title: "سياسة الخصوصية | VELIX",
+  description: "تعرف على سياسة خصوصية VELIX. إحنا بنحمي بياناتك، وبنستخدمها بس عشان نخدمك. خصوصيتك هي أولويتنا.",
+  keywords: ["سياسة الخصوصية", "حماية البيانات", "VELIX", "خصوصية", "أمان المعلومات"],
   openGraph: {
     title: "سياسة الخصوصية | VELIX",
     description: "تعرف على سياسة خصوصية VELIX - بياناتك في أمان معانا",

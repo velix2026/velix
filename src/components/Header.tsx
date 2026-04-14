@@ -15,45 +15,19 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isFavoritesDrawerOpen, setIsFavoritesDrawerOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
-  const [appInstalled, setAppInstalled] = useState(false);
   const pathname = usePathname();
 
-  const { favorites, favoritesCount, removeFromFavorites } = useFavorites();
-  const { cart, cartCount, updateCartQuantity, removeFromCart, addToCart } = useCart();
-
-  // ✅ كشف بيئة التشغيل (تطبيق Tauri أو WebView APK)
-  const isTauriApp = typeof window !== 'undefined' && !!(window as any).__TAURI__;
-  
-  // ✅ كشف WebView في تطبيقات Android العادية
-  const isWebView = () => {
-    if (typeof window === 'undefined') return false;
-    const userAgent = navigator.userAgent.toLowerCase();
-    return userAgent.includes('wv') || // WebView
-           userAgent.includes('android webview') ||
-           (userAgent.includes('android') && !userAgent.includes('chrome')); // متصفح أندرويد العادي ليس WebView
-  };
-
-  // ✅ الحالة النهائية: هل المستخدم داخل التطبيق الذي صنعته؟
-  const isAppEnvironment = isTauriApp || isWebView();
+  const { favoritesCount } = useFavorites();
+  const { cartCount } = useCart();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
     window.addEventListener('scroll', handleScroll);
-    
-    // ✅ التحقق من تثبيت التطبيق
-    const installed = localStorage.getItem('app_installed') === 'true';
-    setAppInstalled(installed);
-    
-    if (isAppEnvironment) {
-      setAppInstalled(true);
-    }
-    
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isAppEnvironment]);
+  }, []);
 
   const isActive = (path: string) => pathname === path;
 
-  // بيانات منظمة لـ Google
   const organizationData = {
     '@context': 'https://schema.org',
     '@type': 'ClothingStore',
@@ -65,6 +39,7 @@ export default function Header() {
     'telephone': '+201500125133',
     'priceRange': '$$',
     'paymentAccepted': 'Cash on Delivery',
+    'currenciesAccepted': 'EGP',
     'areaServed': 'EG',
     'address': {
       '@type': 'PostalAddress',
@@ -92,69 +67,58 @@ export default function Header() {
 
   return (
     <>
-      {/* SEO: JSON-LD للبراند */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationData) }}
       />
 
-      {/* ================== HEADER ================== */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled
-            ? 'bg-white/70 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.06)] border-b border-black/10 py-2'
+            ? 'bg-white/80 backdrop-blur-xl shadow-lg border-b border-rose-gold/20 py-2'
             : 'bg-transparent py-4'
         }`}
         role="banner"
-        aria-label="الرأس الرئيسي لموقع VELIX"
       >
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-          {/* Logo with SEO - نسخة محسنة */}
+          {/* Logo */}
           <Link
             href="/"
             className="flex items-center gap-2 group"
-            aria-label="VELIX - الصفحة الرئيسية"
-            title="VELIX براند ملابس مصري"
+            aria-label="VELIX - الرئيسية"
           >
             <div className="relative w-10 h-10 md:w-12 md:h-12 transition-transform duration-300 group-hover:scale-105">
               <Image
                 src="/images/logo.png"
-                alt="VELIX - براند ملابس مصري عصري"
-                title="VELIX براند ملابس مصري"
+                alt="VELIX"
                 fill
                 className="object-contain"
                 priority
                 sizes="(max-width: 768px) 40px, 48px"
-                quality={75}
               />
             </div>
-            <span className="sr-only">VELIX - براند ملابس مصري</span>
           </Link>
 
-          {/* Desktop Navigation with semantic HTML */}
-          <nav
-            className="hidden md:flex items-center gap-10"
-            aria-label="القائمة الرئيسية"
-            role="navigation"
-          >
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-8">
             {[
-              { href: '/', label: 'الرئيسية', title: 'الصفحة الرئيسية لبراند VELIX' },
-              { href: '/products', label: 'المنتجات', title: 'جميع منتجات VELIX - ملابس مصرية' },
-              { href: '/about', label: 'عن البراند', title: 'قصة VELIX - براند ملابس مصري' },
-              { href: '/contact', label: 'اتصل بنا', title: 'تواصل مع فريق VELIX' }
+              { href: '/', label: 'الرئيسية' },
+              { href: '/products', label: 'المنتجات' },
+              { href: '/about', label: 'عن البراند' },
+              { href: '/contact', label: 'اتصل بنا' }
             ].map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 className={`relative text-sm font-semibold transition-all duration-300 ${
-                  isActive(link.href) ? 'text-black' : 'text-black/70 hover:text-black'
+                  isActive(link.href) 
+                    ? 'text-rose-gold' 
+                    : 'text-black/70 hover:text-rose-gold'
                 }`}
-                aria-current={isActive(link.href) ? 'page' : undefined}
-                title={link.title}
               >
                 {link.label}
                 <span
-                  className={`absolute left-0 -bottom-2 h-0.5 bg-black transition-all duration-300 ${
+                  className={`absolute left-0 -bottom-2 h-0.5 bg-linear-to-r from-rose-gold-light to-rose-gold transition-all duration-300 ${
                     isActive(link.href) ? 'w-full' : 'w-0 group-hover:w-full'
                   }`}
                   aria-hidden="true"
@@ -163,21 +127,19 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Icons Section with semantic buttons */}
+          {/* Icons */}
           <div className="flex items-center gap-2">
             {/* Favorites */}
             <button
               onClick={() => setIsFavoritesDrawerOpen(true)}
-              className="relative p-2 rounded-full transition-all duration-300 hover:bg-black/5 hover:scale-105"
-              aria-label={`المفضلة${favoritesCount > 0 ? ` - لديك ${toArabicNumber(favoritesCount)} منتجات` : ''}`}
-              aria-live="polite"
+              className="relative p-2 rounded-full transition-all duration-300 hover:bg-rose-gold/10 hover:scale-105 group"
+              aria-label="المفضلة"
             >
               <svg
-                className="w-5 h-5 text-black"
+                className="w-5 h-5 text-black group-hover:text-rose-gold transition-colors duration-300"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
-                aria-hidden="true"
               >
                 <path
                   strokeWidth={1.8}
@@ -185,7 +147,7 @@ export default function Header() {
                 />
               </svg>
               {favoritesCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full animate-pulse">
+                <span className="absolute -top-1 -right-1 bg-rose-gold text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
                   {toArabicNumber(favoritesCount)}
                 </span>
               )}
@@ -194,64 +156,59 @@ export default function Header() {
             {/* Cart */}
             <button
               onClick={() => setIsCartDrawerOpen(true)}
-              className="relative p-2 rounded-full transition-all duration-300 hover:bg-black/5 hover:scale-105"
-              aria-label={`سلة التسوق${cartCount > 0 ? ` - لديك ${toArabicNumber(cartCount)} منتجات` : ''}`}
-              aria-live="polite"
+              className="relative p-2 rounded-full transition-all duration-300 hover:bg-rose-gold/10 hover:scale-105 group"
+              aria-label="سلة التسوق"
             >
               <svg
-                className="w-5 h-5 text-black"
+                className="w-5 h-5 text-black group-hover:text-rose-gold transition-colors duration-300"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
-                aria-hidden="true"
               >
                 <path strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17" />
               </svg>
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full animate-pulse">
+                <span className="absolute -top-1 -right-1 bg-rose-gold text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
                   {toArabicNumber(cartCount)}
                 </span>
               )}
             </button>
 
-            {/* WhatsApp Button */}
+            {/* WhatsApp Button - نحاسي */}
             <a
               href="https://wa.me/201500125133"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-1 px-4 py-2 rounded-full text-xs font-semibold text-white 
-              bg-linear-to-r from-emerald-500 via-green-500 to-lime-400
-              transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_25px_rgba(16,185,129,0.4)] group"
-              aria-label="تواصل معنا عبر واتساب - خدمة العملاء"
+              className="hidden md:flex items-center gap-1 px-4 py-2 rounded-full text-xs font-bold text-white bg-linear-to-r from-rose-gold-light via-rose-gold to-copper transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-rose-gold/30"
+              aria-label="واتساب"
             >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20.52 3.48A11.94 11.94 0 0012.05 0C5.5 0 .2 5.3.2 11.84c0 2.08.54 4.1 1.57 5.88L0 24l6.46-1.68a11.82 11.82 0 005.6 1.43h.01c6.55 0 11.85-5.3 11.85-11.84 0-3.16-1.23-6.12-3.4-8.43zM12.06 21.2h-.01a9.3 9.3 0 01-4.74-1.3l-.34-.2-3.83 1 1.02-3.73-.22-.38a9.23 9.23 0 01-1.42-4.92c0-5.12 4.18-9.3 9.32-9.3 2.49 0 4.82.97 6.58 2.74a9.22 9.22 0 012.73 6.57c0 5.13-4.18 9.32-9.29 9.32zm5.2-6.94c-.28-.14-1.66-.82-1.92-.91-.26-.1-.45-.14-.64.14-.19.28-.73.91-.9 1.1-.16.19-.33.21-.61.07-.28-.14-1.17-.43-2.23-1.36-.83-.74-1.38-1.65-1.54-1.93-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.5.14-.17.19-.28.28-.47.1-.19.05-.36-.02-.5-.07-.14-.64-1.54-.88-2.12-.23-.56-.47-.48-.64-.49h-.55c-.19 0-.5.07-.76.36-.26.28-1 1-.97 2.43.03 1.43 1.04 2.8 1.19 3 .14.19 2.05 3.12 5.02 4.38.7.3 1.24.48 1.66.62.7.22 1.33.19 1.83.11.56-.08 1.66-.68 1.9-1.33.23-.65.23-1.2.16-1.33-.07-.12-.26-.19-.54-.33z"/>
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20.52 3.48A11.94 11.94 0 0012.05 0C5.5 0 .2 5.3.2 11.84c0 2.08.54 4.1 1.57 5.88L0 24l6.46-1.68a11.82 11.82 0 005.6 1.43h.01c6.55 0 11.85-5.3 11.85-11.84 0-3.16-1.23-6.12-3.4-8.43zM12.06 21.2h-.01a9.3 9.3 0 01-4.74-1.3l-.34-.2-3.83 1 1.02-3.73-.22-.38a9.23 9.23 0 01-1.42-4.92c0-5.12 4.18-9.3 9.32-9.3 2.49 0 4.82.97 6.58 2.74a9.22 9.22 0 012.73 6.57c0 5.13-4.18 9.32-9.29 9.32z"/>
               </svg>
-              <span className="relative z-10">واتساب</span>
+              <span>واتساب</span>
             </a>
 
             {/* Mobile Menu Button */}
             <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2 rounded-full hover:bg-black/5 text-black"
-                aria-label={isMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
-                aria-expanded={isMenuOpen}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  {isMenuOpen ? (
-                    <path strokeWidth={1.8} d="M6 18L18 6M6 6l12 12" />
-                  ) : (
-                    <path strokeWidth={1.8} d="M4 6h16M4 12h16M4 18h16" />
-                  )}
-                </svg>
-              </button>
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 rounded-full hover:bg-rose-gold/10 text-black transition-colors"
+              aria-label={isMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {isMenuOpen ? (
+                  <path strokeWidth={1.8} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeWidth={1.8} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
         </div>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden mt-4 mx-4 bg-white/95 backdrop-blur-xl border rounded-2xl shadow-lg p-4 animate-slideDown">
-            <nav className="flex flex-col gap-3" aria-label="القائمة الرئيسية للجوال">
+          <div className="md:hidden mt-4 mx-4 bg-white/95 backdrop-blur-xl border border-rose-gold/20 rounded-2xl shadow-lg p-4 animate-slideDown">
+            <nav className="flex flex-col gap-3">
               {[
                 { href: '/', label: 'الرئيسية' },
                 { href: '/products', label: 'المنتجات' },
@@ -262,7 +219,7 @@ export default function Header() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-sm font-semibold text-black hover:text-black/70 py-2 transition-all"
+                  className="text-sm font-semibold text-black hover:text-rose-gold py-2 transition-all"
                 >
                   {link.label}
                 </Link>
@@ -271,8 +228,7 @@ export default function Header() {
                 href="https://wa.me/201500125133"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 text-white text-center py-2 rounded-full text-sm mt-2"
-                aria-label="تواصل معنا عبر واتساب"
+                className="bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white text-center py-2 rounded-full text-sm mt-2 font-bold"
               >
                 واتساب
               </a>
@@ -281,45 +237,30 @@ export default function Header() {
         )}
       </header>
 
-      {/* DRAWERS */}
+      {/* Drawers */}
       <SideDrawer
-          isOpen={isFavoritesDrawerOpen}
-          onClose={() => setIsFavoritesDrawerOpen(false)}
-          type="favorites"
-        />
+        isOpen={isFavoritesDrawerOpen}
+        onClose={() => setIsFavoritesDrawerOpen(false)}
+        type="favorites"
+      />
+      <SideDrawer
+        isOpen={isCartDrawerOpen}
+        onClose={() => setIsCartDrawerOpen(false)}
+        type="cart"
+      />
 
-        <SideDrawer
-          isOpen={isCartDrawerOpen}
-          onClose={() => setIsCartDrawerOpen(false)}
-          type="cart"
-        />
-
-      {/* FLOATING WHATSAPP BUBBLE */}
+      {/* Floating WhatsApp Bubble - نحاسي */}
       <a
         href="https://wa.me/201500125133"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-20 right-6 z-50 w-12 h-12 rounded-full bg-linear-to-r from-emerald-500 via-green-500 to-lime-400 flex items-center justify-center shadow-lg animate-bounce hover:scale-110 transition-all"
-        aria-label="تواصل معنا عبر واتساب - خدمة العملاء 24 ساعة"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-linear-to-r from-rose-gold-light via-rose-gold to-copper flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-rose-gold/30"
+        aria-label="تواصل عبر واتساب"
       >
-        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M20.52 3.48A11.94 11.94 0 0012.05 0C5.5 0 .2 5.3.2 11.84c0 2.08.54 4.1 1.57 5.88L0 24l6.46-1.68a11.82 11.82 0 005.6 1.43h.01c6.55 0 11.85-5.3 11.85-11.84 0-3.16-1.23-6.12-3.4-8.43zM12.06 21.2h-.01a9.3 9.3 0 01-4.74-1.3l-.34-.2-3.83 1 1.02-3.73-.22-.38a9.23 9.23 0 01-1.42-4.92c0-5.12 4.18-9.3 9.32-9.3 2.49 0 4.82.97 6.58 2.74a9.22 9.22 0 012.73 6.57c0 5.13-4.18 9.32-9.29 9.32zm5.2-6.94c-.28-.14-1.66-.82-1.92-.91-.26-.1-.45-.14-.64.14-.19.28-.73.91-.9 1.1-.16.19-.33.21-.61.07-.28-.14-1.17-.43-2.23-1.36-.83-.74-1.38-1.65-1.54-1.93-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.5.14-.17.19-.28.28-.47.1-.19.05-.36-.02-.5-.07-.14-.64-1.54-.88-2.12-.23-.56-.47-.48-.64-.49h-.55c-.19 0-.5.07-.76.36-.26.28-1 1-.97 2.43.03 1.43 1.04 2.8 1.19 3 .14.19 2.05 3.12 5.02 4.38.7.3 1.24.48 1.66.62.7.22 1.33.19 1.83.11.56-.08 1.66-.68 1.9-1.33.23-.65.23-1.2.16-1.33-.07-.12-.26-.19-.54-.33z"/>
+        <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M20.52 3.48A11.94 11.94 0 0012.05 0C5.5 0 .2 5.3.2 11.84c0 2.08.54 4.1 1.57 5.88L0 24l6.46-1.68a11.82 11.82 0 005.6 1.43h.01c6.55 0 11.85-5.3 11.85-11.84 0-3.16-1.23-6.12-3.4-8.43zM12.06 21.2h-.01a9.3 9.3 0 01-4.74-1.3l-.34-.2-3.83 1 1.02-3.73-.22-.38a9.23 9.23 0 01-1.42-4.92c0-5.12 4.18-9.3 9.32-9.3 2.49 0 4.82.97 6.58 2.74a9.22 9.22 0 012.73 6.57c0 5.13-4.18 9.32-9.29 9.32z"/>
         </svg>
       </a>
-
-      {/* ✅ زر تحميل التطبيق - يظهر بس للمستخدمين العاديين (مش في التطبيق) */}
-      {!isAppEnvironment && !appInstalled && (
-        <a
-          href="/downloads/VELIX_Store_1.0.0.apk"
-          download
-          className="fixed bottom-36 right-6 z-50 w-12 h-12 rounded-full bg-linear-to-r from-blue-500 to-blue-700 flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 group"
-          aria-label="تحميل تطبيق VELIX"
-        >
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-        </a>
-      )}
     </>
   );
 }

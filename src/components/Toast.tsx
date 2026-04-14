@@ -1,4 +1,3 @@
-// components/Toast.tsx
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -49,18 +48,19 @@ export default function Toast({
     onClose();
   };
   
+  // 🎨 ألوان نحاسية فخمة
   const bgColor = {
-    success: 'bg-linear-to-r from-emerald-500 via-green-500 to-lime-400',
-    error: 'bg-linear-to-r from-red-500 via-rose-500 to-pink-500',
-    info: 'bg-linear-to-r from-blue-500 via-indigo-500 to-purple-500',
-    warning: 'bg-linear-to-r from-amber-500 via-orange-500 to-yellow-500',
+    success: 'bg-gradient-to-r from-rose-gold-light via-rose-gold to-copper',
+    error: 'bg-gradient-to-r from-rose-gold-dark via-red-600 to-rose-gold-dark',
+    info: 'bg-gradient-to-r from-copper-light via-copper to-copper-dark',
+    warning: 'bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700',
   }[type];
 
   const borderColor = {
-    success: 'border-emerald-300',
-    error: 'border-red-300',
-    info: 'border-blue-300',
-    warning: 'border-amber-300',
+    success: 'border-rose-gold/30',
+    error: 'border-red-400/30',
+    info: 'border-copper/30',
+    warning: 'border-amber-400/30',
   }[type];
 
   const icons = {
@@ -95,7 +95,7 @@ export default function Toast({
       <div
         ref={toastRef}
         role="alert"
-        aria-label={`إشعار: ${message}`}
+        aria-label={`تنبيه: ${message}`}
         className="fixed top-6 left-1/2 transform -translate-x-1/2 z-9999 animate-slide-down cursor-pointer"
         onClick={handleClose}
       >
@@ -117,7 +117,7 @@ export default function Toast({
           transition-all
           duration-300
           hover:scale-105
-          hover:shadow-xl
+          hover:shadow-rose-gold/30
           group
           min-w-50
           max-w-[90vw]
@@ -133,7 +133,7 @@ export default function Toast({
               handleClose();
             }}
             className="shrink-0 mr-1 opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-white rounded-full p-1"
-            aria-label="إغلاق الإشعار"
+            aria-label="إغلاق"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

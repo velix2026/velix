@@ -1,4 +1,3 @@
-// app/products/ProductsClient.tsx
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -14,7 +13,7 @@ import { toArabicNumber } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
-// ==================== Zustand Store (Global State) ====================
+// Zustand Store
 interface StoreState {
   favorites: string[];
   cart: string[];
@@ -28,7 +27,6 @@ interface StoreState {
 const useStore = create<StoreState>((set) => ({
   favorites: [],
   cart: [],
-  
   addToFavorites: (id) => set((state) => ({ 
     favorites: state.favorites.includes(id) ? state.favorites : [...state.favorites, id] 
   })),
@@ -51,14 +49,14 @@ const useStore = create<StoreState>((set) => ({
   }
 }));
 
-// ==================== AutoGrid Component ====================
+// AutoGrid Component
 const AutoGrid = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
   <div className={`grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 md:gap-4 ${className}`}>
     {children}
   </div>
 );
 
-// ==================== FixedGrid Component ====================
+// FixedGrid Component
 const FixedGrid = ({ children, cols = 4, className = "" }: { children: React.ReactNode; cols?: 2 | 3 | 4; className?: string }) => {
   const colsClass = {
     2: 'grid-cols-2',
@@ -72,19 +70,19 @@ const FixedGrid = ({ children, cols = 4, className = "" }: { children: React.Rea
   );
 };
 
-// ==================== Best Seller Badge ====================
+// Best Seller Badge - نحاسي
 const BestSellerBadge = () => (
   <div className="absolute -top-2 -right-2 z-20">
     <div className="relative">
-      <div className="absolute inset-0 bg-yellow-400 rounded-full blur-md animate-pulse" />
-      <div className="relative bg-linear-to-r from-yellow-500 to-yellow-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
+      <div className="absolute inset-0 bg-rose-gold rounded-full blur-md animate-pulse" />
+      <div className="relative bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
         <span>⭐</span> الأكثر مبيعاً
       </div>
     </div>
   </div>
 );
 
-// تعريف التصنيفات
+// التصنيفات
 const categories = [
   { id: 'all', name: 'الكل', image: '/images/all-categories.png', count: 0 },
   { id: 'تيشرتات', name: 'تيشرتات', image: '/images/tshirt-category.png', count: 0 },
@@ -94,12 +92,11 @@ const categories = [
 
 const sortOptions = [
   { value: 'newest', label: 'الأحدث' },
-  { value: 'price-asc', label: 'السعر: من الأقل إلى الأعلى' },
-  { value: 'price-desc', label: 'السعر: من الأعلى إلى الأقل' },
+  { value: 'price-asc', label: 'السعر: من الأقل للأعلى' },
+  { value: 'price-desc', label: 'السعر: من الأعلى للأقل' },
   { value: 'popular', label: 'الأكثر طلباً' }
 ];
 
-// دالة للخلط العشوائي
 const shuffleArray = <T,>(array: T[]): T[] => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -109,7 +106,6 @@ const shuffleArray = <T,>(array: T[]): T[] => {
   return shuffled;
 };
 
-// دالة حساب إجمالي الكمية من stockItems
 const getTotalStock = (product: Product): number => {
   if (product.stockItems && Array.isArray(product.stockItems)) {
     return product.stockItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -136,10 +132,9 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
   const [maxPrice, setMaxPrice] = useState(1000);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  const { favorites, cart, loadFromStorage } = useStore();
+  const { loadFromStorage } = useStore();
   const { ref: loadMoreRef, inView } = useInView();
 
-  // حساب الأكثر مبيعاً والسعر
   useEffect(() => {
     const sortedBySales = [...products]
       .filter(p => (p.salesCount || 0) > 0)
@@ -155,21 +150,18 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     loadFromStorage();
   }, [products, loadFromStorage]);
 
-  // المنتجات الموصى بها
   const recommended = useMemo(() => {
     const candidates = products.filter(p => !bestSellers.some(b => b.id === p.id));
     const shuffled = shuffleArray(candidates);
     return shuffled.slice(0, 4);
   }, [products, bestSellers]);
 
-  // Debounce search
   useEffect(() => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     searchTimeoutRef.current = setTimeout(() => setDebouncedQuery(searchQuery), 300);
     return () => { if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current); };
   }, [searchQuery]);
 
-  // تحديث المنتجات
   useEffect(() => {
     let filtered = [...products];
     
@@ -201,7 +193,6 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setVisibleCount(12);
   }, [selectedCategory, sortBy, debouncedQuery, priceRange, products]);
 
-  // تحديث عدد المنتجات في التصنيفات
   categories.forEach(cat => {
     if (cat.id === 'all') cat.count = products.length;
     else cat.count = products.filter(p => p.category === cat.id).length;
@@ -218,7 +209,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
 
   if (loading && products.length === 0) {
     return (
-      <div className="bg-white py-16 md:py-24">
+      <div className="bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] py-16 md:py-24">
         <div className="container mx-auto px-4">
           <ProductGridSkeleton count={12} />
         </div>
@@ -227,22 +218,23 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
   }
 
   return (
-    <section className="bg-white py-12 md:py-20">
+    <section className="bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] py-12 md:py-20">
       <div className="container mx-auto px-4">
-        {/* Hero Title */}
+        
+        {/* Hero Title - نحاسي */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-12 md:mb-16"
         >
-          <span className="text-xs text-black/40 tracking-[0.2em] uppercase font-bold mb-3 block">
-            مجموعتنا
+          <span className="text-xs text-rose-gold tracking-[0.2em] uppercase font-bold mb-3 block">
+            تشكيلتنا
           </span>
           <h1 className="text-3xl md:text-4xl font-bold text-black">
-            جميع المنتجات
+            كل المنتجات
           </h1>
-          <div className="w-16 h-0.5 bg-black/20 mx-auto mt-4 mb-6" />
+          <div className="w-20 h-1 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper rounded-full mx-auto mt-4 mb-6" />
           <p className="text-black/60 font-bold text-base max-w-2xl mx-auto">
             اكتشف مجموعتنا الكاملة. تفاصيل دقيقة وجودة عالية في كل قطعة.
           </p>
@@ -258,10 +250,10 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
           >
             <div className="text-center mb-8">
               <h2 className="text-2xl md:text-3xl font-bold text-black flex items-center justify-center gap-2">
-                <span className="text-2xl animate-pulse">⭐</span>
+                <span className="text-2xl animate-pulse text-rose-gold">⭐</span>
                 الأكثر مبيعاً
               </h2>
-              <div className="w-16 h-0.5 bg-black/20 mx-auto mt-3 mb-4" />
+              <div className="w-16 h-0.5 bg-rose-gold/30 mx-auto mt-3 mb-4" />
               <p className="text-black/60 font-bold text-sm">المنتجات الأكثر طلباً من عملائنا</p>
             </div>
             <FixedGrid cols={4}>
@@ -281,16 +273,16 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
           </motion.div>
         )}
 
-        {/* Categories Section */}
+        {/* Categories Section - نحاسي */}
         <div className="mb-16">
           <div className="text-center mb-8">
-            <span className="text-xs text-black/40 tracking-[0.2em] uppercase font-bold mb-3 block">
+            <span className="text-xs text-rose-gold tracking-[0.2em] uppercase font-bold mb-3 block">
               اكتشف
             </span>
             <h2 className="text-2xl md:text-3xl font-bold text-black">
               تصفح حسب القسم
             </h2>
-            <div className="w-16 h-0.5 bg-black/20 mx-auto mt-3 mb-4" />
+            <div className="w-16 h-0.5 bg-rose-gold/30 mx-auto mt-3 mb-4" />
           </div>
           <FixedGrid cols={4}>
             {categories.map((category) => (
@@ -299,8 +291,8 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
                 onClick={() => setSelectedCategory(category.id)}
                 className={`group relative overflow-hidden rounded-2xl aspect-square transition-all duration-300 ${
                   selectedCategory === category.id 
-                    ? 'ring-2 ring-black shadow-xl scale-[1.02]' 
-                    : 'shadow-md hover:shadow-xl'
+                    ? 'ring-2 ring-rose-gold shadow-xl scale-[1.02]' 
+                    : 'shadow-md hover:shadow-rose-gold/20'
                 }`}
               >
                 <div className="absolute inset-0">
@@ -322,8 +314,8 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
           </FixedGrid>
         </div>
 
-        {/* Filter Bar */}
-        <div className="bg-black/5 rounded-2xl p-4 mb-8">
+        {/* Filter Bar - نحاسي */}
+        <div className="bg-rose-gold/5 rounded-2xl p-4 mb-8 border border-rose-gold/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             {/* Search */}
             <div className="relative w-full md:w-80">
@@ -332,7 +324,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
                 placeholder="ابحث عن منتج..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2.5 pr-10 border border-black/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm bg-white text-black"
+                className="w-full px-4 py-2.5 pr-10 border border-rose-gold/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent text-sm bg-white text-black"
               />
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -340,7 +332,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
               {searchQuery && (
                 <button 
                   onClick={() => setSearchQuery('')} 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40 hover:text-black/60 text-sm"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40 hover:text-rose-gold text-sm"
                 >
                   ✕
                 </button>
@@ -350,7 +342,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
             {/* Price Range */}
             <div className="flex items-center gap-3">
               <span className="text-sm font-bold text-black/60">السعر:</span>
-              <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-1.5 border border-black/20">
+              <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-1.5 border border-rose-gold/20">
                 <input 
                   type="number" 
                   value={priceRange[0]} 
@@ -375,7 +367,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
               <select 
                 value={sortBy} 
                 onChange={(e) => setSortBy(e.target.value)} 
-                className="px-4 py-2 border border-black/20 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black bg-white text-black cursor-pointer"
+                className="px-4 py-2 border border-rose-gold/20 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-gold bg-white text-black cursor-pointer"
               >
                 {sortOptions.map(option => (
                   <option key={option.value} value={option.value}>{option.label}</option>
@@ -388,9 +380,9 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
         {/* Results Count */}
         <div className="text-center mb-8">
           <p className="text-black/60 text-sm font-bold">
-            <span className="font-bold text-black">{toArabicNumber(filteredProducts.length)}</span> منتج
+            <span className="font-bold text-rose-gold">{toArabicNumber(filteredProducts.length)}</span> منتج
             {selectedCategory !== 'all' && <> في <span className="font-bold text-black">{categories.find(c => c.id === selectedCategory)?.name}</span></>}
-            {searchQuery && <> مطابق لـ <span className="font-bold text-black">"{searchQuery}"</span></>}
+            {searchQuery && <> مطابق لـ <span className="font-bold text-rose-gold">"{searchQuery}"</span></>}
           </p>
         </div>
         
@@ -413,14 +405,14 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
           ) : (
             <div className="text-center py-16">
               <div className="text-5xl mb-4">🔍</div>
-              <h3 className="text-xl font-bold text-black mb-2">{searchQuery ? 'لا توجد نتائج' : 'لا توجد منتجات'}</h3>
-              <p className="text-black/60 mb-4">{searchQuery ? `لا توجد منتجات تطابق "${searchQuery}"` : 'لا توجد منتجات في هذا التصنيف حالياً'}</p>
+              <h3 className="text-xl font-bold text-black mb-2">{searchQuery ? 'مفيش نتائج' : 'مفيش منتجات'}</h3>
+              <p className="text-black/60 mb-4">{searchQuery ? `مفيش منتجات تطابق "${searchQuery}"` : 'مفيش منتجات في التصنيف ده حالياً'}</p>
               {(searchQuery || selectedCategory !== 'all') && (
                 <button 
                   onClick={() => { setSearchQuery(''); setSelectedCategory('all'); setPriceRange([minPrice, maxPrice]); }} 
-                  className="px-6 py-2 bg-black text-white font-bold rounded-full hover:bg-black/80 transition"
+                  className="px-6 py-2 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold rounded-full hover:scale-[1.02] transition"
                 >
-                  عرض جميع المنتجات
+                  شوف كل المنتجات
                 </button>
               )}
             </div>
@@ -432,12 +424,12 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
 
         {/* Recommended Section */}
         {recommended.length > 0 && (
-          <div className="mt-16 pt-8 border-t border-black/10">
+          <div className="mt-16 pt-8 border-t border-rose-gold/20">
             <div className="text-center mb-8">
               <h2 className="text-2xl md:text-3xl font-bold text-black">
-                قد يعجبك أيضاً
+                قد يعجبك كمان
               </h2>
-              <div className="w-16 h-0.5 bg-black/20 mx-auto mt-3 mb-4" />
+              <div className="w-16 h-0.5 bg-rose-gold/30 mx-auto mt-3 mb-4" />
             </div>
             <FixedGrid cols={4}>
               {recommended.map((product) => (

@@ -1,14 +1,13 @@
-// app/contact/page.tsx
 import ContactClient from './ContactClient';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "اتصل بنا | VELIX - تواصل مع فريق الدعم",
-  description: "تواصل مع فريق VELIX عبر واتساب، البريد الإلكتروني، أو وسائل التواصل الاجتماعي. فريقنا جاهز للرد على استفساراتك 24 ساعة.",
-  keywords: "اتصل بنا, VELIX, خدمة العملاء, واتساب VELIX, دعم فني, تواصل مع البراند",
+  title: "اتصل بنا | VELIX",
+  description: "تواصل مع فريق VELIX عبر واتساب أو البريد الإلكتروني أو السوشيال ميديا. فريقنا جاهز يرد عليك 24 ساعة.",
+  keywords: ["اتصل بنا", "VELIX", "خدمة العملاء", "واتساب VELIX", "دعم فني", "تواصل مع البراند"],
   openGraph: {
-    title: "اتصل بنا | VELIX - فريق الدعم جاهز للرد",
-    description: "تواصل مع فريق VELIX - نرد عليك خلال 24 ساعة",
+    title: "اتصل بنا | VELIX",
+    description: "تواصل مع فريق VELIX - بنرد عليك خلال 24 ساعة",
     url: "https://velix-eg.store/contact",
     siteName: "VELIX",
     locale: "ar_EG",

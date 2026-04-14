@@ -15,10 +15,6 @@ export default function ContactClient() {
       description: "أسرع طريقة للتواصل، رد فوري",
       action: "https://wa.me/201500125133",
       buttonText: "تواصل عبر واتساب",
-      buttonColor: "from-emerald-500 to-green-600",
-      bgColor: "from-emerald-50 to-green-50",
-      borderColor: "border-emerald-200",
-      textColor: "text-emerald-700",
     },
     {
       title: "البريد الإلكتروني",
@@ -27,13 +23,9 @@ export default function ContactClient() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
       ),
-      description: "للاقتراحات والشكاوى والاستفسارات",
+      description: "للاستفسارات والشكاوى والاقتراحات",
       action: "mailto:velix2026@gmail.com",
       buttonText: "أرسل إيميل",
-      buttonColor: "from-blue-500 to-indigo-600",
-      bgColor: "from-blue-50 to-indigo-50",
-      borderColor: "border-blue-200",
-      textColor: "text-blue-700",
     },
     {
       title: "إنستجرام",
@@ -45,10 +37,6 @@ export default function ContactClient() {
       description: "تابع آخر التشكيلات والعروض",
       action: "https://instagram.com/velix.2026",
       buttonText: "تابعنا على إنستجرام",
-      buttonColor: "from-pink-500 to-rose-600",
-      bgColor: "from-pink-50 to-rose-50",
-      borderColor: "border-pink-200",
-      textColor: "text-pink-700",
     },
     {
       title: "فيسبوك",
@@ -60,10 +48,6 @@ export default function ContactClient() {
       description: "تواصل معنا وشاركنا رأيك",
       action: "https://facebook.com/velix2026",
       buttonText: "تابعنا على فيسبوك",
-      buttonColor: "from-blue-600 to-blue-800",
-      bgColor: "from-blue-50 to-sky-50",
-      borderColor: "border-blue-200",
-      textColor: "text-blue-700",
     },
     {
       title: "تيك توك",
@@ -75,10 +59,6 @@ export default function ContactClient() {
       description: "شوف فيديوهات المنتجات الحصرية",
       action: "https://tiktok.com/@velix2026",
       buttonText: "تابعنا على تيك توك",
-      buttonColor: "from-black to-gray-800",
-      bgColor: "from-gray-50 to-gray-100",
-      borderColor: "border-gray-200",
-      textColor: "text-gray-700",
     },
     {
       title: "قناة واتساب",
@@ -90,14 +70,9 @@ export default function ContactClient() {
       description: "آخر العروض والمنتجات الجديدة",
       action: "https://whatsapp.com/channel/0029VbCamY1JUM2iILsajJ3t",
       buttonText: "اشترك في القناة",
-      buttonColor: "from-emerald-600 to-green-700",
-      bgColor: "from-emerald-50 to-green-50",
-      borderColor: "border-emerald-200",
-      textColor: "text-emerald-700",
     },
   ];
 
-  // ✅ JSON-LD للصفحة
   const contactSchema = {
     "@context": "https://schema.org",
     "@type": "ContactPage",
@@ -132,34 +107,34 @@ export default function ContactClient() {
 
   return (
     <>
-      {/* ✅ JSON-LD */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }}
       />
       
-      <div className="bg-white min-h-screen pt-28 pb-16">
+      <div className="bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] min-h-screen pt-28 pb-16">
         <div className="container mx-auto px-4 max-w-6xl">
-          {/* Header */}
+          
+          {/* Header - نحاسي */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="text-center mb-12"
           >
-            <span className="text-xs text-black/50 tracking-[0.2em] uppercase font-black mb-3 block">
+            <span className="text-xs text-rose-gold tracking-[0.2em] uppercase font-bold mb-3 block">
               تواصل معانا
             </span>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-black mb-4">
               اتصل بنا
             </h1>
-            <div className="w-20 h-0.5 bg-linear-to-r from-emerald-500 to-green-500 mx-auto mb-6" />
+            <div className="w-20 h-1 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper rounded-full mx-auto mb-6" />
             <p className="text-black/60 font-bold text-base max-w-2xl mx-auto">
-              فريق VELIX موجود عشان يساعدك في أي وقت. اختار الطريقة المناسبة لك وتواصل معانا
+              فريق VELIX موجود عشان يساعدك في أي وقت. اختار الطريقة اللي تناسبك وتواصل معانا
             </p>
           </motion.div>
 
-          {/* Contact Methods Grid */}
+          {/* Contact Methods Grid - نحاسي */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {contactMethods.map((method, idx) => (
               <motion.div
@@ -167,16 +142,16 @@ export default function ContactClient() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: idx * 0.1 }}
-                className={`group relative bg-linear-to-br ${method.bgColor} rounded-2xl p-6 border ${method.borderColor} hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}
+                className="group relative bg-white rounded-2xl p-6 border border-rose-gold/20 hover:shadow-xl hover:shadow-rose-gold/10 transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="text-center">
-                  {/* Icon */}
-                  <div className={`flex justify-center mb-4 text-${method.textColor.split('-')[1]}-500 group-hover:scale-110 transition-transform duration-300`}>
+                  {/* Icon - نحاسي */}
+                  <div className="flex justify-center mb-4 text-rose-gold group-hover:scale-110 transition-transform duration-300">
                     {method.icon}
                   </div>
                   
                   {/* Title */}
-                  <h3 className={`text-xl font-black ${method.textColor} mb-2`}>
+                  <h3 className="text-xl font-black text-rose-gold mb-2">
                     {method.title}
                   </h3>
                   
@@ -185,12 +160,12 @@ export default function ContactClient() {
                     {method.description}
                   </p>
                   
-                  {/* Button */}
+                  {/* Button - نحاسي */}
                   <a
                     href={method.action}
                     target={method.title !== "البريد الإلكتروني" ? "_blank" : undefined}
                     rel={method.title !== "البريد الإلكتروني" ? "noopener noreferrer" : undefined}
-                    className={`inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r ${method.buttonColor} text-white font-black rounded-full text-sm hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-lg`}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-black rounded-full text-sm hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-rose-gold/30"
                   >
                     {method.buttonText}
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,12 +177,12 @@ export default function ContactClient() {
             ))}
           </div>
 
-          {/* Office Hours Card */}
+          {/* Office Hours Card - نحاسي */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
-            className="bg-white rounded-2xl p-6 border border-black/10 text-center mb-6"
+            className="bg-white rounded-2xl p-6 border border-rose-gold/20 text-center mb-6 hover:shadow-md transition"
           >
             <div className="flex items-center justify-center gap-2 mb-3">
               <span className="text-3xl">⏰</span>
@@ -227,28 +202,28 @@ export default function ContactClient() {
                 <p className="text-black/60 font-bold">١٢ م - ١٠ م</p>
               </div>
             </div>
-            <p className="text-emerald-600 text-xs mt-3 font-bold">
-              🚀 فريق الدعم الفني متاح 24 ساعة على واتساب
+            <p className="text-rose-gold text-xs mt-3 font-bold">
+              🚀 فريق الدعم الفني متاح ٢٤ ساعة على واتساب
             </p>
           </motion.div>
 
-          {/* Response Time Banner */}
+          {/* Response Time Banner - نحاسي */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.65 }}
-            className="bg-linear-to-r from-emerald-50 to-green-50 rounded-2xl p-5 text-center border border-emerald-200 mb-6"
+            className="bg-linear-to-r from-rose-gold/10 to-copper/10 rounded-2xl p-5 text-center border border-rose-gold/30 mb-6"
           >
             <div className="flex items-center justify-center gap-3">
               <span className="text-2xl">⚡</span>
-              <p className="text-emerald-700 font-black text-sm">
+              <p className="text-rose-gold font-black text-sm">
                 بنرد على استفساراتك خلال ٢٤ ساعة كحد أقصى
               </p>
               <span className="text-2xl">⚡</span>
             </div>
           </motion.div>
 
-          {/* Quick Links */}
+          {/* Quick Links - نحاسي */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -256,31 +231,19 @@ export default function ContactClient() {
             className="text-center"
           >
             <div className="flex flex-wrap justify-center gap-3">
-              <Link
-                href="/shipping"
-                className="text-sm text-black/50 font-bold hover:text-emerald-600 transition"
-              >
+              <Link href="/shipping" className="text-sm text-black/50 font-bold hover:text-rose-gold transition">
                 سياسة الشحن
               </Link>
               <span className="text-black/30">•</span>
-              <Link
-                href="/returns"
-                className="text-sm text-black/50 font-bold hover:text-emerald-600 transition"
-              >
+              <Link href="/returns" className="text-sm text-black/50 font-bold hover:text-rose-gold transition">
                 سياسة الاستبدال والاسترجاع
               </Link>
               <span className="text-black/30">•</span>
-              <Link
-                href="/privacy"
-                className="text-sm text-black/50 font-bold hover:text-emerald-600 transition"
-              >
+              <Link href="/privacy" className="text-sm text-black/50 font-bold hover:text-rose-gold transition">
                 سياسة الخصوصية
               </Link>
               <span className="text-black/30">•</span>
-              <Link
-                href="/terms"
-                className="text-sm text-black/50 font-bold hover:text-emerald-600 transition"
-              >
+              <Link href="/terms" className="text-sm text-black/50 font-bold hover:text-rose-gold transition">
                 شروط الاستخدام
               </Link>
             </div>

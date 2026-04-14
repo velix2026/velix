@@ -16,6 +16,7 @@ export interface Product {
   sizes?: string[];
   colors?: string[];
   salesCount?: number;
+  quantity?: number; // ✅ أضف السطر ده - مهم للـ SideDrawer
   quantityDiscount?: {
     enabled: boolean;
     tiers: Array<{
@@ -23,7 +24,6 @@ export interface Product {
       discountPerItem: number;
     }>;
   };
-  // ✅ الحقل الجديد للكميات لكل لون ومقاس
   stockItems?: Array<{
     colorCode: string;
     size: string;
@@ -54,11 +54,11 @@ export async function getProducts(): Promise<Product[]> {
     
     const products = await res.json();
     
-    // ✅ معالجة المنتجات القديمة (اللي مفيش فيها stockItems)
     const productsWithStock = products.map((p: any) => ({
       ...p,
       stockItems: p.stockItems || [],
       stock: p.stock || 0,
+      quantity: p.quantity || 0, // ✅ أضف السطر ده كمان
     }));
     
     return Array.isArray(productsWithStock) ? productsWithStock : [];
@@ -68,7 +68,6 @@ export async function getProducts(): Promise<Product[]> {
   }
 }
 
-// ✅ دالة مساعدة لحساب إجمالي الكمية من stockItems
 export function getTotalStock(product: Product): number {
   if (product.stockItems && product.stockItems.length > 0) {
     return product.stockItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -76,7 +75,6 @@ export function getTotalStock(product: Product): number {
   return product.stock || 0;
 }
 
-// ✅ دالة مساعدة لحساب الكمية المتاحة للون ومقاس معينين
 export function getAvailableStock(product: Product, size?: string, color?: string): number {
   if (!size || !color) return getTotalStock(product);
   
@@ -90,15 +88,12 @@ export function getAvailableStock(product: Product, size?: string, color?: strin
   return product.stock || 0;
 }
 
-// ✅ دالة مساعدة للتحقق من توفر منتج
 export function isProductInStock(product: Product, size?: string, color?: string): boolean {
   return getAvailableStock(product, size, color) > 0;
 }
 
-// ✅ دالة مساعدة للحصول على الألوان المتاحة مع الكميات
 export function getAvailableColorsWithStock(product: Product): Array<{ colorCode: string; totalStock: number; sizes: Array<{ size: string; quantity: number }> }> {
   if (!product.stockItems || product.stockItems.length === 0) {
-    // للمنتجات القديمة
     return (product.colors || []).map(colorCode => ({
       colorCode,
       totalStock: product.stock || 0,
@@ -123,10 +118,8 @@ export function getAvailableColorsWithStock(product: Product): Array<{ colorCode
   }));
 }
 
-// ✅ دالة مساعدة للحصول على المقاسات المتاحة مع الكميات
 export function getAvailableSizesWithStock(product: Product): Array<{ size: string; totalStock: number; colors: Array<{ colorCode: string; quantity: number }> }> {
   if (!product.stockItems || product.stockItems.length === 0) {
-    // للمنتجات القديمة
     return (product.sizes || []).map(size => ({
       size,
       totalStock: product.stock || 0,

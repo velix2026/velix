@@ -6,18 +6,16 @@ import { usePathname } from 'next/navigation';
 export default function Breadcrumbs() {
   const pathname = usePathname();
   
-  // لو في الصفحة الرئيسية، متعرضش حاجة خالص
+  // لو في الصفحة الرئيسية أو الأدمن، متعرضش حاجة خالص
   if (pathname === '/') return null;
+  if (pathname.startsWith('/admin')) return null;
   
-  // نقسم الرابط إلى أجزاء
   const pathSegments = pathname.split('/').filter(segment => segment);
   
-  // نرجع الأجزاء مع روابطها
   const breadcrumbs = pathSegments.map((segment, index) => {
     const url = `/${pathSegments.slice(0, index + 1).join('/')}`;
     const isLast = index === pathSegments.length - 1;
     
-    // تحويل اسم الصفحة لاسم عربي
     let name = segment;
     switch (segment) {
       case 'products': name = 'المنتجات'; break;
@@ -27,13 +25,14 @@ export default function Breadcrumbs() {
       case 'returns': name = 'الاستبدال والاسترجاع'; break;
       case 'privacy': name = 'سياسة الخصوصية'; break;
       case 'terms': name = 'شروط الاستخدام'; break;
+      case 'favorites': name = 'المفضلة'; break;
+      case 'cart': name = 'سلة التسوق'; break;
       default: name = decodeURIComponent(segment);
     }
     
     return { url, name, isLast };
   });
   
-  // ✅ JSON-LD للـ Breadcrumbs (ده اللي بيقراه جوجل)
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -55,20 +54,20 @@ export default function Breadcrumbs() {
   
   return (
     <>
-      {/* ✅ JSON-LD للـ Breadcrumbs -visible to Google only */}
+      {/* JSON-LD لجوجل بس - مش بيظهر للمستخدم */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       
-      {/* ✅ Breadcrumbs visually hidden - موجودة في الـ HTML لكن مش ظاهرة للمستخدم */}
+      {/* Breadcrumbs مخفي تماماً عن المستخدم - موجود لجوجل بس */}
       <nav className="sr-only" aria-label="Breadcrumb">
-        <ol className="flex flex-wrap items-center gap-2 text-sm">
+        <ol>
           <li>
             <Link href="/">الرئيسية</Link>
           </li>
           {breadcrumbs.map((item, index) => (
-            <li key={index} className="flex items-center gap-2">
+            <li key={index}>
               <span>/</span>
               {item.isLast ? (
                 <span>{item.name}</span>
