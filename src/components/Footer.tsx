@@ -40,9 +40,9 @@ export default function Footer() {
       'areaServed': 'EG'
     },
     'sameAs': [
-      'https://instagram.com/velix.2026',
-      'https://facebook.com/velix2026',
-      'https://tiktok.com/@velix2026',
+      'https://instagram.com/velixstore.eg',
+      'https://facebook.com/velixstore.eg',
+      'https://tiktok.com/@velixstore.eg',
       'https://whatsapp.com/channel/0029VbCamY1JUM2iILsajJ3t',
       'https://wa.me/201500125133'
     ],
@@ -217,7 +217,7 @@ export default function Footer() {
                   </li>
                   <li className="flex items-center justify-center md:justify-start gap-2">
                     <SocialIcon 
-                      url="mailto:velix2026@gmail.com"
+                      url="mailto:velixstore.eg@gmail.com"
                       network="email"
                       bgColor="transparent" 
                       fgColor="#B76E79"
@@ -227,7 +227,7 @@ export default function Footer() {
                       className="hover:scale-110 transition-transform duration-200"
                     />
                     <a 
-                      href="mailto:velix2026@gmail.com"
+                      href="mailto:velixstore.eg@gmail.com"
                       className="text-black/60 hover:text-rose-gold text-sm transition-colors font-medium"
                     >
                       البريد الإلكتروني
@@ -243,7 +243,7 @@ export default function Footer() {
                 </h4>
                 <div className="flex gap-3 mt-2 justify-center md:justify-start">
                   <SocialIcon 
-                    url="https://instagram.com/velix.2026"
+                    url="https://instagram.com/velixstore.eg"
                     bgColor="transparent" 
                     fgColor="#B76E79"
                     style={{ width: 32, height: 32 }}
@@ -252,7 +252,7 @@ export default function Footer() {
                     className="hover:scale-110 transition-transform duration-200"
                   />
                   <SocialIcon 
-                    url="https://facebook.com/velix2026"
+                    url="https://facebook.com/velixstore.eg"
                     bgColor="transparent" 
                     fgColor="#B76E79"
                     style={{ width: 32, height: 32 }}
@@ -261,7 +261,7 @@ export default function Footer() {
                     className="hover:scale-110 transition-transform duration-200"
                   />
                   <SocialIcon 
-                    url="https://tiktok.com/@velix2026"
+                    url="https://tiktok.com/@velixstore.eg"
                     bgColor="transparent" 
                     fgColor="#B76E79"
                     style={{ width: 32, height: 32 }}

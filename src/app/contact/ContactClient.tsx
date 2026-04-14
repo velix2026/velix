@@ -24,7 +24,7 @@ export default function ContactClient() {
         </svg>
       ),
       description: "للاستفسارات والشكاوى والاقتراحات",
-      action: "mailto:velix2026@gmail.com",
+      action: "mailto:velixstore.eg@gmail.com",
       buttonText: "أرسل إيميل",
     },
     {
@@ -35,7 +35,7 @@ export default function ContactClient() {
         </svg>
       ),
       description: "تابع آخر التشكيلات والعروض",
-      action: "https://instagram.com/velix.2026",
+      action: "https://instagram.com/velixstore.eg",
       buttonText: "تابعنا على إنستجرام",
     },
     {
@@ -46,7 +46,7 @@ export default function ContactClient() {
         </svg>
       ),
       description: "تواصل معنا وشاركنا رأيك",
-      action: "https://facebook.com/velix2026",
+      action: "https://facebook.com/velixstore.eg",
       buttonText: "تابعنا على فيسبوك",
     },
     {
@@ -57,7 +57,7 @@ export default function ContactClient() {
         </svg>
       ),
       description: "شوف فيديوهات المنتجات الحصرية",
-      action: "https://tiktok.com/@velix2026",
+      action: "https://tiktok.com/@velixstore.eg",
       buttonText: "تابعنا على تيك توك",
     },
     {
@@ -92,14 +92,14 @@ export default function ContactClient() {
         },
         {
           "@type": "ContactPoint",
-          "email": "velix2026@gmail.com",
+          "email": "velixstore.eg@gmail.com",
           "contactType": "email support"
         }
       ],
       "sameAs": [
-        "https://instagram.com/velix.2026",
-        "https://facebook.com/velix2026",
-        "https://tiktok.com/@velix2026",
+        "https://instagram.com/velixstore.eg",
+        "https://facebook.com/velixstore.eg",
+        "https://tiktok.com/@velixstore.eg",
         "https://whatsapp.com/channel/0029VbCamY1JUM2iILsajJ3t"
       ]
     }

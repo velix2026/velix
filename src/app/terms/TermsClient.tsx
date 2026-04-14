@@ -169,7 +169,7 @@ export default function TermsClient() {
                     واتساب
                   </a>
                   <a
-                    href="mailto:velix2026@gmail.com"
+                    href="mailto:velixstore.eg@gmail.com"
                     className="inline-flex items-center gap-2 text-rose-gold font-black hover:text-copper transition"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -41,9 +41,9 @@ export default function Hero() {
       'areaServed': 'EG'
     },
     'sameAs': [
-      'https://instagram.com/velix.2026',
-      'https://facebook.com/velix2026',
-      'https://tiktok.com/@velix2026',
+      'https://instagram.com/velixstore.eg',
+      'https://facebook.com/velixstore.eg',
+      'https://tiktok.com/@velixstore.eg',
       'https://wa.me/201500125133'
     ],
     'openingHours': ['Mo-Sa 10:00-22:00']
