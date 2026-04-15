@@ -4,6 +4,7 @@ import FeaturedProducts from '@/components/FeaturedProducts';
 import BrandStory from '@/components/BrandStory';
 import Newsletter from '@/components/Newsletter';
 import { getProducts } from '@/lib/products';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -104,6 +105,25 @@ export default async function Home() {
       <BrandStory />
       <Newsletter />
       
+      {/* رابط للمدونة - إضافة قسم صغير */}
+      <div className="bg-linear-to-r from-rose-gold/5 to-copper/5 py-12">
+        <div className="container mx-auto px-4 text-center">
+          <h3 className="text-2xl font-black text-black mb-3">📚 اكتشف مدونتنا</h3>
+          <p className="text-black/60 font-bold mb-4 max-w-md mx-auto">
+            نصائح وإرشادات للموضة المصرية. ازاي تختار هدومك، ازاي تحافظ عليها، ودليل المقاسات.
+          </p>
+          <Link 
+            href="/blog" 
+            className="inline-flex items-center gap-2 border-2 border-rose-gold/30 text-rose-gold font-bold px-6 py-2.5 rounded-full hover:bg-rose-gold hover:text-white transition-all duration-300"
+          >
+            زور المدونة
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+      
       {/* نص مخفي للسيو */}
       <div className="sr-only" aria-hidden="true">
         <h2>VELIX - براند ملابس مصري رائد</h2>
@@ -126,6 +146,10 @@ export default async function Home() {
         <p>الأقسام: تيشرتات، هوديز، شروال</p>
         <p>سياسة التوصيل: توصيل لجميع محافظات مصر خلال 2-5 أيام</p>
         <p>طرق الدفع: الدفع عند الاستلام</p>
+        
+        {/* ✅ روابط داخلية للمدونة والـ FAQ في النص المخفي */}
+        <p>اقرأ مقالاتنا في مدونة VELIX: <a href="https://velix-eg.store/blog">مدونة الموضة المصرية</a></p>
+        <p>للأسئلة الشائعة: <a href="https://velix-eg.store/faq">الأسئلة الشائعة</a></p>
       </div>
     </>
   );

@@ -1,6 +1,7 @@
 // app/sitemap.ts
 import { MetadataRoute } from 'next';
 import { getProducts } from '@/lib/products';
+import { posts } from './blog/posts-data';
 
 // ✅ أجبر الـ sitemap يتولد ديناميكياً عند كل طلب
 export const dynamic = 'force-dynamic';
@@ -10,7 +11,9 @@ export const revalidate = 0;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://velix-eg.store';
   
-  // الصفحات الثابتة
+  // ============================================
+  // 1. الصفحات الثابتة
+  // ============================================
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -60,9 +63,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'yearly',
       priority: 0.4,
     },
+    {
+      url: `${baseUrl}/faq`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.8,
+    },
   ];
   
-  // ✅ لف جلب المنتجات في try-catch عشان لو فشل، يعدي ويرجع الصفحات الثابتة بس
+  // ============================================
+  // 2. صفحات المنتجات (من API)
+  // ============================================
   let productPages: MetadataRoute.Sitemap = [];
   try {
     const products = await getProducts();
@@ -76,8 +93,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } catch (error) {
     console.error('Error fetching products for sitemap:', error);
-    // ✅ في حالة الخطأ، نرجع الصفحات الثابتة بس من غير منتجات
   }
   
-  return [...staticPages, ...productPages];
+  // ============================================
+  // 3. صفحات مقالات المدونة (من posts-data)
+  // ============================================
+  let blogPages: MetadataRoute.Sitemap = [];
+  try {
+    if (posts && posts.length > 0) {
+      blogPages = posts.map((post) => ({
+        url: `${baseUrl}/blog/${post.slug}`,
+        lastModified: new Date(post.date),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }));
+    }
+  } catch (error) {
+    console.error('Error fetching blog posts for sitemap:', error);
+  }
+  
+  // ============================================
+  // 4. دمج كل الصفحات
+  // ============================================
+  return [...staticPages, ...productPages, ...blogPages];
 }

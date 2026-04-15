@@ -104,6 +104,8 @@ export default function Header() {
             {[
               { href: '/', label: 'الرئيسية' },
               { href: '/products', label: 'المنتجات' },
+              { href: '/blog', label: 'المدونة' },
+              { href: '/faq', label: 'أسئلة شائعة' },
               { href: '/about', label: 'عن البراند' },
               { href: '/contact', label: 'اتصل بنا' }
             ].map((link) => (
@@ -174,7 +176,7 @@ export default function Header() {
               )}
             </button>
 
-            {/* WhatsApp Button - نحاسي */}
+            {/* WhatsApp Button */}
             <a
               href="https://wa.me/201500125133"
               target="_blank"
@@ -212,6 +214,8 @@ export default function Header() {
               {[
                 { href: '/', label: 'الرئيسية' },
                 { href: '/products', label: 'المنتجات' },
+                { href: '/blog', label: 'المدونة' },
+                { href: '/faq', label: 'أسئلة شائعة' },
                 { href: '/about', label: 'عن البراند' },
                 { href: '/contact', label: 'اتصل بنا' }
               ].map((link) => (
@@ -249,7 +253,7 @@ export default function Header() {
         type="cart"
       />
 
-      {/* Floating WhatsApp Bubble - نحاسي */}
+      {/* Floating WhatsApp Bubble */}
       <a
         href="https://wa.me/201500125133"
         target="_blank"

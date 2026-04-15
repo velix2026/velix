@@ -56,7 +56,6 @@ export default function Footer() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(footerSchema) }}
       />
       
-      {/* 🎯 خلفية تدرج نحاسي من تحت لفوق */}
       <footer 
         className="bg-linear-to-t from-white via-[#FCFCFC] to-[#F5F3F0] border-t border-rose-gold/20"
         itemScope 
@@ -125,6 +124,22 @@ export default function Footer() {
                     className="text-black/60 hover:text-rose-gold hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group font-medium"
                   >
                     المنتجات
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/blog" 
+                    className="text-black/60 hover:text-rose-gold hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group font-medium"
+                  >
+                    المدونة
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/faq" 
+                    className="text-black/60 hover:text-rose-gold hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group font-medium"
+                  >
+                    الأسئلة الشائعة
                   </Link>
                 </li>
                 <li>
@@ -284,7 +299,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Copyright - بالانجليزي */}
+          {/* Copyright */}
           <div className="border-t border-rose-gold/20 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
             <p className="text-black/40 text-xs font-medium">
               © {currentYear} VELIX. All Rights Reserved.
