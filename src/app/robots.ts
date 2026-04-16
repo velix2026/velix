@@ -6,56 +6,85 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: [
+          '/',                    // الصفحة الرئيسية
+          '/products',            // صفحة المنتجات
+          '/products/*',          // كل صفحة منتج على حدة
+          '/blog',                // صفحة المدونة الرئيسية
+          '/blog/*',              // كل مقالة على حدة
+          '/faq',                 // الأسئلة الشائعة
+          '/contact',             // اتصل بنا
+          '/about',               // عن البراند
+          '/shipping',            // الشحن
+          '/returns',             // الاستبدال والاسترجاع
+          '/privacy',             // سياسة الخصوصية
+          '/terms',               // شروط الاستخدام
+          '/images/',             // الصور عشان تظهر في بحث الصور
+        ],
         disallow: [
-          '/api/',
-          '/admin/',
-          '/_next/',
-          '/*?*',
+          '/api/',                // API مش مهم لجوجل
+          '/admin/',              // لوحة التحكم (أمان)
+          '/_next/',              // ملفات Next.js الداخلية
+          '/*?*',                 // أي رابط فيه علامة استفهام
           '/api/admin/*',
           '/api/orders/*',
           '/api/products/*/edit',
         ],
       },
-      // ✅ قاعدة خاصة بـ Googlebot (تسمح بالملفات الضرورية)
+      // ✅ قاعدة خاصة بـ Googlebot (تزحف أهم الصفحات)
       {
         userAgent: 'Googlebot',
-        allow: '/',
+        allow: [
+          '/',
+          '/products',
+          '/products/*',
+          '/blog',
+          '/blog/*',
+          '/faq',
+          '/contact',
+          '/about',
+        ],
         disallow: [
           '/api/',
           '/admin/',
           '/*?*',
         ],
       },
-      // ✅ قاعدة خاصة بـ Googlebot-Image (تسمح بالصور)
+      // ✅ قاعدة خاصة بـ Googlebot-Image (تسمح بالصور عشان تظهر في بحث الصور)
       {
         userAgent: 'Googlebot-Image',
         allow: '/images/',
         disallow: '/',
       },
-      // ✅ قاعدة خاصة بـ Bing (مع crawl-delay المدعوم)
+      // ✅ قاعدة خاصة بـ Bing
       {
         userAgent: 'Bingbot',
-        allow: '/',
+        allow: [
+          '/',
+          '/products',
+          '/products/*',
+          '/blog',
+          '/blog/*',
+          '/faq',
+        ],
         disallow: [
           '/api/',
           '/admin/',
         ],
-        crawlDelay: 1,  // ✅ بينج و Yahoo بيدعموا ده
+        crawlDelay: 0.5,
       },
-      // ✅ قاعدة لروبوتات الذكاء الاصطناعي (اختياري)
+      // ✅ روبوتات الذكاء الاصطناعي (تسمح لهم عشان تظهر في ChatGPT و Gemini)
       {
         userAgent: 'GPTBot',
-        disallow: '/',
+        allow: '/',
       },
       {
         userAgent: 'Google-Extended',
-        disallow: '/',
+        allow: '/',
       },
     ],
     sitemap: [
       'https://velix-eg.store/sitemap.xml',
-      // 'https://velix-eg.store/sitemap-blog.xml',  // لو عندك Sitemap تاني
     ],
   };
 }
