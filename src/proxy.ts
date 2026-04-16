@@ -6,8 +6,22 @@ const ADMIN_SECRET_PATH = 'velix-admin-x7k9m';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'velix@2026';
 
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, protocol, host } = request.nextUrl;
   const method = request.method;
+  
+  // ==================== 0. إعادة توجيه HTTP → HTTPS ====================
+  if (protocol === 'http:') {
+    const httpsUrl = new URL(`https://${host}${pathname}${request.nextUrl.search}`);
+    console.log('🔄 Redirecting HTTP to HTTPS:', httpsUrl.toString());
+    return NextResponse.redirect(httpsUrl, 301);
+  }
+  
+  // ==================== 0. إعادة توجيه www → non-www ====================
+  if (host.startsWith('www.')) {
+    const nonWwwUrl = new URL(`https://${host.slice(4)}${pathname}${request.nextUrl.search}`);
+    console.log('🔄 Redirecting www to non-www:', nonWwwUrl.toString());
+    return NextResponse.redirect(nonWwwUrl, 301);
+  }
   
   console.log('🔍 Proxy check:', pathname, method);
   
