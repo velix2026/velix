@@ -1,3 +1,4 @@
+// app/products/[slug]/ProductClient.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -20,7 +21,7 @@ const generateProductSchema = (product: any, url: string) => {
     "name": product.name,
     "description": product.description,
     "image": product.mainImage,
-    "sku": `VELIX-${product.slug}`,
+    "sku": `VELIX-${product.slug}`,  // ✅ slug بدل id
     "brand": { "@type": "Brand", "name": "VELIX" },
     "offers": {
       "@type": "Offer",
@@ -70,7 +71,7 @@ const generateBreadcrumbSchema = (product: any, categoryName: string) => {
       { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": "https://velix-eg.store/" },
       { "@type": "ListItem", "position": 2, "name": "المنتجات", "item": "https://velix-eg.store/products" },
       { "@type": "ListItem", "position": 3, "name": categoryName, "item": `https://velix-eg.store/products?category=${encodeURIComponent(categoryName)}` },
-      { "@type": "ListItem", "position": 4, "name": product.name, "item": `https://velix-eg.store/products/${product.slug}` }
+      { "@type": "ListItem", "position": 4, "name": product.name, "item": `https://velix-eg.store/products/${product.slug}` }  // ✅ slug بدل id
     ]
   };
 };
@@ -85,10 +86,10 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
   const [orderSelection, setOrderSelection] = useState({ size: '', color: '', quantity: 1 });
 
   useEffect(() => {
-    if (product?.id) {
-      fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: 'view_product', productId: product.slug }) }).catch(() => {});
+    if (product?.slug) {  // ✅ slug بدل id
+      fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: 'view_product', productSlug: product.slug }) }).catch(() => {});
     }
-  }, [product?.id]);
+  }, [product?.slug]);
 
   const handleOrder = (selection: { size: string; color: string; quantity: number }) => {
     setOrderSelection(selection);
@@ -101,11 +102,15 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
   };
 
   const allImages = [product.mainImage, ...product.subImages];
-  const productUrl = `https://velix-eg.store/products/${product.slug}`;
+  const productUrl = `https://velix-eg.store/products/${product.slug}`;  // ✅ slug بدل id
   
   const categoryName = product.category === 'تيشرتات' ? 'تيشرتات' 
     : product.category === 'هوديز' ? 'هوديز' 
     : product.category === 'شروال' ? 'شروال' 
+    : product.category === 'جينز' ? 'جينز'
+    : product.category === 'جواكت' ? 'جواكت'
+    : product.category === 'شوزات' ? 'شوزات'
+    : product.category === 'اكسسوارات' ? 'اكسسوارات'
     : product.category;
 
   return (
@@ -171,7 +176,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
           isOpen={isOrderModalOpen}
           onClose={() => setIsOrderModalOpen(false)}
           product={{
-            id: product.slug,
+            id: product.id,           // ✅ رقم وليس نص
             name: product.name,
             price: product.price,
             mainImage: product.mainImage,
