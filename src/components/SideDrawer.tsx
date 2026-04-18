@@ -22,7 +22,6 @@ const getColorName = (colorCode: string): string => {
   return color.name || colorCode;
 };
 
-// ✅ دالة حساب السعر بعد خصم الكمية على إجمالي المنتج
 const getItemTotalPrice = (item: CartItem): number => {
   const totalQuantity = item.variations?.reduce((sum, v) => sum + v.quantity, 0) || item.quantity || 1;
   
@@ -40,7 +39,6 @@ const getItemTotalPrice = (item: CartItem): number => {
   return totalQuantity * (item.price - applicableTier.discountPerItem);
 };
 
-// ✅ دالة لحساب إجمالي كمية المنتج
 const getProductTotalQuantity = (item: CartItem): number => {
   if (item.variations && item.variations.length > 0) {
     return item.variations.reduce((sum, v) => sum + v.quantity, 0);
@@ -52,7 +50,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
   const title = type === 'favorites' ? 'المفضلة' : 'سلة التسوق';
   const emptyMessage = type === 'favorites' ? 'لسه مفيش حاجة في المفضلة' : 'السلة فاضية';
   
-  const { cart, removeVariation, removeFromCartByProductId, updateVariationQuantity, clearCart } = useCart();
+  const { cart, removeVariation, removeFromCartByProductSlug, updateVariationQuantity, clearCart } = useCart();
   const { favorites, removeFromFavorites } = useFavorites();
   
   const items = type === 'cart' ? cart : favorites;
@@ -83,19 +81,21 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  const handleRemoveVariation = useCallback((productId: number, variationId: string, productName: string, variationDesc: string) => {
-    removeVariation(productId, variationId, productName, variationDesc);
+  // ✅ استخدام slug بدل id
+  const handleRemoveVariation = useCallback((productSlug: string, variationId: string, productName: string, variationDesc: string) => {
+    removeVariation(productSlug, variationId, productName, variationDesc);
   }, [removeVariation]);
 
-  const handleRemoveProduct = useCallback((productId: number, productName: string) => {
-    removeFromCartByProductId(productId, productName);
-  }, [removeFromCartByProductId]);
+  const handleRemoveProduct = useCallback((productSlug: string, productName: string) => {
+    removeFromCartByProductSlug(productSlug, productName);
+  }, [removeFromCartByProductSlug]);
 
   const openOrderModal = useCallback(() => {
     if (cart.length === 0) return;
     const orderData = {
       items: cart.map(item => ({
         id: item.id,
+        slug: item.slug,
         name: item.name,
         price: item.price,
         oldPrice: item.oldPrice,
@@ -153,13 +153,13 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                 const hasDiscount = isCartItem && cartItem.quantityDiscount?.enabled && totalQuantity >= (cartItem.quantityDiscount.tiers?.[0]?.minQuantity || 999);
                 
                 return (
-                  <div key={isCartItem ? cartItem.cartItemId : `fav-${item.id}`} className="bg-rose-gold/5 rounded-xl p-3 hover:shadow-md hover:border hover:border-rose-gold/20 transition-all duration-300">
+                  <div key={isCartItem ? cartItem.cartItemId : `fav-${item.slug}`} className="bg-rose-gold/5 rounded-xl p-3 hover:shadow-md hover:border hover:border-rose-gold/20 transition-all duration-300">
                     <div className="flex gap-3">
-                      <Link href={`/products/${item.id}`} onClick={onClose} className="relative w-20 h-20 rounded-xl overflow-hidden bg-black/10 shrink-0 transition-all hover:scale-105">
+                      <Link href={`/products/${item.slug}`} onClick={onClose} className="relative w-20 h-20 rounded-xl overflow-hidden bg-black/10 shrink-0 transition-all hover:scale-105">
                         <Image src={item.mainImage} alt={item.name} fill sizes="80px" className="object-cover" />
                       </Link>
                       <div className="flex-1 min-w-0">
-                        <Link href={`/products/${item.id}`} onClick={onClose} className="font-bold text-sm text-black hover:text-rose-gold transition line-clamp-2">{item.name}</Link>
+                        <Link href={`/products/${item.slug}`} onClick={onClose} className="font-bold text-sm text-black hover:text-rose-gold transition line-clamp-2">{item.name}</Link>
                         <p className="text-black/50 font-bold text-xs mb-2">{item.category}</p>
                         
                         {isCartItem && cartItem.variations && cartItem.variations.length > 0 && (
@@ -173,15 +173,15 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                                       {variation.size && <span className="text-xs bg-rose-gold/10 px-2 py-0.5 rounded-full text-rose-gold">مقاس: {variation.size}</span>}
                                       {variation.color && <span className="text-xs bg-rose-gold/10 px-2 py-0.5 rounded-full text-rose-gold flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: variation.color }} />لون: {getColorName(variation.color)}</span>}
                                     </div>
-                                    <button onClick={() => handleRemoveVariation(item.id, variation.variationId, item.name, `${variation.size ? `مقاس ${variation.size}` : ''}${variation.size && variation.color ? ' ' : ''}${variation.color ? getColorName(variation.color) : ''}`)} className="text-red-400 hover:text-red-600 transition p-1">
+                                    <button onClick={() => handleRemoveVariation(item.slug, variation.variationId, item.name, `${variation.size ? `مقاس ${variation.size}` : ''}${variation.size && variation.color ? ' ' : ''}${variation.color ? getColorName(variation.color) : ''}`)} className="text-red-400 hover:text-red-600 transition p-1">
                                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                     </button>
                                   </div>
                                   <div className="flex justify-between items-center mt-1">
                                     <div className="flex items-center gap-2">
-                                      <button onClick={() => updateVariationQuantity(item.id, variation.variationId, Math.max(1, variation.quantity - 1))} className="w-6 h-6 rounded-full bg-white border border-rose-gold/20 text-black font-bold hover:bg-rose-gold/10 transition">-</button>
+                                      <button onClick={() => updateVariationQuantity(item.slug, variation.variationId, Math.max(1, variation.quantity - 1))} className="w-6 h-6 rounded-full bg-white border border-rose-gold/20 text-black font-bold hover:bg-rose-gold/10 transition">-</button>
                                       <span className="w-8 text-center text-xs font-bold text-black">{toArabicNumber(variation.quantity)}</span>
-                                      <button onClick={() => updateVariationQuantity(item.id, variation.variationId, variation.quantity + 1)} className="w-6 h-6 rounded-full bg-white border border-rose-gold/20 text-black font-bold hover:bg-rose-gold/10 transition">+</button>
+                                      <button onClick={() => updateVariationQuantity(item.slug, variation.variationId, variation.quantity + 1)} className="w-6 h-6 rounded-full bg-white border border-rose-gold/20 text-black font-bold hover:bg-rose-gold/10 transition">+</button>
                                     </div>
                                     <span className="font-bold text-sm text-rose-gold">{formatPrice(variationTotal)}</span>
                                   </div>
@@ -189,13 +189,11 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                               );
                             })}
                             
-                            {/* ✅ إجمالي المنتج مع خصم الكمية */}
                             <div className="flex justify-between items-center pt-2 border-t border-rose-gold/20 mt-2">
                               <span className="font-bold text-sm text-black">إجمالي المنتج:</span>
                               <span className="font-bold text-sm text-rose-gold">{formatPrice(getItemTotalPrice(cartItem))}</span>
                             </div>
                             
-                            {/* ✅ عرض خصم الكمية لو مطبق */}
                             {hasDiscount && (
                               <div className="text-xs text-rose-gold font-bold bg-rose-gold/10 p-1 rounded text-center">
                                 🎉 خصم الكمية مطبق على {toArabicNumber(totalQuantity)} قطعة
@@ -207,7 +205,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
                         {type === 'favorites' && (
                           <div className="flex justify-between items-center mt-2">
                             <span className="font-bold text-sm text-rose-gold">{formatPrice(item.price)}</span>
-                            <button onClick={() => removeFromFavorites(item.id, item.name)} className="text-red-400 hover:text-red-600 transition p-1">
+                            <button onClick={() => removeFromFavorites(item.slug, item.name)} className="text-red-400 hover:text-red-600 transition p-1">
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                           </div>
