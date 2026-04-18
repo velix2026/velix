@@ -4,10 +4,10 @@ import ProductClient from "./ProductClient";
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const products = await getProducts();
-  const product = products.find(p => p.id === parseInt(id));
+  const product = products.find(p => p.slug === slug);
   
   if (!product) {
     return {
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     openGraph: {
       title: `${product.name} | VELIX`,
       description: product.description?.substring(0, 160),
-      url: `https://velix-eg.store/products/${id}`,
+      url: `https://velix-eg.store/products/${product.slug}`,
       siteName: "VELIX",
       locale: "ar_EG",
       type: "website",
@@ -35,14 +35,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       description: product.description?.substring(0, 160),
       images: [product.mainImage],
     },
-    alternates: { canonical: `https://velix-eg.store/products/${id}` },
+    alternates: { canonical: `https://velix-eg.store/products/${product.slug}` },
   };
 }
 
-export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const allProducts = await getProducts();
-  const product = allProducts.find(p => p.id === parseInt(id));
+  const product = allProducts.find(p => p.slug === slug);
   
   if (!product) {
     return (
@@ -62,7 +62,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     );
   }
   
-  const relatedProducts = allProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 8);
+  const relatedProducts = allProducts.filter(p => p.category === product.category && p.slug !== slug).slice(0, 8);
   
   return <ProductClient product={product} relatedProducts={relatedProducts} />;
 }
