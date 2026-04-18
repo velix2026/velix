@@ -91,17 +91,18 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  // ✅ دالة الحذف المعدلة (تستخدم slug)
+  const handleDelete = async (product: Product) => {
     if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
     
-    setDeletingId(id);
+    setDeletingId(product.id);
     try {
-      const res = await fetch(`/api/products/${id}`, { 
+      const res = await fetch(`/api/products/${product.slug}`, { 
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${ADMIN_PASSWORD}` },
       });
       if (res.ok) {
-        setProducts(prev => prev.filter(p => p.id !== id));
+        setProducts(prev => prev.filter(p => p.id !== product.id));
         alert('✅ تم حذف المنتج');
       } else {
         alert('❌ فشل الحذف');
@@ -173,6 +174,7 @@ export default function AdminProductsPage() {
     return 0;
   }, [editingProduct]);
 
+  // ✅ دالة التحديث المعدلة (تستخدم slug)
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct) return;
@@ -203,7 +205,8 @@ export default function AdminProductsPage() {
     newSubImages.forEach(img => formData.append('newSubImages', img));
     
     try {
-      const res = await fetch(`/api/products/${editingProduct.id}`, {
+      // ✅ استخدام slug بدل id
+      const res = await fetch(`/api/products/${editingProduct.slug}`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${ADMIN_PASSWORD}` },
         body: formData,
@@ -415,7 +418,8 @@ export default function AdminProductsPage() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                       تعديل
                     </button>
-                    <button onClick={() => handleDelete(product.id)} disabled={deletingId === product.id} className="flex-1 bg-linear-to-r from-gray-500 to-gray-700 text-white py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50">
+                    {/* ✅ زر الحذف المعدل - يمرر المنتج كامل */}
+                    <button onClick={() => handleDelete(product)} disabled={deletingId === product.id} className="flex-1 bg-linear-to-r from-gray-500 to-gray-700 text-white py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50">
                       {deletingId === product.id ? 'جاري...' : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> حذف</>}
                     </button>
                   </div>
@@ -425,7 +429,7 @@ export default function AdminProductsPage() {
           })}
         </div>
 
-        {/* Edit Modal - مع علامات الصح للمقاسات والألوان */}
+        {/* Edit Modal */}
         {editingProduct && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setEditingProduct(null)}>
             <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[85vh] overflow-y-auto shadow-2xl border border-rose-gold/20" onClick={(e) => e.stopPropagation()}>
@@ -437,6 +441,7 @@ export default function AdminProductsPage() {
               </div>
               
               <form onSubmit={handleUpdate} className="p-6 space-y-4">
+                {/* ... باقي حقول النموذج كما هي ... */}
                 <div>
                   <label className="block text-sm font-black text-rose-gold mb-1">اسم المنتج</label>
                   <input type="text" value={editingProduct.name} onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })} className="w-full p-3 bg-[#FDF8F5] border-2 border-rose-gold/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent text-black font-bold" required />
@@ -477,7 +482,7 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
                 
-                {/* المقاسات - مع علامة صح */}
+                {/* المقاسات */}
                 <div>
                   <label className="block text-sm font-black text-rose-gold mb-2">المقاسات المتاحة</label>
                   <div className="flex flex-wrap gap-2">
@@ -494,22 +499,15 @@ export default function AdminProductsPage() {
                               : 'bg-rose-gold/10 text-black hover:bg-rose-gold/20'
                           }`}
                         >
-                          {isSelected && (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
+                          {isSelected && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>}
                           {size}
                         </button>
                       );
                     })}
                   </div>
-                  {editingProduct.sizes && editingProduct.sizes.length > 0 && (
-                    <p className="text-xs text-rose-gold mt-2 font-bold">✓ تم اختيار {toArabicNumber(editingProduct.sizes.length)} مقاس</p>
-                  )}
                 </div>
                 
-                {/* الألوان - مع علامة صح */}
+                {/* الألوان */}
                 <div>
                   <label className="block text-sm font-black text-rose-gold mb-2">الألوان المتاحة</label>
                   <div className="flex flex-wrap gap-3">
@@ -527,18 +525,11 @@ export default function AdminProductsPage() {
                           style={{ backgroundColor: color.code, border: color.code === '#FFFFFF' ? '1px solid #000' : 'none' }}
                           title={color.name}
                         >
-                          {isSelected && (
-                            <svg className={`w-5 h-5 ${isLightColor ? 'text-black' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
+                          {isSelected && <svg className={`w-5 h-5 ${isLightColor ? 'text-black' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>}
                         </button>
                       );
                     })}
                   </div>
-                  {editingProduct.colors && editingProduct.colors.length > 0 && (
-                    <p className="text-xs text-rose-gold mt-2 font-bold">✓ تم اختيار {toArabicNumber(editingProduct.colors.length)} لون</p>
-                  )}
                 </div>
 
                 {/* جدول الكميات */}
@@ -550,9 +541,7 @@ export default function AdminProductsPage() {
                         <thead>
                           <tr className="bg-rose-gold/10">
                             <th className="border border-rose-gold/20 p-2 text-right text-sm font-black text-black">اللون / المقاس</th>
-                            {editingProduct.sizes.map(size => (
-                              <th key={size} className="border border-rose-gold/20 p-2 text-center text-sm font-black text-black">{size}</th>
-                            ))}
+                            {editingProduct.sizes.map(size => <th key={size} className="border border-rose-gold/20 p-2 text-center text-sm font-black text-black">{size}</th>)}
                           </tr>
                         </thead>
                         <tbody>
@@ -562,20 +551,11 @@ export default function AdminProductsPage() {
                             return (
                               <tr key={colorCode}>
                                 <td className="border border-rose-gold/20 p-2 text-sm font-bold text-black">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: colorValue, border: colorCode === '#FFFFFF' ? '1px solid #000' : 'none' }} />
-                                    {colorName}
-                                  </div>
+                                  <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full" style={{ backgroundColor: colorValue, border: colorCode === '#FFFFFF' ? '1px solid #000' : 'none' }} />{colorName}</div>
                                 </td>
                                 {editingProduct.sizes?.map(size => (
                                   <td key={size} className="border border-rose-gold/20 p-2">
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      value={getStockQuantity(colorCode, size)}
-                                      onChange={(e) => updateStockQuantity(colorCode, size, parseInt(e.target.value) || 0)}
-                                      className="w-full p-2 text-center bg-white border-2 border-rose-gold/20 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent"
-                                    />
+                                    <input type="number" min="0" value={getStockQuantity(colorCode, size)} onChange={(e) => updateStockQuantity(colorCode, size, parseInt(e.target.value) || 0)} className="w-full p-2 text-center bg-white border-2 border-rose-gold/20 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent" />
                                   </td>
                                 ))}
                                </tr>
@@ -584,7 +564,6 @@ export default function AdminProductsPage() {
                         </tbody>
                       </table>
                     </div>
-                    <p className="text-xs text-rose-gold/60 mt-2 font-bold">💡 أدخل الكمية لكل لون ومقاس (0 يعني مش متاح)</p>
                   </div>
                 )}
                 
@@ -594,20 +573,18 @@ export default function AdminProductsPage() {
                     <input type="checkbox" checked={quantityDiscount.enabled} onChange={(e) => setQuantityDiscount({ ...quantityDiscount, enabled: e.target.checked })} className="w-4 h-4 accent-rose-gold" />
                     <span className="text-sm font-black text-black">🎁 تفعيل خصم الكمية</span>
                   </label>
-                  <p className="text-xs text-rose-gold/60 mb-3">الخصم ده يضاف فوق الخصم المئوي (لو موجود)</p>
                   
                   {quantityDiscount.enabled && quantityDiscount.tiers && (
                     <div className="space-y-3">
-                      <p className="text-xs font-black text-rose-gold/80">الخصم حسب الكمية:</p>
                       {quantityDiscount.tiers.map((tier, idx) => (
                         <div key={idx} className="flex items-center gap-3 bg-rose-gold/5 p-3 rounded-xl border border-rose-gold/20">
                           <div className="flex-1">
                             <label className="block text-xs font-black text-black mb-1">من {toArabicNumber(tier.minQuantity)} قطعة فأكثر</label>
-                            <input type="number" min={idx === 0 ? 2 : (quantityDiscount.tiers[idx-1]?.minQuantity + 1 || 2)} value={tier.minQuantity} onChange={(e) => updateTier(idx, 'minQuantity', parseInt(e.target.value) || 0)} className="w-full p-2 bg-white border-2 border-rose-gold/20 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent" />
+                            <input type="number" min={idx === 0 ? 2 : (quantityDiscount.tiers[idx-1]?.minQuantity + 1 || 2)} value={tier.minQuantity} onChange={(e) => updateTier(idx, 'minQuantity', parseInt(e.target.value) || 0)} className="w-full p-2 bg-white border-2 border-rose-gold/20 rounded-lg text-black font-bold" />
                           </div>
                           <div className="flex-1">
                             <label className="block text-xs font-black text-black mb-1">خصم لكل قطعة (جنيه)</label>
-                            <input type="number" min="0" value={tier.discountPerItem} onChange={(e) => updateTier(idx, 'discountPerItem', parseInt(e.target.value) || 0)} className="w-full p-2 bg-white border-2 border-rose-gold/20 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent" />
+                            <input type="number" min="0" value={tier.discountPerItem} onChange={(e) => updateTier(idx, 'discountPerItem', parseInt(e.target.value) || 0)} className="w-full p-2 bg-white border-2 border-rose-gold/20 rounded-lg text-black font-bold" />
                           </div>
                           {quantityDiscount.tiers.length > 1 && (
                             <button type="button" onClick={() => removeTier(idx)} className="mt-5 text-red-500 hover:text-red-600">
@@ -616,7 +593,7 @@ export default function AdminProductsPage() {
                           )}
                         </div>
                       ))}
-                      <button type="button" onClick={addTier} className="w-full py-2 border-2 border-dashed border-rose-gold/30 rounded-xl text-sm font-bold text-rose-gold hover:border-rose-gold/50 hover:text-copper transition">+ إضافة مستوى خصم جديد</button>
+                      <button type="button" onClick={addTier} className="w-full py-2 border-2 border-dashed border-rose-gold/30 rounded-xl text-sm font-bold text-rose-gold hover:border-rose-gold/50 transition">+ إضافة مستوى خصم جديد</button>
                     </div>
                   )}
                 </div>
@@ -624,19 +601,12 @@ export default function AdminProductsPage() {
                 {/* الصور */}
                 <div>
                   <label className="block text-sm font-black text-rose-gold mb-2">الصور</label>
-                  
                   {editingProduct.mainImage && (
                     <div className="mb-3">
                       <p className="text-xs font-bold text-rose-gold/60 mb-1">الصورة الرئيسية:</p>
                       <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-rose-gold/20 bg-rose-gold/5">
-                        <Image 
-                          src={editingProduct.mainImage} 
-                          alt="main" 
-                          fill 
-                          className="object-contain p-1"
-                          sizes="96px"
-                        />
-                        <button type="button" onClick={() => removeImage(editingProduct.mainImage, true)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 w-5 h-5 flex items-center justify-center text-xs hover:scale-110 transition">✕</button>
+                        <Image src={editingProduct.mainImage} alt="main" fill className="object-contain p-1" sizes="96px" />
+                        <button type="button" onClick={() => removeImage(editingProduct.mainImage, true)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 w-5 h-5 flex items-center justify-center text-xs">✕</button>
                       </div>
                     </div>
                   )}
@@ -647,14 +617,8 @@ export default function AdminProductsPage() {
                       <div className="flex flex-wrap gap-2">
                         {editingProduct.subImages.map((img, idx) => (
                           <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-rose-gold/20 bg-rose-gold/5">
-                            <Image 
-                              src={img} 
-                              alt={`sub-${idx}`} 
-                              fill 
-                              className="object-contain p-1"
-                              sizes="80px"
-                            />
-                            <button type="button" onClick={() => removeImage(img, false)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 w-5 h-5 flex items-center justify-center text-xs hover:scale-110 transition">✕</button>
+                            <Image src={img} alt={`sub-${idx}`} fill className="object-contain p-1" sizes="80px" />
+                            <button type="button" onClick={() => removeImage(img, false)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 w-5 h-5">✕</button>
                           </div>
                         ))}
                       </div>
@@ -668,7 +632,6 @@ export default function AdminProductsPage() {
                   <div className="mt-2">
                     <label className="block text-xs font-bold text-rose-gold/60 mb-1">صور إضافية جديدة (اختياري)</label>
                     <input type="file" accept="image/*" multiple onChange={(e) => setNewSubImages(e.target.files ? Array.from(e.target.files) : [])} className="w-full p-2 bg-[#FDF8F5] border-2 border-rose-gold/20 rounded-xl text-black font-bold" />
-                    {newSubImages.length > 0 && <p className="text-xs text-rose-gold mt-1 font-bold">✓ تم اختيار {toArabicNumber(newSubImages.length)} صور جديدة</p>}
                   </div>
                 </div>
                 
