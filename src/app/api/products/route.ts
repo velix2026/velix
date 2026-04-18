@@ -6,13 +6,7 @@ import Redis from 'ioredis';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const redis = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD,
-  db: 0,
-  retryStrategy: (times) => Math.min(times * 50, 2000),
-});
+const redis = new Redis(process.env.REDIS_URL!);
 const PRODUCTS_KEY = 'products';
 
 // ✅ دالة توليد الـ slug من اسم المنتج
