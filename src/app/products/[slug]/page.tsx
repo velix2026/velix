@@ -1,3 +1,4 @@
+// app/products/[slug]/page.tsx
 import Link from 'next/link';
 import { getProducts, getTotalStock } from "@/lib/products";
 import ProductClient from "./ProductClient";
@@ -6,15 +7,22 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug); // ✅ فك التشفير
+  console.log('🔍 [generateMetadata] Original slug:', slug);
+  console.log('🔍 [generateMetadata] Decoded slug:', decodedSlug);
+  
   const products = await getProducts();
-  const product = products.find(p => p.slug === slug);
+  const product = products.find(p => p.slug === decodedSlug);
   
   if (!product) {
+    console.log('❌ [generateMetadata] Product NOT found for slug:', decodedSlug);
     return {
       title: "المنتج غير موجود | VELIX",
       description: "عذراً، المنتج اللي بتدور عليه مش موجود عندنا",
     };
   }
+  
+  console.log('✅ [generateMetadata] Product found:', product.name);
   
   return {
     title: `${product.name} | VELIX`,
@@ -41,10 +49,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug); // ✅ فك التشفير
+  console.log('🔍 [ProductPage] 1. Original slug:', slug);
+  console.log('🔍 [ProductPage] 1b. Decoded slug:', decodedSlug);
+  
   const allProducts = await getProducts();
-  const product = allProducts.find(p => p.slug === slug);
+  console.log('📦 [ProductPage] 2. Total products:', allProducts.length);
+  console.log('📦 [ProductPage] 3. All slugs in DB:', allProducts.map(p => p.slug));
+  
+  const product = allProducts.find(p => p.slug === decodedSlug);
+  console.log('🎯 [ProductPage] 4. Looking for slug exactly:', `"${decodedSlug}"`);
+  console.log('✅ [ProductPage] 5. Found product:', product?.name || 'NOT FOUND');
   
   if (!product) {
+    console.log('❌ [ProductPage] 6. Product NOT found - showing 404 page');
     return (
       <div className="min-h-screen flex items-center justify-center bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0]">
         <div className="text-center">
@@ -62,7 +80,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     );
   }
   
-  const relatedProducts = allProducts.filter(p => p.category === product.category && p.slug !== slug).slice(0, 8);
+  console.log('✅ [ProductPage] 7. Product found, loading related products...');
+  
+  const relatedProducts = allProducts.filter(p => p.category === product.category && p.slug !== decodedSlug).slice(0, 8);
+  console.log('✅ [ProductPage] 8. Related products count:', relatedProducts.length);
   
   return <ProductClient product={product} relatedProducts={relatedProducts} />;
 }

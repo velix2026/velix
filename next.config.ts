@@ -21,7 +21,9 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // ✅ swcMinify مش موجود في Next.js 16، شيلناه
+  // ✅ أضف السطرين دول
+  skipTrailingSlashRedirect: true,
+  trailingSlash: false,
 };
 
 export default nextConfig;

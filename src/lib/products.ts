@@ -17,7 +17,7 @@ export interface Product {
   sizes?: string[];
   colors?: string[];
   salesCount?: number;
-  quantity?: number; // ✅ أضف السطر ده - مهم للـ SideDrawer
+  quantity?: number; // ✅ مهم للـ SideDrawer
   quantityDiscount?: {
     enabled: boolean;
     tiers: Array<{
@@ -30,6 +30,16 @@ export interface Product {
     size: string;
     quantity: number;
   }>;
+}
+
+// ✅ دالة توليد الـ slug من اسم المنتج
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^\w\u0600-\u06FF\s-]/g, '') // شيل الحروف الخاصة
+    .replace(/\s+/g, '-') // استبدل المسافات بشرطة
+    .replace(/-+/g, '-') // شيل الشرطات المتكررة
+    .replace(/^-|-$/g, ''); // شيل الشرطات من البداية والنهاية
 }
 
 export async function getProducts(): Promise<Product[]> {
@@ -55,14 +65,16 @@ export async function getProducts(): Promise<Product[]> {
     
     const products = await res.json();
     
-    const productsWithStock = products.map((p: any) => ({
+    // ✅ تأكد من وجود slug لكل منتج، وولده لو مش موجود
+    const productsWithSlug = products.map((p: any) => ({
       ...p,
+      slug: p.slug || generateSlug(p.name), // ✅ لو مفيش slug، يولده من الاسم
       stockItems: p.stockItems || [],
       stock: p.stock || 0,
-      quantity: p.quantity || 0, // ✅ أضف السطر ده كمان
+      quantity: p.quantity || 0,
     }));
     
-    return Array.isArray(productsWithStock) ? productsWithStock : [];
+    return Array.isArray(productsWithSlug) ? productsWithSlug : [];
   } catch (error) {
     console.error('Error fetching products:', error);
     return [];
