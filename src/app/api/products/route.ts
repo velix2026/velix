@@ -1,5 +1,4 @@
-// api/products/route.ts - النسخة النظيفة
-
+// app/api/products/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import Redis from 'ioredis';
@@ -10,7 +9,17 @@ export const dynamic = 'force-dynamic';
 const redis = new Redis(process.env.REDIS_URL!);
 const PRODUCTS_KEY = 'products';
 
-// ✅ دالة getProducts مرة واحدة بس
+// ✅ دالة توليد الـ slug من اسم المنتج
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^\w\u0600-\u06FF\s-]/g, '') // شيل الحروف الخاصة
+    .replace(/\s+/g, '-') // استبدل المسافات بشرطة
+    .replace(/-+/g, '-') // شيل الشرطات المتكررة
+    .replace(/^-|-$/g, ''); // شيل الشرطات من البداية والنهاية
+}
+
+// ✅ دالة getProducts
 async function getProducts() {
   try {
     const data = await redis.get(PRODUCTS_KEY);
@@ -132,8 +141,12 @@ export async function POST(request: NextRequest) {
 
     let products = await getProducts();
     
+    // ✅ توليد الـ slug من الاسم
+    const slug = generateSlug(name);
+    
     const newProduct = {
       id: 0,
+      slug,  // ✅ جديد
       name,
       price,
       oldPrice,

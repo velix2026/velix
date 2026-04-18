@@ -457,10 +457,18 @@ export default function AdminProductsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-black text-rose-gold mb-1">القسم</label>
-                    <select value={editingProduct.category} onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })} className="w-full p-3 bg-[#FDF8F5] border-2 border-rose-gold/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent text-black font-bold">
-                      <option value="تيشرتات">تيشرتات</option>
-                      <option value="هوديز">هوديز</option>
-                      <option value="شروال">شروال</option>
+                    <select 
+                      value={editingProduct.category} 
+                      onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })} 
+                      className="w-full p-3 bg-[#FDF8F5] border-2 border-rose-gold/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent text-black font-bold"
+                    >
+                      <option value="تيشرتات">👕 تيشرتات</option>
+                      <option value="هوديز">🧥 هوديز</option>
+                      <option value="شروال">👖 شروال</option>
+                      <option value="جينز">👖 جينز</option>
+                      <option value="جواكت">🧥 جواكت</option>
+                      <option value="شوزات">👟 شوزات</option>
+                      <option value="اكسسوارات">✨ أكسسوارات VELIX</option>
                     </select>
                   </div>
                   <div className="flex items-center gap-2 mt-6">

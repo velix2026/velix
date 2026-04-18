@@ -78,14 +78,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
   
   // ============================================
-  // 2. صفحات المنتجات (من API)
+  // 2. صفحات المنتجات (من API) - ✅ باستخدام slug
   // ============================================
   let productPages: MetadataRoute.Sitemap = [];
   try {
     const products = await getProducts();
     if (products && products.length > 0) {
       productPages = products.map((product) => ({
-        url: `${baseUrl}/products/${product.id}`,
+        url: `${baseUrl}/products/${product.slug}`,  // ✅ slug بدل id
         lastModified: new Date(product.createdAt || Date.now()),
         changeFrequency: 'weekly' as const,
         priority: 0.8,

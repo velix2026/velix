@@ -291,14 +291,23 @@ export default function AddProductPage() {
             
             <div>
               <label className="block text-xs font-black text-rose-gold uppercase tracking-wider mb-1">القسم</label>
-              <select value={product.category} onChange={(e) => setProduct({ ...product, category: e.target.value })} className="w-full p-3 bg-[#FDF8F5] border-2 border-rose-gold/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent transition-all text-black font-bold" required>
+              <select 
+                value={product.category} 
+                onChange={(e) => setProduct({ ...product, category: e.target.value })} 
+                className="w-full p-3 bg-[#FDF8F5] border-2 border-rose-gold/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent transition-all text-black font-bold" 
+                required
+              >
                 <option value="">اختر القسم</option>
-                <option value="تيشرتات">تيشرتات</option>
-                <option value="هوديز">هوديز</option>
-                <option value="شروال">شروال</option>
+                <option value="تيشرتات">👕 تيشرتات</option>
+                <option value="هوديز">🧥 هوديز</option>
+                <option value="شروال">👖 شروال</option>
+                <option value="جينز">👖 جينز</option>
+                <option value="جواكت">🧥 جواكت</option>
+                <option value="شوزات">👟 شوزات</option>
+                <option value="اكسسوارات">✨ أكسسوارات VELIX</option>
               </select>
             </div>
-            
+                        
             {/* ✅ المقاسات مع علامة اختيار واضحة */}
             <div>
               <label className="block text-xs font-black text-rose-gold uppercase tracking-wider mb-2">المقاسات المتاحة</label>

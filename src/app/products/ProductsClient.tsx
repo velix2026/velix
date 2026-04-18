@@ -82,12 +82,16 @@ const BestSellerBadge = () => (
   </div>
 );
 
-// التصنيفات
-const categories = [
-  { id: 'all', name: 'الكل', image: '/images/all-categories.png', count: 0 },
-  { id: 'تيشرتات', name: 'تيشرتات', image: '/images/tshirt-category.png', count: 0 },
-  { id: 'هوديز', name: 'هوديز', image: '/images/hoodie-category.png', count: 0 },
-  { id: 'شروال', name: 'شروال', image: '/images/pants-category.png', count: 0 },
+// ✅ التصنيفات الجديدة مع الترتيب
+const allCategories = [
+  { id: 'all', name: 'الكل', image: '/images/all-categories.png', order: 0 },
+  { id: 'تيشرتات', name: 'تيشرتات', image: '/images/tshirt-category.png', order: 1 },
+  { id: 'هوديز', name: 'هوديز', image: '/images/hoodie-category.png', order: 2 },
+  { id: 'شروال', name: 'شروال', image: '/images/pants-category.png', order: 3 },
+  { id: 'جينز', name: 'جينز', image: '/images/jeans-category.png', order: 4 },
+  { id: 'جواكت', name: 'جواكت', image: '/images/jacket-category.png', order: 5 },
+  { id: 'شوزات', name: 'شوزات', image: '/images/shoes-category.png', order: 6 },
+  { id: 'اكسسوارات', name: '✨ أكسسوارات VELIX', image: '/images/accessories-category.png', order: 7 },
 ];
 
 const sortOptions = [
@@ -118,8 +122,10 @@ interface ProductsClientProps {
 }
 
 export default function ProductsClient({ initialProducts }: ProductsClientProps) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [loading, setLoading] = useState(false);
+  // ✅ الحل: useRef عشان نتجنب الـ Hydration Mismatch
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [searchQuery, setSearchQuery] = useState('');
@@ -135,7 +141,17 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
   const { loadFromStorage } = useStore();
   const { ref: loadMoreRef, inView } = useInView();
 
+  // ✅ 1. تأكد من الـ Hydration (مرة واحدة)
   useEffect(() => {
+    setIsHydrated(true);
+    setProducts(initialProducts);
+    setLoading(false);
+  }, [initialProducts]);
+
+  // ✅ 2. حساب best sellers والـ price range بعد ما البيانات تتحمل
+  useEffect(() => {
+    if (products.length === 0) return;
+    
     const sortedBySales = [...products]
       .filter(p => (p.salesCount || 0) > 0)
       .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0))
@@ -151,6 +167,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
   }, [products, loadFromStorage]);
 
   const recommended = useMemo(() => {
+    if (products.length === 0) return [];
     const candidates = products.filter(p => !bestSellers.some(b => b.id === p.id));
     const shuffled = shuffleArray(candidates);
     return shuffled.slice(0, 4);
@@ -193,10 +210,21 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setVisibleCount(12);
   }, [selectedCategory, sortBy, debouncedQuery, priceRange, products]);
 
-  categories.forEach(cat => {
-    if (cat.id === 'all') cat.count = products.length;
-    else cat.count = products.filter(p => p.category === cat.id).length;
-  });
+  // ✅ حساب عدد المنتجات في كل قسم
+  const getCategoryCount = (categoryId: string) => {
+    if (categoryId === 'all') return products.length;
+    return products.filter(p => p.category === categoryId).length;
+  };
+
+  // ✅ فلترة الأقسام اللي فيها منتجات بس (ما عدا "الكل")
+  const getAvailableCategories = () => {
+    return allCategories.filter(cat => {
+      if (cat.id === 'all') return true; // "الكل" بيظهر دايماً
+      return getCategoryCount(cat.id) > 0;
+    }).sort((a, b) => a.order - b.order);
+  };
+
+  const availableCategories = getAvailableCategories();
 
   const displayedProducts = filteredProducts.slice(0, visibleCount);
   const hasMore = visibleCount < filteredProducts.length;
@@ -207,7 +235,8 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     }
   }, [inView, hasMore, loading]);
 
-  if (loading && products.length === 0) {
+  // ✅ قبل الـ Hydration، اعرض Skeleton
+  if (!isHydrated || (loading && products.length === 0)) {
     return (
       <div className="bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] py-16 md:py-24">
         <div className="container mx-auto px-4">
@@ -221,7 +250,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     <section className="bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] py-12 md:py-20">
       <div className="container mx-auto px-4">
         
-        {/* Hero Title - نحاسي */}
+        {/* Hero Title */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -273,7 +302,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
           </motion.div>
         )}
 
-        {/* Categories Section - نحاسي */}
+        {/* Categories Section */}
         <div className="mb-16">
           <div className="text-center mb-8">
             <span className="text-xs text-rose-gold tracking-[0.2em] uppercase font-bold mb-3 block">
@@ -285,7 +314,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
             <div className="w-16 h-0.5 bg-rose-gold/30 mx-auto mt-3 mb-4" />
           </div>
           <FixedGrid cols={4}>
-            {categories.map((category) => (
+            {availableCategories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
@@ -307,14 +336,14 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
                 <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-all duration-300" />
                 <div className="relative z-10 flex flex-col items-center justify-center h-full text-white p-3">
                   <h3 className="text-sm md:text-base font-bold text-center drop-shadow-md">{category.name}</h3>
-                  <p className="text-xs text-white/90 mt-1 drop-shadow-sm">{toArabicNumber(category.count)} منتج</p>
+                  <p className="text-xs text-white/90 mt-1 drop-shadow-sm">{toArabicNumber(getCategoryCount(category.id))} منتج</p>
                 </div>
               </button>
             ))}
           </FixedGrid>
         </div>
 
-        {/* Filter Bar - نحاسي */}
+        {/* Filter Bar */}
         <div className="bg-rose-gold/5 rounded-2xl p-4 mb-8 border border-rose-gold/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             {/* Search */}
@@ -381,7 +410,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
         <div className="text-center mb-8">
           <p className="text-black/60 text-sm font-bold">
             <span className="font-bold text-rose-gold">{toArabicNumber(filteredProducts.length)}</span> منتج
-            {selectedCategory !== 'all' && <> في <span className="font-bold text-black">{categories.find(c => c.id === selectedCategory)?.name}</span></>}
+            {selectedCategory !== 'all' && <> في <span className="font-bold text-black">{allCategories.find(c => c.id === selectedCategory)?.name}</span></>}
             {searchQuery && <> مطابق لـ <span className="font-bold text-rose-gold">"{searchQuery}"</span></>}
           </p>
         </div>

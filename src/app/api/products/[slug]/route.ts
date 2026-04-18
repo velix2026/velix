@@ -1,3 +1,4 @@
+// app/api/products/[slug]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { put, del } from '@vercel/blob';
 import Redis from 'ioredis';
@@ -7,6 +8,16 @@ export const dynamic = 'force-dynamic';
 
 const redis = new Redis(process.env.REDIS_URL!);
 const PRODUCTS_KEY = 'products';
+
+// ✅ دالة توليد الـ slug
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^\w\u0600-\u06FF\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
 
 async function getProducts() {
   try {
@@ -53,15 +64,15 @@ async function uploadImageToBlob(file: File, fileName: string): Promise<string> 
   return url;
 }
 
-// ==================== GET: منتج واحد ====================
+// ==================== GET: منتج واحد (بـ slug) ====================
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { slug } = await params;
     const products = await getProducts();
-    const product = products.find((p: any) => p.id === parseInt(id));
+    const product = products.find((p: any) => p.slug === slug);
     
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -74,13 +85,13 @@ export async function GET(
   }
 }
 
-// ==================== PATCH: تحديث منتج ====================
+// ==================== PATCH: تحديث منتج (بـ slug) ====================
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { slug } = await params;
     const formData = await request.formData();
     
     const name = formData.get('name') as string;
@@ -93,17 +104,14 @@ export async function PATCH(
     if (stockItemsRaw && stockItemsRaw !== '') {
       try {
         stockItems = JSON.parse(stockItemsRaw);
-        console.log('✅ Parsed stockItems:', stockItems.length);
       } catch (e) {
         console.error('Error parsing stockItems:', e);
       }
     }
     
     const stock = parseInt(formData.get('stock') as string);
-    
     const oldPriceRaw = formData.get('oldPrice') as string;
     const oldPrice = oldPriceRaw && oldPriceRaw !== '' ? parseFloat(oldPriceRaw) : undefined;
-    
     const discount = parseInt(formData.get('discount') as string || '0');
     const isNew = formData.get('isNew') === 'true';
     const sizes = JSON.parse(formData.get('sizes') as string || '[]');
@@ -124,28 +132,14 @@ export async function PATCH(
       }
     }
     
-    console.log('📦 Updating product:', {
-      id,
-      name,
-      price,
-      oldPrice,
-      discount,
-      stock,
-      stockItemsCount: stockItems.length,
-      sizes,
-      colors,
-      quantityDiscount,
-      removedImages
-    });
-    
     let products = await getProducts();
-    const index = products.findIndex((p: any) => p.id === parseInt(id));
+    const index = products.findIndex((p: any) => p.slug === slug);
     
     if (index === -1) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
     
-    // حذف الصور المرفوعة من Blob
+    // حذف الصور المرفوعة
     for (const imageUrl of removedImages) {
       try {
         if (imageUrl && imageUrl.includes('blob.vercel-storage.com')) {
@@ -154,7 +148,6 @@ export async function PATCH(
           const blobKey = pathname.split('/').pop();
           if (blobKey) {
             await del(blobKey);
-            console.log('✅ Deleted image:', blobKey);
           }
         }
       } catch (error) {
@@ -168,7 +161,6 @@ export async function PATCH(
     if (newMainImage && newMainImage.size > 0 && newMainImage.name !== 'undefined') {
       const timestamp = Date.now();
       mainImageUrl = await uploadImageToBlob(newMainImage, `${timestamp}_main.jpg`);
-      console.log('✅ Uploaded main image:', mainImageUrl);
     }
     
     // رفع الصور الإضافية الجديدة
@@ -180,7 +172,6 @@ export async function PATCH(
         const timestamp = Date.now();
         const url = await uploadImageToBlob(file, `${timestamp}_sub${i + 1}.jpg`);
         newSubImagesUrls.push(url);
-        console.log('✅ Uploaded sub image:', url);
       }
     }
     
@@ -189,14 +180,16 @@ export async function PATCH(
       (img: string) => !removedImages.includes(img)
     );
     
-    // حساب inStock
     const inStock = stockItems.length > 0 
       ? stockItems.some(item => item.quantity > 0)
       : (!isNaN(stock) ? stock > 0 : products[index].inStock);
     
-    // إنشاء المنتج المحدث
+    // ✅ توليد slug جديد لو اتغير الاسم
+    const newSlug = name && name !== products[index].name ? generateSlug(name) : products[index].slug;
+    
     const updatedProduct = {
       ...products[index],
+      slug: newSlug,
       name: name || products[index].name,
       price: isNaN(price) ? products[index].price : price,
       category: category || products[index].category,
@@ -218,8 +211,6 @@ export async function PATCH(
     products[index] = updatedProduct;
     await saveProducts(products);
     
-    console.log('✅ Product updated successfully:', updatedProduct.id);
-    
     return NextResponse.json({ success: true, product: updatedProduct });
   } catch (error) {
     console.error('❌ Error updating product:', error);
@@ -227,15 +218,15 @@ export async function PATCH(
   }
 }
 
-// ==================== DELETE: حذف منتج ====================
+// ==================== DELETE: حذف منتج (بـ slug) ====================
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { slug } = await params;
     let products = await getProducts();
-    const productToDelete = products.find((p: any) => p.id === parseInt(id));
+    const productToDelete = products.find((p: any) => p.slug === slug);
     
     if (!productToDelete) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -251,7 +242,6 @@ export async function DELETE(
           const blobKey = pathname.split('/').pop();
           if (blobKey) {
             await del(blobKey);
-            console.log('✅ Deleted image:', blobKey);
           }
         }
       } catch (error) {
@@ -259,10 +249,8 @@ export async function DELETE(
       }
     }
     
-    const newProducts = products.filter((p: any) => p.id !== parseInt(id));
+    const newProducts = products.filter((p: any) => p.slug !== slug);
     await saveProducts(newProducts);
-    
-    console.log('✅ Product deleted successfully:', id);
     
     return NextResponse.json({ success: true });
   } catch (error) {
