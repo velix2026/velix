@@ -20,7 +20,7 @@ const generateProductSchema = (product: any, url: string) => {
     "name": product.name,
     "description": product.description,
     "image": product.mainImage,
-    "sku": `VELIX-${product.id}`,
+    "sku": `VELIX-${product.slug}`,
     "brand": { "@type": "Brand", "name": "VELIX" },
     "offers": {
       "@type": "Offer",
@@ -70,7 +70,7 @@ const generateBreadcrumbSchema = (product: any, categoryName: string) => {
       { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": "https://velix-eg.store/" },
       { "@type": "ListItem", "position": 2, "name": "المنتجات", "item": "https://velix-eg.store/products" },
       { "@type": "ListItem", "position": 3, "name": categoryName, "item": `https://velix-eg.store/products?category=${encodeURIComponent(categoryName)}` },
-      { "@type": "ListItem", "position": 4, "name": product.name, "item": `https://velix-eg.store/products/${product.id}` }
+      { "@type": "ListItem", "position": 4, "name": product.name, "item": `https://velix-eg.store/products/${product.slug}` }
     ]
   };
 };
@@ -86,7 +86,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
 
   useEffect(() => {
     if (product?.id) {
-      fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: 'view_product', productId: product.id }) }).catch(() => {});
+      fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: 'view_product', productId: product.slug }) }).catch(() => {});
     }
   }, [product?.id]);
 
@@ -101,7 +101,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
   };
 
   const allImages = [product.mainImage, ...product.subImages];
-  const productUrl = `https://velix-eg.store/products/${product.id}`;
+  const productUrl = `https://velix-eg.store/products/${product.slug}`;
   
   const categoryName = product.category === 'تيشرتات' ? 'تيشرتات' 
     : product.category === 'هوديز' ? 'هوديز' 
@@ -163,7 +163,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
             </div>
           </div>
 
-          <RelatedProducts products={relatedProducts} currentProductId={product.id} />
+          <RelatedProducts products={relatedProducts} currentProductId={product.slug} />
         </div>
       </div>
 
@@ -171,7 +171,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
           isOpen={isOrderModalOpen}
           onClose={() => setIsOrderModalOpen(false)}
           product={{
-            id: product.id,
+            id: product.slug,
             name: product.name,
             price: product.price,
             mainImage: product.mainImage,

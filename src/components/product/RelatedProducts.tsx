@@ -28,7 +28,7 @@ export default function RelatedProducts({ products, currentProductId }: RelatedP
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         {related.map((product, idx) => (
-          <motion.div key={product.id} initial={{ opacity: 0, y: 30 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: idx * 0.1 }}>
+          <motion.div key={product.slug} initial={{ opacity: 0, y: 30 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5, delay: idx * 0.1 }}>
             <ProductCard product={product} priority={idx === 0} />
           </motion.div>
         ))}

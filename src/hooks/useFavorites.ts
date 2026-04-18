@@ -21,7 +21,7 @@ const getTotalStock = (product: Product): number => {
 export function useFavorites() {
   const [favorites, setFavorites] = useState<Product[]>([]);
   const [favoritesCount, setFavoritesCount] = useState(0);
-  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
+  const [favoriteSlugs, setFavoriteSlugs] = useState<Set<string>>(new Set());
   const isMountedRef = useRef(true);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -39,36 +39,36 @@ export function useFavorites() {
           const favs = JSON.parse(saved);
           setFavorites(favs);
           setFavoritesCount(favs.length);
-          setFavoriteIds(new Set(favs.map((p: Product) => p.id)));
+          setFavoriteSlugs(new Set(favs.map((p: Product) => p.slug)));
         } else {
           setFavorites([]);
           setFavoritesCount(0);
-          setFavoriteIds(new Set());
+          setFavoriteSlugs(new Set());
         }
       } catch (error) {
         console.error('Error loading favorites:', error);
         setFavorites([]);
         setFavoritesCount(0);
-        setFavoriteIds(new Set());
+        setFavoriteSlugs(new Set());
       }
     }, 0);
   }, []);
 
   const addToFavorites = useCallback((product: Product) => {
     setFavorites(prev => {
-      const exists = prev.some(p => p.id === product.id);
+      const exists = prev.some(p => p.slug === product.slug);
       if (!exists) {
         const newFavorites = [...prev, product];
         localStorage.setItem('favorites', JSON.stringify(newFavorites));
         setFavoritesCount(newFavorites.length);
-        setFavoriteIds(new Set(newFavorites.map(p => p.id)));
+        setFavoriteSlugs(new Set(newFavorites.map(p => p.slug)));
         
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('favoritesUpdated'));
         }, 0);
         
         trackFavoriteEvent('add_to_favorites', {
-          productId: product.id,
+          productSlug: product.slug,
           productName: product.name,
           favoritesCount: newFavorites.length
         });
@@ -98,20 +98,20 @@ export function useFavorites() {
     });
   }, []);
 
-  const removeFromFavorites = useCallback((productId: number, productName?: string) => {
+  const removeFromFavorites = useCallback((productSlug: string, productName?: string) => {
     setFavorites(prev => {
-      const removedItem = prev.find(p => p.id === productId);
-      const newFavorites = prev.filter(p => p.id !== productId);
+      const removedItem = prev.find(p => p.slug === productSlug);
+      const newFavorites = prev.filter(p => p.slug !== productSlug);
       localStorage.setItem('favorites', JSON.stringify(newFavorites));
       setFavoritesCount(newFavorites.length);
-      setFavoriteIds(new Set(newFavorites.map(p => p.id)));
+      setFavoriteSlugs(new Set(newFavorites.map(p => p.slug)));
       
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('favoritesUpdated'));
       }, 0);
       
       trackFavoriteEvent('remove_from_favorites', {
-        productId,
+        productSlug,
         productName: productName || removedItem?.name,
         favoritesCount: newFavorites.length
       });
@@ -129,13 +129,13 @@ export function useFavorites() {
     });
   }, []);
   
-  const isFavorite = useCallback((productId: number) => {
-    return favoriteIds.has(productId);
-  }, [favoriteIds]);
+  const isFavorite = useCallback((productSlug: string) => {
+    return favoriteSlugs.has(productSlug);
+  }, [favoriteSlugs]);
   
   const toggleFavorite = useCallback((product: Product) => {
-    if (isFavorite(product.id)) {
-      removeFromFavorites(product.id, product.name);
+    if (isFavorite(product.slug)) {
+      removeFromFavorites(product.slug, product.name);
     } else {
       addToFavorites(product);
     }
@@ -171,7 +171,7 @@ export function useFavorites() {
   return {
     favorites,
     favoritesCount,
-    favoriteIds,
+    favoriteSlugs,
     addToFavorites,
     removeFromFavorites,
     isFavorite,

@@ -44,7 +44,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [newMainImage, setNewMainImage] = useState<File | null>(null);
   const [newSubImages, setNewSubImages] = useState<File[]>([]);
@@ -95,14 +95,14 @@ export default function AdminProductsPage() {
   const handleDelete = async (product: Product) => {
     if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
     
-    setDeletingId(product.id);
+    setDeletingId(product.slug);
     try {
       const res = await fetch(`/api/products/${product.slug}`, { 
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${ADMIN_PASSWORD}` },
       });
       if (res.ok) {
-        setProducts(prev => prev.filter(p => p.id !== product.id));
+        setProducts(prev => prev.filter(p => p.slug !== product.slug));
         alert('✅ تم حذف المنتج');
       } else {
         alert('❌ فشل الحذف');
@@ -344,7 +344,7 @@ export default function AdminProductsPage() {
               ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
             
             return (
-              <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-rose-gold/20 transition-all duration-300 border border-rose-gold/20 hover:-translate-y-1">
+              <div key={product.slug} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-rose-gold/20 transition-all duration-300 border border-rose-gold/20 hover:-translate-y-1">
                 <div className="relative h-48 w-full bg-rose-gold/5">
                   <Image 
                     src={product.mainImage} 
@@ -419,8 +419,8 @@ export default function AdminProductsPage() {
                       تعديل
                     </button>
                     {/* ✅ زر الحذف المعدل - يمرر المنتج كامل */}
-                    <button onClick={() => handleDelete(product)} disabled={deletingId === product.id} className="flex-1 bg-linear-to-r from-gray-500 to-gray-700 text-white py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50">
-                      {deletingId === product.id ? 'جاري...' : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> حذف</>}
+                    <button onClick={() => handleDelete(product)} disabled={deletingId === product.slug} className="flex-1 bg-linear-to-r from-gray-500 to-gray-700 text-white py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50">
+                      {deletingId === product.slug ? 'جاري...' : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> حذف</>}
                     </button>
                   </div>
                 </div>

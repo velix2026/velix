@@ -123,7 +123,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         <div className="border-t border-rose-gold/20 pt-6 mt-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center gap-2"><span className="text-black/60">القسم:</span><span className="font-bold text-black">{product.category}</span></div>
-            <div className="flex items-center gap-2"><span className="text-black/60">رمز المنتج:</span><span className="font-bold text-black">VEL-{product.id}</span></div>
+            <div className="flex items-center gap-2"><span className="text-black/60">رمز المنتج:</span><span className="font-bold text-black">VEL-{product.slug}</span></div>
             <div className="flex items-center gap-2"><span className="text-black/60">الحالة:</span><span className={`font-bold ${totalStock > 0 ? 'text-rose-gold' : 'text-red-500'}`}>{totalStock > 0 ? 'متوفر' : 'خلص'}</span></div>
             <div className="flex items-center gap-2"><span className="text-black/60">الشحن:</span><span className="font-bold text-rose-gold">🚚 مجاني</span></div>
           </div>

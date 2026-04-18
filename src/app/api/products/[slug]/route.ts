@@ -27,7 +27,7 @@ async function getProducts() {
     
     products = products.map((product: any, index: number) => {
       if (!product.createdAt) {
-        const daysAgo = Math.min(30, (product.id || index + 1) % 31);
+        const daysAgo = Math.min(30, (product.slug || index + 1) % 31);
         const fakeDate = new Date();
         fakeDate.setDate(fakeDate.getDate() - daysAgo);
         return {

@@ -288,7 +288,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
             <FixedGrid cols={4}>
               {bestSellers.map((product, idx) => (
                 <motion.div
-                  key={product.id}
+                  key={product.slug}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.4, delay: idx * 0.1 }}
@@ -421,7 +421,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
             <AutoGrid>
               {displayedProducts.map((product, idx) => (
                 <motion.div
-                  key={product.id}
+                  key={product.slug}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9 }}
@@ -462,7 +462,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
             </div>
             <FixedGrid cols={4}>
               {recommended.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.slug} product={product} />
               ))}
             </FixedGrid>
           </div>

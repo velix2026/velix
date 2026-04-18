@@ -50,15 +50,15 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     { size: '', color: '', quantity: 1, id: Date.now().toString() }
   ]);
 
-  const { addToCart, removeFromCartByProductId, isInCart } = useCart();
+  const { addToCart, removeFromCartByProductSlug, isInCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
 
   const allImages = [product.mainImage, ...product.subImages];
   const currentImage = allImages[currentImageIndex];
   const imageSrc = imgError ? '/images/placeholder.jpg' : currentImage;
 
-  const isInCartState = isInCart(product.id);
-  const isFavoritedState = isFavorite(product.id);
+  const isInCartState = isInCart(product.slug);
+  const isFavoritedState = isFavorite(product.slug);
 
   const hasSizes = product.sizes && product.sizes.length > 0;
   const hasColors = product.colors && product.colors.length > 0;
@@ -239,7 +239,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     
     setTimeout(() => {
       if (isInCartState) {
-        removeFromCartByProductId(product.id, product.name);
+        removeFromCartByProductSlug(product.slug, product.name);
       } else {
         if (hasSizes || hasColors) {
           setShowSelectionModal(true);
@@ -248,7 +248,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
         }
       }
     }, 0);
-  }, [product, isInCartState, addToCart, removeFromCartByProductId, hasSizes, hasColors]);
+    }, [product, isInCartState, addToCart, removeFromCartByProductSlug, hasSizes, hasColors]);
 
   const addSelection = () => {
     setSelections(prev => [
@@ -348,7 +348,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           onTouchEnd={handleTouchEnd}
         >
           <Link 
-            href={`/products/${product.id}`} 
+            href={`/products/${product.slug}`} 
             className="relative block h-full w-full focus:outline-none focus:ring-2 focus:ring-rose-gold/20 focus:ring-offset-2"
             aria-label={`عرض تفاصيل ${product.name}`}
           >
@@ -486,7 +486,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
         </div>
 
         <div className="p-3 md:p-4 flex-1 flex flex-col">
-          <Link href={`/products/${product.id}`} className="block flex-1">
+          <Link href={`/products/${product.slug}`} className="block flex-1">
             {rating > 0 && (
               <div className="flex items-center gap-0.5 mb-1.5">
                 <div className="flex items-center text-rose-gold text-[10px] md:text-xs">
@@ -528,7 +528,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           </Link>
 
           <Link
-            href={`/products/${product.id}`}
+            href={`/products/${product.slug}`}
             className={`block text-center text-white font-bold text-[10px] md:text-xs py-2 rounded-full transition-all mt-2 ${
               isOutOfStock 
                 ? 'bg-black/40 cursor-not-allowed' 

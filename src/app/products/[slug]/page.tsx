@@ -168,7 +168,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
             </div>
           </div>
 
-          <RelatedProducts products={relatedProducts} currentProductId={product.id} />
+          <RelatedProducts products={relatedProducts} currentProductId={product.slug} />
         </div>
       </div>
 
@@ -176,7 +176,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
           isOpen={isOrderModalOpen}
           onClose={() => setIsOrderModalOpen(false)}
           product={{
-            id: product.id,
+            id: product.slug,
             name: product.name,
             price: product.price,
             mainImage: product.mainImage,

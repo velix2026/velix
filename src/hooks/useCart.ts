@@ -61,8 +61,9 @@ const getVariationTotalPrice = (item: CartItem, variation: CartVariation): numbe
   return effectivePrice * variation.quantity;
 };
 
-const generateCartItemId = (productId: number): string => {
-  return `${productId}-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+// ✅ تغيير: استقبال slug بدل id
+const generateCartItemId = (productSlug: string): string => {
+  return `${productSlug}-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
 };
 
 const generateVariationId = (): string => {
@@ -111,7 +112,7 @@ export function useCart() {
         'hasProduct': {
           '@type': 'Product',
           'name': `${item.name}${item.variations.length > 1 ? ` (${item.variations.length} مقاس/لون)` : ''}`,
-          'sku': `VELIX-${item.id}`,
+          'sku': `VELIX-${item.slug}`,
           'offers': { '@type': 'Offer', 'price': item.price, 'priceCurrency': 'EGP' }
         }
       }))
@@ -176,6 +177,7 @@ export function useCart() {
     }, 0);
   }, [calculateCartStats]);
 
+  // ✅ addToCart - استخدام slug
   const addToCart = useCallback((product: Product, selectedSize?: string, selectedColor?: string, quantity: number = 1) => {
     const availableStock = getAvailableStock(product, selectedSize, selectedColor);
     if (availableStock === 0) {
@@ -192,7 +194,7 @@ export function useCart() {
     }
 
     setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.id === product.id);
+      const existingItem = prevCart.find(item => item.slug === product.slug);
       
       if (existingItem) {
         const existingVariation = existingItem.variations.find(v => v.size === selectedSize && v.color === selectedColor);
@@ -210,7 +212,7 @@ export function useCart() {
           );
           const newTotalQuantity = newVariations.reduce((sum, v) => sum + v.quantity, 0);
           const updatedItem = { ...existingItem, variations: newVariations, quantity: newTotalQuantity };
-          const newCart = prevCart.map(item => item.id === product.id ? updatedItem : item);
+          const newCart = prevCart.map(item => item.slug === product.slug ? updatedItem : item);
           saveCart(newCart);
           
           setTimeout(() => window.dispatchEvent(new CustomEvent('showToast', {
@@ -226,7 +228,7 @@ export function useCart() {
           }];
           const newTotalQuantity = newVariations.reduce((sum, v) => sum + v.quantity, 0);
           const updatedItem = { ...existingItem, variations: newVariations, quantity: newTotalQuantity };
-          const newCart = prevCart.map(item => item.id === product.id ? updatedItem : item);
+          const newCart = prevCart.map(item => item.slug === product.slug ? updatedItem : item);
           saveCart(newCart);
           
           setTimeout(() => window.dispatchEvent(new CustomEvent('showToast', {
@@ -237,7 +239,7 @@ export function useCart() {
       } else {
         const newItem: CartItem = {
           ...product,
-          cartItemId: generateCartItemId(product.id),
+          cartItemId: generateCartItemId(product.slug),
           quantity: quantity,
           variations: [{
             variationId: generateVariationId(),
@@ -257,11 +259,12 @@ export function useCart() {
     });
   }, [saveCart]);
 
-  const updateVariationQuantity = useCallback((productId: number, variationId: string, newQuantity: number) => {
+  // ✅ updateVariationQuantity - استخدام slug
+  const updateVariationQuantity = useCallback((productSlug: string, variationId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
     
     setCart(prevCart => {
-      const item = prevCart.find(i => i.id === productId);
+      const item = prevCart.find(i => i.slug === productSlug);
       if (!item) return prevCart;
       
       const variation = item.variations.find(v => v.variationId === variationId);
@@ -278,25 +281,26 @@ export function useCart() {
       const newVariations = item.variations.map(v => v.variationId === variationId ? { ...v, quantity: newQuantity } : v);
       const newTotalQuantity = newVariations.reduce((sum, v) => sum + v.quantity, 0);
       const updatedItem = { ...item, variations: newVariations, quantity: newTotalQuantity };
-      const newCart = prevCart.map(i => i.id === productId ? updatedItem : i);
+      const newCart = prevCart.map(i => i.slug === productSlug ? updatedItem : i);
       saveCart(newCart);
       return newCart;
     });
   }, [saveCart]);
 
-  const removeVariation = useCallback((productId: number, variationId: string, productName?: string, variationDesc?: string) => {
+  // ✅ removeVariation - استخدام slug
+  const removeVariation = useCallback((productSlug: string, variationId: string, productName?: string, variationDesc?: string) => {
     setCart(prevCart => {
-      const item = prevCart.find(i => i.id === productId);
+      const item = prevCart.find(i => i.slug === productSlug);
       if (!item) return prevCart;
       
       const newVariations = item.variations.filter(v => v.variationId !== variationId);
       let newCart;
       if (newVariations.length === 0) {
-        newCart = prevCart.filter(i => i.id !== productId);
+        newCart = prevCart.filter(i => i.slug !== productSlug);
       } else {
         const newTotalQuantity = newVariations.reduce((sum, v) => sum + v.quantity, 0);
         const updatedItem = { ...item, variations: newVariations, quantity: newTotalQuantity };
-        newCart = prevCart.map(i => i.id === productId ? updatedItem : i);
+        newCart = prevCart.map(i => i.slug === productSlug ? updatedItem : i);
       }
       saveCart(newCart);
       
@@ -307,11 +311,12 @@ export function useCart() {
     });
   }, [saveCart]);
 
-  const removeFromCartByProductId = useCallback((productId: number, productName?: string) => {
+  // ✅ removeFromCartByProductId - استخدام slug (تغيير اسم الدالة اختياري)
+  const removeFromCartByProductSlug = useCallback((productSlug: string, productName?: string) => {
     setCart(prevCart => {
-      const item = prevCart.find(i => i.id === productId);
+      const item = prevCart.find(i => i.slug === productSlug);
       if (!item) return prevCart;
-      const newCart = prevCart.filter(i => i.id !== productId);
+      const newCart = prevCart.filter(i => i.slug !== productSlug);
       saveCart(newCart);
       setTimeout(() => window.dispatchEvent(new CustomEvent('showToast', {
         detail: { message: `🗑️ اتشال "${productName || item.name}" من السلة`, type: 'info' }
@@ -330,8 +335,9 @@ export function useCart() {
     if (existingScript) existingScript.remove();
   }, []);
 
-  const isInCart = useCallback((productId: number) => {
-    return cart.some(item => item.id === productId);
+  // ✅ isInCart - استخدام slug
+  const isInCart = useCallback((productSlug: string) => {
+    return cart.some(item => item.slug === productSlug);
   }, [cart]);
 
   useEffect(() => {
@@ -356,7 +362,7 @@ export function useCart() {
     addToCart,
     updateVariationQuantity,
     removeVariation,
-    removeFromCartByProductId,
+    removeFromCartByProductSlug,
     clearCart,
     isInCart,
   };

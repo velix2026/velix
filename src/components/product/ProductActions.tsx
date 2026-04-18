@@ -63,19 +63,19 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
   const [forceUpdate, setForceUpdate] = useState(0);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   
-  const { addToCart, removeFromCartByProductId, isInCart, cart } = useCart();
+  const { addToCart, removeFromCartByProductSlug, isInCart, cart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
 
   const sizes: string[] = product.sizes || [];
   const colors: string[] = product.colors || [];
   const singleAvailableStock = getAvailableStock(product, singleSelection.size, singleSelection.color);
-  const isInCartState = isInCart(product.id);
-  const isFavoritedState = isFavorite(product.id);
+  const isInCartState = isInCart(product.slug);
+  const isFavoritedState = isFavorite(product.slug);
 
   // تحديث الـ UI عند تغير السلة
   useEffect(() => {
     setForceUpdate(prev => prev + 1);
-  }, [cart, product.id]);
+  }, [cart, product.slug]);
 
   useEffect(() => {
     setSingleSelection(prev => ({ ...prev, size: sizes[0] || '', color: colors[0] || '' }));
@@ -143,7 +143,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
   };
 
   const handleRemoveFromCart = () => {
-    removeFromCartByProductId(product.id, product.name);
+    removeFromCartByProductSlug(product.slug, product.name);
     setForceUpdate(prev => prev + 1);
   };
 
