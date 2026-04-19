@@ -20,13 +20,13 @@ export const metadata: Metadata = {
     url: "https://velix-eg.store/blog/%D8%A7%D8%B2%D8%A7%D9%8A-%D8%AA%D8%B2%D9%8A%D9%84-%D8%A7%D9%84%D8%A8%D9%82%D8%B9-%D9%85%D9%86-%D8%A7%D9%84%D9%85%D9%84%D8%A7%D8%A8%D8%B3",
     type: "article",
     publishedTime: "2026-04-15",
-    images: [{ url: "/images/og-image.jpg", width: 1200, height: 630, alt: "VELIX - ازاي تزيل البقع من الملابس" }],
+    images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: "VELIX - ازاي تزيل البقع من الملابس" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "ازاي تزيل البقع من الملابس",
     description: "دليل كامل لتنظيف أي نوع بقع",
-    images: ["/images/og-image.jpg"],
+    images: ["/images/og-image.png"],
   },
   alternates: {
     canonical: "https://velix-eg.store/blog/ازاي-تزيل-البقع-من-الملابس",

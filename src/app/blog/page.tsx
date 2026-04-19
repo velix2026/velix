@@ -13,13 +13,13 @@ export const metadata: Metadata = {
     siteName: "VELIX",
     locale: "ar_EG",
     type: "website",
-    images: [{ url: "/images/og-image.jpg", width: 1200, height: 630, alt: "VELIX - مدونة الموضة المصرية" }],
+    images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: "VELIX - مدونة الموضة المصرية" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "مدونة VELIX | دليل الموضة المصري",
     description: "نصائح وإرشادات للموضة المصرية. ازاي تبقى شيك في كل وقت.",
-    images: ["/images/og-image.jpg"],
+    images: ["/images/og-image.png"],
   },
   alternates: {
     canonical: "https://velix-eg.store/blog",

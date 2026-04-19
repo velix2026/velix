@@ -326,12 +326,14 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
               >
                 <div className="absolute inset-0">
                   <Image 
-                    src={category.image} 
-                    alt={category.name} 
-                    fill 
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
+                      src={category.image} 
+                      alt={category.name} 
+                      fill 
+                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      loading="eager"
+                      priority
+                    />
                 </div>
                 <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-all duration-300" />
                 <div className="relative z-10 flex flex-col items-center justify-center h-full text-white p-3">

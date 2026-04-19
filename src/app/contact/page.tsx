@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/images/og-image.jpg",
+        url: "/images/og-image.png",
         width: 1200,
         height: 630,
         alt: "VELIX - اتصل بنا",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "اتصل بنا | VELIX",
     description: "تواصل مع فريق VELIX",
-    images: ["/images/og-image.jpg"],
+    images: ["/images/og-image.png"],
   },
   alternates: {
     canonical: "https://velix-eg.store/contact",

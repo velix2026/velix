@@ -21,13 +21,13 @@ export const metadata: Metadata = {
     url: "https://velix-eg.store/blog/%D8%AF%D9%84%D9%8A%D9%84-%D8%A7%D9%84%D9%88%D8%A7%D9%86-%D8%A7%D9%84%D9%85%D9%84%D8%A7%D8%A8%D8%B3-%D9%84%D9%84%D8%A8%D8%B4%D8%B1%D8%A9",
     type: "article",
     publishedTime: "2026-04-15",
-    images: [{ url: "/images/og-image.jpg", width: 1200, height: 630, alt: "VELIX - دليل ألوان الملابس حسب البشرة" }],
+    images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: "VELIX - دليل ألوان الملابس حسب البشرة" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "دليل ألوان الملابس حسب لون البشرة",
     description: "ازاي تختار اللون اللي يليق بيك حسب لون بشرتك",
-    images: ["/images/og-image.jpg"],
+    images: ["/images/og-image.png"],
   },
   alternates: {
     canonical: "https://velix-eg.store/blog/دليل-الوان-الملابس-للبشرة",

@@ -29,7 +29,7 @@ export const metadata = {
     type: "website",
     images: [
       {
-        url: "/images/og-image.jpg",
+        url: "/images/og-image.png",
         width: 1200,
         height: 630,
         alt: "VELIX - براند ملابس مصري فاخر",
@@ -40,7 +40,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "VELIX | براند ملابس مصري فاخر",
     description: "تسوق أحدث تشكيلة من التيشرتات والهوديز. جودة عالمية وتصميم عصري.",
-    images: ["/images/og-image.jpg"],
+    images: ["/images/og-image.png"],
   },
   alternates: {
     canonical: "https://velix-eg.store",

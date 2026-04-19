@@ -16,7 +16,7 @@ export const metadata = {
     type: "website",
     images: [
       {
-        url: "/images/og-image.jpg",
+        url: "/images/og-image.png",
         width: 1200,
         height: 630,
         alt: "VELIX - تشكيلة المنتجات",
@@ -27,7 +27,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "المنتجات | VELIX",
     description: "اكتشف أحدث تشكيلة من التيشرتات والهوديز. جودة عالية وتصميم عصري.",
-    images: ["/images/og-image.jpg"],
+    images: ["/images/og-image.png"],
   },
   alternates: {
     canonical: "https://velix-eg.store/products",

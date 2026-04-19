@@ -20,13 +20,13 @@ export const metadata: Metadata = {
     url: "https://velix-eg.store/blog/%D8%A7%D9%84%D9%81%D8%B1%D9%82-%D8%A8%D9%8A%D9%86-%D8%A7%D9%84%D9%82%D8%B7%D9%86-%D8%A7%D9%84%D9%85%D8%B5%D8%B1%D9%8A-%D9%88%D8%A7%D9%84%D9%82%D8%B7%D9%86-%D8%A7%D9%84%D8%B9%D8%A7%D8%AF%D9%8A",
     type: "article",
     publishedTime: "2026-04-15",
-    images: [{ url: "/images/og-image.jpg", width: 1200, height: 630, alt: "VELIX - الفرق بين القطن المصري والقطن العادي" }],
+    images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: "VELIX - الفرق بين القطن المصري والقطن العادي" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "الفرق بين القطن المصري والقطن العادي",
     description: "ليه القطن المصري الأحسن؟ دليل كامل",
-    images: ["/images/og-image.jpg"],
+    images: ["/images/og-image.png"],
   },
   alternates: {
     canonical: "https://velix-eg.store/blog/الفرق-بين-القطن-المصري-والقطن-العادي",

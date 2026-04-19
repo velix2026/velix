@@ -34,7 +34,7 @@ export default function Header() {
     'name': 'VELIX',
     'url': 'https://velix-eg.store',
     'logo': 'https://velix-eg.store/images/logo.png',
-    'image': 'https://velix-eg.store/images/og-image.jpg',
+    'image': 'https://velix-eg.store/images/og-image.png',
     'description': 'براند ملابس مصري بيقدم ستايل عصري للشباب. جودة عالية وتفاصيل مميزة مع دفع عند الاستلام.',
     'telephone': '+201500125133',
     'priceRange': '$$',

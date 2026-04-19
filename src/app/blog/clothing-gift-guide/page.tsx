@@ -21,13 +21,13 @@ export const metadata: Metadata = {
     url: "https://velix-eg.store/blog/ازاي-تختار-هدية-من-الملابس",
     type: "article",
     publishedTime: "2026-04-12",
-    images: [{ url: "/images/og-image.jpg", width: 1200, height: 630, alt: "VELIX - دليل الهدايا" }],
+    images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: "VELIX - دليل الهدايا" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "ازاي تختار هدية من الملابس لحد بتحبه؟",
     description: "دليل كامل لاختيار هدية من الملابس لأي مناسبة",
-    images: ["/images/og-image.jpg"],
+    images: ["/images/og-image.png"],
   },
   alternates: {
     canonical: "https://velix-eg.store/blog/ازاي-تختار-هدية-من-الملابس",
