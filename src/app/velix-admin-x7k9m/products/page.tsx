@@ -12,8 +12,11 @@ import { clothingColors, getColorByCode } from '@/lib/colors';
 const ADMIN_SECRET_PATH = process.env.NEXT_PUBLIC_ADMIN_SECRET_PATH || 'velix-admin-x7k9m';
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'velix@2026';
 
-// المقاسات المتاحة
-const allSizes = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+// ✅ مقاسات الملابس
+const clothingSizes = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+
+// ✅ مقاسات الأحذية (من 38 إلى 45)
+const shoeSizes = ['38', '39', '40', '41', '42', '43', '44', '45'];
 
 interface QuantityTier {
   minQuantity: number;
@@ -37,6 +40,14 @@ const DEFAULT_TIERS: QuantityTier[] = [
   { minQuantity: 4, discountPerItem: 0 },
   { minQuantity: 5, discountPerItem: 0 }
 ];
+
+// ✅ دالة جلب المقاسات حسب القسم
+const getAvailableSizes = (category: string) => {
+  if (category === 'شوزات') {
+    return shoeSizes;
+  }
+  return clothingSizes;
+};
 
 export default function AdminProductsPage() {
   const router = useRouter();
@@ -205,7 +216,6 @@ export default function AdminProductsPage() {
     newSubImages.forEach(img => formData.append('newSubImages', img));
     
     try {
-      // ✅ استخدام slug بدل id
       const res = await fetch(`/api/products/${editingProduct.slug}`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${ADMIN_PASSWORD}` },
@@ -418,7 +428,6 @@ export default function AdminProductsPage() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                       تعديل
                     </button>
-                    {/* ✅ زر الحذف المعدل - يمرر المنتج كامل */}
                     <button onClick={() => handleDelete(product)} disabled={deletingId === product.slug} className="flex-1 bg-linear-to-r from-gray-500 to-gray-700 text-white py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50">
                       {deletingId === product.slug ? 'جاري...' : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> حذف</>}
                     </button>
@@ -441,7 +450,6 @@ export default function AdminProductsPage() {
               </div>
               
               <form onSubmit={handleUpdate} className="p-6 space-y-4">
-                {/* ... باقي حقول النموذج كما هي ... */}
                 <div>
                   <label className="block text-sm font-black text-rose-gold mb-1">اسم المنتج</label>
                   <input type="text" value={editingProduct.name} onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })} className="w-full p-3 bg-[#FDF8F5] border-2 border-rose-gold/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent text-black font-bold" required />
@@ -482,11 +490,13 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
                 
-                {/* المقاسات */}
+                {/* ✅ المقاسات حسب القسم */}
                 <div>
-                  <label className="block text-sm font-black text-rose-gold mb-2">المقاسات المتاحة</label>
+                  <label className="block text-sm font-black text-rose-gold mb-2">
+                    {editingProduct.category === 'شوزات' ? 'مقاسات الحذاء' : 'المقاسات المتاحة'}
+                  </label>
                   <div className="flex flex-wrap gap-2">
-                    {allSizes.map(size => {
+                    {getAvailableSizes(editingProduct.category).map(size => {
                       const isSelected = editingProduct.sizes?.includes(size);
                       return (
                         <button
@@ -505,6 +515,9 @@ export default function AdminProductsPage() {
                       );
                     })}
                   </div>
+                  {editingProduct.sizes && editingProduct.sizes.length > 0 && (
+                    <p className="text-xs text-rose-gold mt-2 font-bold">✓ تم اختيار {toArabicNumber(editingProduct.sizes.length)} مقاس</p>
+                  )}
                 </div>
                 
                 {/* الألوان */}
@@ -530,6 +543,9 @@ export default function AdminProductsPage() {
                       );
                     })}
                   </div>
+                  {editingProduct.colors && editingProduct.colors.length > 0 && (
+                    <p className="text-xs text-rose-gold mt-2 font-bold">✓ تم اختيار {toArabicNumber(editingProduct.colors.length)} لون</p>
+                  )}
                 </div>
 
                 {/* جدول الكميات */}
@@ -555,7 +571,17 @@ export default function AdminProductsPage() {
                                 </td>
                                 {editingProduct.sizes?.map(size => (
                                   <td key={size} className="border border-rose-gold/20 p-2">
-                                    <input type="number" min="0" value={getStockQuantity(colorCode, size)} onChange={(e) => updateStockQuantity(colorCode, size, parseInt(e.target.value) || 0)} className="w-full p-2 text-center bg-white border-2 border-rose-gold/20 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent" />
+                                    <input
+                                          type="number"
+                                          min="0"
+                                          value={getStockQuantity(colorCode, size) === 0 ? '' : getStockQuantity(colorCode, size)}
+                                          onChange={(e) => {
+                                            const val = e.target.value;
+                                            updateStockQuantity(colorCode, size, val === '' ? 0 : parseInt(val) || 0);
+                                          }}
+                                          className="..."
+                                          placeholder="0"
+                                        />
                                   </td>
                                 ))}
                                </tr>
@@ -564,6 +590,7 @@ export default function AdminProductsPage() {
                         </tbody>
                       </table>
                     </div>
+                    <p className="text-xs text-rose-gold/60 mt-2 font-bold">💡 أدخل الكمية لكل لون ومقاس (0 يعني مش متاح)</p>
                   </div>
                 )}
                 

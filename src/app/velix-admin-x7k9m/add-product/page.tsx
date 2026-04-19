@@ -423,15 +423,19 @@ export default function AddProductPage() {
                               return (
                                 <td key={size} className="border border-rose-gold/20 p-2">
                                   <input
-                                    type="number"
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
-                                    min="0"
-                                    value={currentValue}
-                                    onChange={(e) => updateStockQuantity(colorCode, size, parseInt(e.target.value) || 0)}
-                                    className="w-full p-2 text-center bg-white border-2 border-rose-gold/20 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent"
-                                    style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
-                                  />
+                                        type="number"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        min="0"
+                                        value={currentValue === 0 ? '' : currentValue}
+                                        onChange={(e) => {
+                                          const val = e.target.value;
+                                          updateStockQuantity(colorCode, size, val === '' ? 0 : parseInt(val) || 0);
+                                        }}
+                                        className="w-full p-2 text-center bg-white border-2 border-rose-gold/20 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent"
+                                        style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
+                                        placeholder="0"
+                                      />
                                 </td>
                               );
                             })}
@@ -482,13 +486,17 @@ export default function AddProductPage() {
                       <div className="flex-1">
                         <label className="block text-xs font-black text-black mb-1">خصم لكل قطعة (جنيه)</label>
                         <input
-                          type="number"
-                          inputMode="numeric"
-                          min="0"
-                          value={tier.discountPerItem}
-                          onChange={(e) => updateTier(idx, 'discountPerItem', parseInt(e.target.value) || 0)}
-                          className="w-full p-2 bg-white border-2 border-rose-gold/20 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent"
-                        />
+                              type="number"
+                              inputMode="numeric"
+                              min="0"
+                              value={tier.discountPerItem === 0 ? '' : tier.discountPerItem}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                updateTier(idx, 'discountPerItem', val === '' ? 0 : parseInt(val) || 0);
+                              }}
+                              className="w-full p-2 bg-white border-2 border-rose-gold/20 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent"
+                              placeholder="0"
+                            />
                       </div>
                       {quantityDiscount.tiers.length > 1 && (
                         <button type="button" onClick={() => removeTier(idx)} className="mt-5 text-red-500 hover:text-red-600">
