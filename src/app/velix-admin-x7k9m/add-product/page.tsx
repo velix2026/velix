@@ -8,7 +8,11 @@ import { clothingColors, getColorByCode } from '@/lib/colors';
 
 const ADMIN_SECRET_PATH = process.env.NEXT_PUBLIC_ADMIN_SECRET_PATH || 'velix-admin-x7k9m';
 
-const sizes = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+// ✅ مقاسات الملابس
+const clothingSizes = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+
+// ✅ مقاسات الأحذية (من 38 إلى 45)
+const shoeSizes = ['38', '39', '40', '41', '42', '43', '44', '45'];
 
 interface QuantityTier {
   minQuantity: number;
@@ -62,6 +66,19 @@ export default function AddProductPage() {
     }
     return 0;
   };
+
+  // ✅ تحديد المقاسات حسب القسم المختار
+  const getAvailableSizes = () => {
+    if (product.category === 'شوزات') {
+      return shoeSizes;
+    }
+    return clothingSizes;
+  };
+
+  // ✅ عند تغيير القسم، إعادة تعيين المقاسات المختارة
+  useEffect(() => {
+    setSelectedSizes([]);
+  }, [product.category]);
 
   useEffect(() => {
     const auth = sessionStorage.getItem('adminAuth');
@@ -234,6 +251,7 @@ export default function AddProductPage() {
   };
 
   const discount = calculateDiscount();
+  const availableSizes = getAvailableSizes();
 
   if (loading) {
     return (
@@ -308,11 +326,13 @@ export default function AddProductPage() {
               </select>
             </div>
                         
-            {/* ✅ المقاسات مع علامة اختيار واضحة */}
+            {/* ✅ المقاسات حسب القسم المختار */}
             <div>
-              <label className="block text-xs font-black text-rose-gold uppercase tracking-wider mb-2">المقاسات المتاحة</label>
+              <label className="block text-xs font-black text-rose-gold uppercase tracking-wider mb-2">
+                {product.category === 'شوزات' ? 'مقاسات الحذاء' : 'المقاسات المتاحة'}
+              </label>
               <div className="flex flex-wrap gap-2">
-                {sizes.map(size => {
+                {availableSizes.map(size => {
                   const isSelected = selectedSizes.includes(size);
                   return (
                     <button
@@ -372,7 +392,7 @@ export default function AddProductPage() {
               )}
             </div>
             
-            {/* جدول الكميات */}
+            {/* جدول الكميات - مع تحسين إدخال الأرقام للموبايل */}
             {selectedColors.length > 0 && selectedSizes.length > 0 && (
               <div>
                 <label className="block text-xs font-black text-rose-gold uppercase tracking-wider mb-2">الكميات المتاحة</label>
@@ -398,17 +418,23 @@ export default function AddProductPage() {
                                 {colorName}
                               </div>
                             </td>
-                            {selectedSizes.map(size => (
-                              <td key={size} className="border border-rose-gold/20 p-2">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={getStockQuantity(colorCode, size)}
-                                  onChange={(e) => updateStockQuantity(colorCode, size, parseInt(e.target.value) || 0)}
-                                  className="w-full p-2 text-center bg-white border-2 border-rose-gold/20 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent"
-                                />
-                              </td>
-                            ))}
+                            {selectedSizes.map(size => {
+                              const currentValue = getStockQuantity(colorCode, size);
+                              return (
+                                <td key={size} className="border border-rose-gold/20 p-2">
+                                  <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    min="0"
+                                    value={currentValue}
+                                    onChange={(e) => updateStockQuantity(colorCode, size, parseInt(e.target.value) || 0)}
+                                    className="w-full p-2 text-center bg-white border-2 border-rose-gold/20 rounded-lg text-black font-bold focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent"
+                                    style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
+                                  />
+                                </td>
+                              );
+                            })}
                           </tr>
                         );
                       })}
@@ -446,6 +472,7 @@ export default function AddProductPage() {
                         <label className="block text-xs font-black text-black mb-1">من {toArabicNumber(tier.minQuantity)} قطعة فأكثر</label>
                         <input
                           type="number"
+                          inputMode="numeric"
                           min={idx === 0 ? 2 : (quantityDiscount.tiers[idx-1]?.minQuantity + 1 || 2)}
                           value={tier.minQuantity}
                           onChange={(e) => updateTier(idx, 'minQuantity', parseInt(e.target.value) || 0)}
@@ -456,6 +483,7 @@ export default function AddProductPage() {
                         <label className="block text-xs font-black text-black mb-1">خصم لكل قطعة (جنيه)</label>
                         <input
                           type="number"
+                          inputMode="numeric"
                           min="0"
                           value={tier.discountPerItem}
                           onChange={(e) => updateTier(idx, 'discountPerItem', parseInt(e.target.value) || 0)}
