@@ -467,7 +467,7 @@ export const posts = [
         <ul><li>الدفع عند الاستلام - الأفضل للمبتدئين</li><li>الدفع ببطاقة ائتمانية - أسرع بس اتأكد إن الموقع مشفر</li></ul>
         <div class="bg-rose-gold/10 rounded-2xl p-6 text-center">
           <p class="text-rose-gold font-black text-lg mb-2">🛒 تسوق من VELIX - موقع ملابس مصري موثوق</p>
-          <p class="text-black/70 font-bold mb-4">VELIX براند ملابس مصري فاخر. تقدر تطلب تيشرتات وهوديز وشروال بثقة. استبدال مجاني 14 يوم.</p>
+          <p class="text-black/70 font-bold mb-4">VELIX | لبس ولاد البلد. تقدر تطلب تيشرتات وهوديز وشروال بثقة. استبدال مجاني 14 يوم.</p>
           <Link href="/products" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">تسوق دلوقتي من VELIX</Link>
         </div>
       </div>

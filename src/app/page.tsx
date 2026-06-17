@@ -9,8 +9,8 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: "VELIX (فيلكس) | لبس ولاد البلد - ستايل مصري عصري",
-  description: "VELIX - لبس ولاد البلد. تيشرتات، هوديز، وشروال قطن مصري أصلي للشباب. جودة عالية، أسعار مناسبة، وشحن لكل مصر. اطلب وادفع عند الاستلام.",
+  title: "VELIX | لبس ولاد البلد - ستايل مصري عصري",
+  description: "VELIX | لبس ولاد البلد. تيشرتات، هوديز، وشروال قطن مصري أصلي للشباب. جودة عالية، أسعار مناسبة، وشحن لكل مصر. اطلب وادفع عند الاستلام.",
   keywords: [
     "براند ملابس مصري",
     "VELIX",
@@ -25,7 +25,7 @@ export const metadata = {
     "براند ملابس مصري شبابي",
   ],
   openGraph: {
-    title: "VELIX (فيلكس) | لبس ولاد البلد",
+    title: "VELIX | لبس ولاد البلد",
     description: "تيشرتات، هوديز، وشروال قطن مصري أصلي. جودة عالية وأسعار مناسبة. اطلب وادفع عند الاستلام.",
     url: "https://velix-eg.store",
     siteName: "VELIX",
@@ -42,7 +42,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "VELIX (فيلكس) | لبس ولاد البلد",
+    title: "VELIX | لبس ولاد البلد",
     description: "تيشرتات، هوديز، وشروال قطن مصري أصلي للشباب.",
     images: ["/images/og-image.png"],
   },
@@ -57,8 +57,8 @@ export default async function Home() {
   const homePageSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "name": "VELIX (فيلكس) - لبس ولاد البلد",
-    "description": "VELIX - لبس ولاد البلد. تيشرتات، هوديز، وشروال قطن مصري أصلي للشباب المصري",
+    "name": "VELIX | لبس ولاد البلد",
+    "description": "VELIX | لبس ولاد البلد. تيشرتات، هوديز، وشروال قطن مصري أصلي للشباب المصري",
     "url": "https://velix-eg.store",
     "mainEntity": {
       "@type": "ClothingStore",
@@ -130,9 +130,9 @@ export default async function Home() {
       
       {/* نص مخفي للسيو */}
       <div className="sr-only" aria-hidden="true">
-        <h2>VELIX (فيلكس) - لبس ولاد البلد</h2>
+        <h2>VELIX | لبس ولاد البلد</h2>
         <p>
-          VELIX هو براند ملابس مصري للشباب، بنقدم تيشرتات، هوديز، وشروال قطن مصري أصلي. 
+          VELIX | لبس ولاد البلد. بنقدم تيشرتات، هوديز، وشروال قطن مصري أصلي للشباب. 
           جودة عالية، أسعار مناسبة، وشحن لكل مصر. اطلب وادفع عند الاستلام.
         </p>
         <p>

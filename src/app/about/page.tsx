@@ -2,11 +2,11 @@ import AboutClient from './AboutClient';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "عن VELIX (فيلكس) | لبس ولاد البلد",
-  description: "VELIX - براند ملابس مصري للشباب. قصتنا، رؤيتنا، ورسالتنا. بنقدم تيشرتات وهوديز وشروال قطن مصري أصلي بجودة عالية.",
+  title: "عن VELIX | لبس ولاد البلد",
+  description: "VELIX | لبس ولاد البلد. براند ملابس مصري للشباب. قصتنا، رؤيتنا، ورسالتنا. بنقدم تيشرتات وهوديز وشروال قطن مصري أصلي.",
   keywords: ["عن VELIX", "قصة براند ملابس مصري", "صناعة مصرية 100%", "VELIX براند مصري", "لبس ولاد البلد", "براند ملابس شباب مصر", "براند ملابس مصري", "ازاي بدت VELIX", "مستقبل الموضة المصرية"],
   openGraph: {
-    title: "عن VELIX (فيلكس) | لبس ولاد البلد",
+    title: "عن VELIX | لبس ولاد البلد",
     description: "اكتشف قصة VELIX - لبس ولاد البلد. تيشرتات وهوديز وشروال قطن مصري أصلي.",
     url: "https://velix-eg.store/about",
     siteName: "VELIX",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "عن VELIX (فيلكس) | لبس ولاد البلد",
+    title: "عن VELIX | لبس ولاد البلد",
     description: "اكتشف قصة VELIX - صناعة مصرية بجودة عالمية",
     images: ["/images/og-image.png"],
   },
