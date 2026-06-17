@@ -172,7 +172,7 @@ export default function Header() {
                     
                     {/* Dropdown Menu - عرض واسع ومناسب */}
                     {isProductsDropdownOpen && (
-                      <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-slideDown">
+                      <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-100 z-50 animate-slideDown">
                         {/* كل المنتجات */}
                         <Link
                           href="/products"
