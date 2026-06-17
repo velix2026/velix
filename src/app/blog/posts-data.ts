@@ -60,9 +60,9 @@ export const posts = [
         </div>
 
         <div class="bg-rose-gold/10 rounded-2xl p-6 my-8 text-center border border-rose-gold/20">
-          <p class="text-rose-gold font-black text-lg mb-2">💡 نصيحة من VELIX</p>
-          <p class="text-black/70 font-bold mb-4">عندنا في VELIX تشكيلة متنوعة بكل المقاسات والألوان. قطن مصري ١٠٠٪ وشحن مجاني لكل مصر.</p>
-          <Link href="/products" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">تسوق دلوقتي</Link>
+          <p class="text-rose-gold font-black text-lg mb-2">💡 اشتري تيشرت قطن مصري اصلى</p>
+          <p class="text-black/70 font-bold mb-4">تشكيلة VELIX من التيشرتات مصنوعة من قطن مصري فاخر. مقاسات S-XL وكل الألوان اللي تناسب بشرتك. اطلب وادفع عند الاستلام.</p>
+          <Link href="/collections/تيشرتات" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">اشترى تيشرت قطن مصري اصلى</Link>
         </div>
       </div>
     `,
@@ -106,9 +106,9 @@ export const posts = [
         </ul>
 
         <div class="bg-rose-gold/10 rounded-2xl p-6 my-8 text-center border border-rose-gold/20">
-          <p class="text-rose-gold font-black text-lg mb-2">💡 نصيحة من VELIX</p>
-          <p class="text-black/70 font-bold mb-4">عندنا في VELIX تشكيلة متنوعة من التيشرتات بكل المقاسات والألوان. كل قطعة قطن مصري ١٠٠٪.</p>
-          <Link href="/products?category=تيشرتات" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">تسوق التيشرتات دلوقتي</Link>
+          <p class="text-rose-gold font-black text-lg mb-2">💡 اشتري تيشرت قطن مصري دلوقتي</p>
+          <p class="text-black/70 font-bold mb-4">تيشرتات VELIX مصنوعة من قطن مصري ١٠٠٪. ناعمة على بشرتك، بتدخل هوا، ومش بتتكتل بعد الغسيل. مقاسات من S لـ 3XL.</p>
+          <Link href="/collections/تيشرتات" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">اشترى تيشرت قطن مصري اصلى</Link>
         </div>
       </div>
     `,
@@ -142,9 +142,9 @@ export const posts = [
         </ul>
 
         <div class="bg-rose-gold/10 rounded-2xl p-6 text-center border border-rose-gold/20">
-          <p class="text-rose-gold font-black text-lg mb-2">🔥 هوديز VELIX</p>
-          <p class="text-black/70 font-bold mb-4">هوديز شتوية تقيلة وخامات صيفية خفيفة. كل المقاسات من S لـ 3XL.</p>
-          <Link href="/products?category=هوديز" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">تسوق الهوديز دلوقتي</Link>
+          <p class="text-rose-gold font-black text-lg mb-2">🔥 اشتري هودي شتوي اصلي من VELIX</p>
+          <p class="text-black/70 font-bold mb-4">هوديز VELIX تقيلة ومناسبة للشتوية، وخامات صيفية خفيفة كمان. كل المقاسات متاحة. شحن مجاني لكل مصر.</p>
+          <Link href="/collections/هوديز" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">تسوق الهوديز الشتوية دلوقتي</Link>
         </div>
       </div>
     `,
@@ -172,7 +172,11 @@ export const posts = [
         <ul><li><strong>الأبيض مع الأبيض</strong></li><li><strong>الفاتح مع الفاتح</strong></li><li><strong>الغامق مع الغامق</strong></li></ul>
         <h2 class="text-2xl font-black text-black">٣. اختار درجة حرارة مناسبة</h2>
         <ul><li><strong>٣٠ درجة:</strong> للتيشرتات والهوديز</li><li><strong>٤٠ درجة:</strong> للملابس الداخلية</li><li><strong>٦٠ درجة:</strong> للبياضات</li></ul>
-        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center"><Link href="/products" class="bg-rose-gold text-white px-6 py-3 rounded-full">تسوق دلوقتي</Link></div>
+        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center">
+          <p class="text-rose-gold font-black text-lg mb-2">🧼 عايز تيشرتات تعيش معاك سنين؟</p>
+          <p class="text-black/70 font-bold mb-4">تيشرتات VELIX القطن المصري عالية الجودة. اشتري دلوقتي وادفع عند الاستلام.</p>
+          <Link href="/collections/تيشرتات" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">اشتري تيشرتات VELIX</Link>
+        </div>
       </div>
     `,
     date: "2026-04-17",
@@ -195,7 +199,11 @@ export const posts = [
         <ul><li><strong>طول التيلة:</strong> القطن المصري طويل جداً (٣٥-٤٠ ملم) vs القطن العادي قصير (٢٠-٢٥ ملم)</li>
         <li><strong>النعومة:</strong> القطن المصري ناعم جداً vs القطن العادي خشن شوية</li>
         <li><strong>المتانة:</strong> القطن المصري بيعيش لسنين vs القطن العادي بيتآكل بسرعة</li></ul>
-        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center"><Link href="/products" class="bg-rose-gold text-white px-6 py-3 rounded-full">تسوق القطن المصري دلوقتي</Link></div>
+        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center">
+          <p class="text-rose-gold font-black text-lg mb-2">🇪🇬 كل منتجات VELIX قطن مصري فاخر ١٠٠٪</p>
+          <p class="text-black/70 font-bold mb-4">القطن المصري الأصلي من VELIX - ناعم، مريح، وبيعيش معاك سنين. اطلب وادفع عند الاستلام.</p>
+          <Link href="/products" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">اشتري قطن مصري من VELIX</Link>
+        </div>
       </div>
     `,
     date: "2026-04-16",
@@ -220,7 +228,11 @@ export const posts = [
         <ul><li><strong>الكاجوال اليومي:</strong> هودي بلون محايد + شروال رياضي</li>
         <li><strong>الأوفر سايز:</strong> تيشرت أوفر سايز + هودي أوفر سايز</li>
         <li><strong>الرياضي:</strong> تيشرت رياضي + شروال قصير</li></ul>
-        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center"><Link href="/products" class="bg-rose-gold text-white px-6 py-3 rounded-full">تسوق الستريت وير دلوقتي</Link></div>
+        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center">
+          <p class="text-rose-gold font-black text-lg mb-2">🔥 اعمل ستايل ستريت وير مصري جامد</p>
+          <p class="text-black/70 font-bold mb-4">هوديز VELIX الاوفر سايز + شروال رياضي = اطلالة ستريت وير مصرية خالصة. شحن مجاني ودفع عند الاستلام.</p>
+          <Link href="/collections/هوديز" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">اشترى هودي وشروال ستريت وير</Link>
+        </div>
       </div>
     `,
     date: "2026-04-15",
@@ -245,7 +257,11 @@ export const posts = [
         <ul><li><strong>المميزات:</strong> متين، بيتجعد قليل، سعره رخيص</li><li><strong>العيوب:</strong> مش بيدخل هوا، بيسخن في الصيف</li></ul>
         <h2 class="text-2xl font-black">٣. القطن المصري</h2>
         <ul><li>أفضل أنواع القطن، ناعم جداً، بيعيش لسنين</li></ul>
-        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center"><Link href="/products" class="bg-rose-gold text-white px-6 py-3 rounded-full">تسوق القطن المصري دلوقتي</Link></div>
+        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center">
+          <p class="text-rose-gold font-black text-lg mb-2">🇪🇬 كل منتجات VELIX قطن مصري فاخر</p>
+          <p class="text-black/70 font-bold mb-4">القطن المصري الأصلي في كل تيشرت وهودي وشروال من VELIX. جودة عمرها طويل ونعومة مش هتلقى زيها.</p>
+          <Link href="/products" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">اشتري قطن مصري من VELIX</Link>
+        </div>
       </div>
     `,
     date: "2026-04-14",
@@ -268,7 +284,11 @@ export const posts = [
         <ul><li>اقلبه على الوجه التاني</li><li>استخدم ماية ساقعة (٣٠ درجة)</li><li>متستخدمش مبيض</li></ul>
         <h2 class="text-2xl font-black">ازاي تنشف الهودي</h2>
         <ul><li>انشر الهودي في الهوا</li><li>بعيد عن الشمس المباشرة</li><li>استخدم شماعة عريضة</li></ul>
-        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center"><Link href="/products" class="bg-rose-gold text-white px-6 py-3 rounded-full">تسوق دلوقتي</Link></div>
+        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center">
+          <p class="text-rose-gold font-black text-lg mb-2">🧼 حافظ على هودي VELIX الجديد</p>
+          <p class="text-black/70 font-bold mb-4">هوديز VELIX القطن المصري تستاهل تعتني بيها عشان تفضل معاك سنين. اشتري دلوقتي وادفع عند الاستلام.</p>
+          <Link href="/collections/هوديز" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">اشتري هودي VELIX</Link>
+        </div>
       </div>
     `,
     date: "2026-04-13",
@@ -288,10 +308,18 @@ export const posts = [
       <div class="space-y-8">
         <p>عايز تهدي حد هدية من الملابس ومش عارف تختار؟ المقال ده هيديك دليل كامل.</p>
         <h2 class="text-2xl font-black">ازاي تعرف المقاس من غير ما تسأل؟</h2>
-        <ul><li>شوف هدومه اللي بيلبسها</li><li>اسأل صاحبه أو أمه</li><li>خد مقاس L أو XL (الأكتر انتشاراً)</li></ul>
+        <ul><li>شوف هدومه اللي بيلبسها</li>
+        <li>اسأل صاحبه أو أمه</li>
+        <li>خد مقاس L أو XL (الأكتر انتشاراً)</li></ul>
         <h2 class="text-2xl font-black">أفكار هدايا من الملابس</h2>
-        <ul><li>التيشرت الأبيض أو الأسود - بيناسب أي حد</li><li>الهودي - بقى من القطع الأساسية</li><li>الشروال الرياضي - مريح وعملي</li></ul>
-        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center"><Link href="/products" class="bg-rose-gold text-white px-6 py-3 rounded-full">اشتري هدية دلوقتي</Link></div>
+        <ul><li>التيشرت الأبيض أو الأسود - بيناسب أي حد</li>
+        <li>الهودي - بقى من القطع الأساسية</li>
+        <li>الشروال الرياضي - مريح وعملي</li></ul>
+        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center">
+          <p class="text-rose-gold font-black text-lg mb-2">🎁 عايز تهدي حد حاجة جميلة؟</p>
+          <p class="text-black/70 font-bold mb-4">تيشرتات VELIX القطن المصري هي أحسن هدية. بيناسب أي حد وأي مقاس. شحن مجاني ودفع عند الاستلام.</p>
+          <Link href="/products" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">اشتري هدية دلوقتي</Link>
+        </div>
       </div>
     `,
     date: "2026-04-12",
@@ -316,7 +344,11 @@ export const posts = [
         <ul><li>اقرأ وصف المنتج كويس</li><li>اتفرج على صور المنتج من كل الزوايا</li><li>اقرأ تقييمات العملاء</li></ul>
         <h2 class="text-2xl font-black">الدفع: كاش ولا كريديت كارد؟</h2>
         <ul><li>الدفع عند الاستلام - الأفضل للمبتدئين</li><li>الدفع ببطاقة ائتمانية - أسرع بس اتأكد إن الموقع مشفر</li></ul>
-        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center"><Link href="/products" class="bg-rose-gold text-white px-6 py-3 rounded-full">تسوق دلوقتي من VELIX</Link></div>
+        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center">
+          <p class="text-rose-gold font-black text-lg mb-2">🛒 تسوق من VELIX - موقع ملابس مصري موثوق</p>
+          <p class="text-black/70 font-bold mb-4">VELIX براند ملابس مصري فاخر. تقدر تطلب تيشرتات وهوديز وشروال بثقة. استبدال مجاني 14 يوم.</p>
+          <Link href="/products" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">تسوق دلوقتي من VELIX</Link>
+        </div>
       </div>
     `,
     date: "2026-04-11",
@@ -341,7 +373,11 @@ export const posts = [
         <ul><li>اغسل البقعة بماية ساقعة فوراً، بعدين حط شوية خل أبيض</li></ul>
         <h2 class="text-2xl font-black">إزالة بقع الدم</h2>
         <ul><li>ماياة ساقعة بس! الماية السخنة بتثبت بقعة الدم</li></ul>
-        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center"><Link href="/products" class="bg-rose-gold text-white px-6 py-3 rounded-full">تسوق دلوقتي</Link></div>
+        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center">
+          <p class="text-rose-gold font-black text-lg mb-2">👕 عايز تيشرتات مصرية مش هتتعب بسرعة؟</p>
+          <p class="text-black/70 font-bold mb-4">تيشرتات VELIX قطن مصري فاخر - مش هتقلق من البقع عشان الجودة العالية. اطلب وادفع عند الاستلام.</p>
+          <Link href="/collections/تيشرتات" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">اشتري تيشرتات VELIX</Link>
+        </div>
       </div>
     `,
     date: "2026-04-10",
@@ -366,7 +402,11 @@ export const posts = [
         <ul><li>أبيض، رمادي، أزرق سماوي، أحمر، أصفر خردلي، أخضر زيتي</li></ul>
         <h2 class="text-2xl font-black">الألوان اللي تناسب الجميع</h2>
         <ul><li>أسود، أبيض، رمادي، كحلي</li></ul>
-        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center"><Link href="/products" class="bg-rose-gold text-white px-6 py-3 rounded-full">تسوق دلوقتي</Link></div>
+        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center">
+          <p class="text-rose-gold font-black text-lg mb-2">🎨 عايز الوان تناسب بشرتك؟</p>
+          <p class="text-black/70 font-bold mb-4">تيشرتات VELIX متاحة بألوان تناسب كل ألوان البشرة. اختار اللي يليق عليك واطلب وادفع عند الاستلام.</p>
+          <Link href="/collections/تيشرتات" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">اشتري تيشرت باللون المناسب</Link>
+        </div>
       </div>
     `,
     date: "2026-04-09",
@@ -391,7 +431,11 @@ export const posts = [
         <ul><li><strong>محيط الصدر:</strong> لف الشريط حوالين أعرض جزء في صدرك</li>
         <li><strong>طول الجسم:</strong> من أعلى كتفك للمكان اللي عايز التيشرت يوصل له</li>
         <li><strong>محيط الخصر:</strong> لف الشريط حوالين أنحف جزء في خصرك</li></ul>
-        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center"><Link href="/products" class="bg-rose-gold text-white px-6 py-3 rounded-full">تسوق دلوقتي</Link></div>
+        <div class="bg-rose-gold/10 rounded-2xl p-6 text-center">
+          <p class="text-rose-gold font-black text-lg mb-2">📏 اول مرة تشتري اونلاين؟</p>
+          <p class="text-black/70 font-bold mb-4">تيشرتات VELIX بمقاسات S-3XL تناسب الجميع. قطن مصري ناعم وشحن مجاني لكل مصر. جرب وانت مطمن.</p>
+          <Link href="/products" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">تسوق من VELIX - اول مرة</Link>
+        </div>
       </div>
     `,
     date: "2026-04-08",

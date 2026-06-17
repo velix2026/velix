@@ -20,9 +20,10 @@ export default function robots(): MetadataRoute.Robots {
           '/privacy',             // سياسة الخصوصية
           '/terms',               // شروط الاستخدام
           '/images/',             // الصور عشان تظهر في بحث الصور
+          '/api/products/feed',   // Google Merchant Feed
         ],
         disallow: [
-          '/api/',                // API مش مهم لجوجل
+          '/api/',                // API مش مهم لجوجل (ما عدا الـ feed)
           '/admin/',              // لوحة التحكم (أمان)
           '/_next/',              // ملفات Next.js الداخلية
           '/*?*',                 // أي رابط فيه علامة استفهام
@@ -43,6 +44,7 @@ export default function robots(): MetadataRoute.Robots {
           '/faq',
           '/contact',
           '/about',
+          '/api/products/feed',
         ],
         disallow: [
           '/api/',
@@ -66,6 +68,7 @@ export default function robots(): MetadataRoute.Robots {
           '/blog',
           '/blog/*',
           '/faq',
+          '/api/products/feed',
         ],
         disallow: [
           '/api/',

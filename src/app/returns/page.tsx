@@ -3,11 +3,11 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: "سياسة الاستبدال والاسترجاع | VELIX",
-  description: "تعرف على سياسة الاستبدال والاسترجاع في VELIX. استبدال أو استرجاع خلال 14 يوم، خدمة مجانية، رضاك هو أولويتنا.",
-  keywords: ["سياسة الاستبدال", "استرجاع المنتجات", "VELIX", "خدمة العملاء", "استبدال مجاني", "ضمان الرضا"],
+  description: "تعرف على سياسة الاستبدال والاسترجاع في VELIX. تقدر ترجع المنتج خلال ١٤ يوم، وشحن مجاني على الاستبدال.",
+  keywords: ["سياسة الاسترجاع", "استبدال المنتجات", "VELIX", "إرجاع", "استبدال", "شحن مجاني"],
   openGraph: {
     title: "سياسة الاستبدال والاسترجاع | VELIX",
-    description: "استبدال أو استرجاع خلال 14 يوم - خدمة مجانية ورضاك مضمون",
+    description: "سياسة إرجاع واستبدال منتجات VELIX - ١٤ يوم للاسترجاع",
     url: "https://velix-eg.store/returns",
     siteName: "VELIX",
     locale: "ar_EG",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "سياسة الاستبدال والاسترجاع | VELIX",
-    description: "استبدال أو استرجاع خلال 14 يوم - خدمة مجانية",
+    description: "سياسة إرجاع واستبدال منتجات VELIX",
     images: ["/images/og-image.png"],
   },
   alternates: {

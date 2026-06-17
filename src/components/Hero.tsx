@@ -60,14 +60,13 @@ export default function Hero() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
             
-            {/* Text Content - بالعامية المصرية */}
+            {/* Text Content */}
             <motion.div 
               initial={{ opacity: 0, x: -40 }}
               animate={isVisible ? { opacity: 1, x: 0 } : {}}
               transition={{ duration: 0.7, ease: "easeOut" }}
               className="text-center md:text-right order-2 md:order-1"
             >
-              {/* Badge ثقة */}
               <div className="inline-flex items-center gap-2 bg-rose-gold/10 rounded-full px-4 py-1.5 mb-6">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-gold opacity-75"></span>
@@ -80,10 +79,8 @@ export default function Hero() {
                 VELIX
               </h1>
               
-              {/* خط فاصل نحاسي */}
               <div className="w-20 h-1 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper rounded-full mx-auto md:mx-0 mb-6" />
 
-              {/* التعريف المطول بالعامية */}
               <div className="space-y-4 mb-8">
                 <p className="text-black/70 font-bold text-base md:text-lg leading-relaxed">
                   VELIX مش مجرد براند ملابس عادي. احنا جايين نغير الدنيا في مصر.
@@ -114,7 +111,6 @@ export default function Hero() {
                 </p>
               </div>
               
-              {/* Buttons */}
               <div className="flex flex-col sm:flex-row justify-center md:justify-start gap-4">
                 <Link
                   href="/products"
@@ -177,13 +173,43 @@ export default function Hero() {
                 </div>
               </div>
               
-              {/* 3 Small Images */}
+              {/* الصف الأول - 3 صور */}
+              <div className="grid grid-cols-3 gap-2 md:gap-3 mb-2 md:mb-3">
+                {[
+                  { src: "/images/hoodie-flat.png", alt: "VELIX هودي أوفر سايز - قطن نضيف", name: "هوديز", link: "/collections/هوديز" },
+                  { src: "/images/pants-flat.png", alt: "VELIX شروال رياضي - مريح وأنيق", name: "شروال", link: "/collections/شروال" },
+                  { src: "/images/tshirt-flat.png", alt: "VELIX تيشرت كلاسيك - قطن فاخر", name: "تيشرتات", link: "/collections/تيشرتات" }
+                ].map((item, idx) => (
+                  <Link 
+                    key={idx}
+                    href={item.link}
+                    className="relative aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-rose-gold/20 transition-all duration-300 group cursor-pointer"
+                  >
+                    <div className="absolute inset-0 rounded-xl ring-1 ring-rose-gold/10 group-hover:ring-2 group-hover:ring-rose-gold/50 transition-all z-10 pointer-events-none" />
+                    <Image
+                      src={item.src}
+                      alt={item.alt}
+                      fill
+                      sizes="(max-width: 768px) 33vw, 25vw"
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      loading="eager"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <span className="text-white font-bold text-sm bg-black/60 px-3 py-1 rounded-full">
+                        {item.name}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              
+              {/* الصف الثاني - 3 صور إضافية */}
               <div className="grid grid-cols-3 gap-2 md:gap-3">
-                  {[
-                    { src: "/images/hoodie-flat.png", alt: "VELIX هودي أوفر سايز - قطن نضيف", name: "هوديز", link: "/products?category=هوديز" },
-                    { src: "/images/pants-flat.png", alt: "VELIX شروال رياضي - مريح وأنيق", name: "شروال", link: "/products?category=شروال" },
-                    { src: "/images/tshirt-flat.png", alt: "VELIX تيشرت كلاسيك - قطن فاخر", name: "تيشرتات", link: "/products?category=تيشرتات" }
-                  ].map((item, idx) => (
+                {[
+                  { src: "/images/jeans-flat.png", alt: "VELIX جينز كلاسيك - قطن مريح", name: "جينز", link: "/collections/جينز" },
+                  { src: "/images/jacket-flat.png", alt: "VELIX جاكيت شتوي - أنيق ودافي", name: "جواكت", link: "/collections/جواكت" },
+                  { src: "/images/shoes-flat.png", alt: "VELIX حذاء رياضي - سنيكرز عصري", name: "شوزات", link: "/collections/شوزات" }
+                ].map((item, idx) => (
                   <Link 
                     key={idx}
                     href={item.link}

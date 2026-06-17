@@ -34,19 +34,37 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     notFound()
   }
 
-  const articleSchema = {
+  const blogPostingSchema = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     "headline": post.title,
     "description": post.excerpt,
     "datePublished": post.date,
+    "dateModified": post.date,
+    "author": {
+      "@type": "Organization",
+      "name": "VELIX",
+      "url": "https://velix-eg.store/about",
+      "logo": "https://velix-eg.store/images/logo.png",
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "VELIX",
+      "logo": { "@type": "ImageObject", "url": "https://velix-eg.store/images/logo.png" },
+    },
+    "image": "https://velix-eg.store/images/og-image.png",
+    "mainEntityOfPage": { "@type": "WebPage", "@id": `https://velix-eg.store/blog/${post.slug}` },
+    "wordCount": post.content.length,
+    "articleSection": post.category,
+    "keywords": post.tags.join(", "),
+    "inLanguage": "ar-EG",
   }
 
   const relatedPosts = posts.filter(p => p.slug !== slug && p.category === post.category).slice(0, 3)
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingSchema) }} />
 
       <div className="bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] min-h-screen pt-28 pb-16">
         <div className="container mx-auto px-4 max-w-4xl">

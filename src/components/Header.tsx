@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -15,15 +15,51 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isFavoritesDrawerOpen, setIsFavoritesDrawerOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
+  const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);
   const pathname = usePathname();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const { favoritesCount } = useFavorites();
   const { cartCount } = useCart();
 
+  // الأقسام
+  const categories = [
+    { href: '/collections/تيشرتات', label: 'تيشرتات' },
+    { href: '/collections/هوديز', label: 'هوديز' },
+    { href: '/collections/شروال', label: 'شروال' },
+    { href: '/collections/جينز', label: 'جينز' },
+    { href: '/collections/جواكت', label: 'جواكت' },
+    { href: '/collections/شوزات', label: 'شوزات' },
+    { href: '/collections/اكسسوارات', label: 'اكسسوارات' },
+  ];
+
+  // تحسين أداء السكرول
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 40);
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 40);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // إغلاق dropdown الديسكتوب عند الضغط بره
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProductsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const isActive = (path: string) => pathname === path;
@@ -100,33 +136,91 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-8" aria-label="القائمة الرئيسية">
             {[
               { href: '/', label: 'الرئيسية' },
-              { href: '/products', label: 'المنتجات' },
+              { href: '/products', label: 'المنتجات', hasDropdown: true },
               { href: '/blog', label: 'المدونة' },
               { href: '/faq', label: 'أسئلة شائعة' },
               { href: '/about', label: 'عن البراند' },
               { href: '/contact', label: 'اتصل بنا' }
-            ].map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`relative text-sm font-semibold transition-all duration-300 ${
-                  isActive(link.href) 
-                    ? 'text-rose-gold' 
-                    : 'text-black/70 hover:text-rose-gold'
-                }`}
-              >
-                {link.label}
-                <span
-                  className={`absolute left-0 -bottom-2 h-0.5 bg-linear-to-r from-rose-gold-light to-rose-gold transition-all duration-300 ${
-                    isActive(link.href) ? 'w-full' : 'w-0 group-hover:w-full'
-                  }`}
-                  aria-hidden="true"
-                />
-              </Link>
-            ))}
+            ].map((link) => {
+              if (link.hasDropdown) {
+                return (
+                  <div key={link.href} className="relative" ref={dropdownRef}>
+                    <button
+                      ref={buttonRef}
+                      onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
+                      aria-expanded={isProductsDropdownOpen}
+                      aria-haspopup="true"
+                      className={`relative text-sm font-semibold transition-all duration-300 flex items-center gap-1 ${
+                        isActive(link.href) || isProductsDropdownOpen
+                          ? 'text-rose-gold'
+                          : 'text-black/70 hover:text-rose-gold'
+                      }`}
+                    >
+                      {link.label}
+                      <svg
+                        className={`w-3 h-3 transition-transform duration-200 ${isProductsDropdownOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    
+                    {/* Dropdown Menu - عرض واسع ومناسب */}
+                    {isProductsDropdownOpen && (
+                      <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-slideDown">
+                        {/* كل المنتجات */}
+                        <Link
+                          href="/products"
+                          onClick={() => setIsProductsDropdownOpen(false)}
+                          className="block px-6 py-3 bg-gradient-to-r from-rose-gold/5 to-transparent border-b border-gray-100 hover:bg-rose-gold/10 transition-colors"
+                        >
+                          <p className="font-bold text-black text-sm">كل المنتجات</p>
+                          <p className="text-xs text-gray-500 mt-0.5">استعراض كل التشكيلة</p>
+                        </Link>
+                        
+                        {/* الأقسام - عمود واحد */}
+                        <div className="py-2">
+                          <p className="px-6 py-2 text-xs text-rose-gold font-bold">أقسام المتجر</p>
+                          <div className="flex flex-col">
+                            {categories.map((cat) => (
+                              <Link
+                                key={cat.href}
+                                href={cat.href}
+                                onClick={() => setIsProductsDropdownOpen(false)}
+                                className="px-6 py-2.5 text-sm text-gray-700 hover:text-rose-gold hover:bg-rose-gold/5 transition-colors whitespace-nowrap"
+                              >
+                                {cat.label}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="group relative text-sm font-semibold transition-all duration-300 text-black/70 hover:text-rose-gold"
+                >
+                  {link.label}
+                  <span
+                    className={`absolute left-0 -bottom-2 h-0.5 bg-gradient-to-r from-rose-gold-light to-rose-gold transition-all duration-300 ${
+                      isActive(link.href) ? 'w-full' : 'w-0 group-hover:w-full'
+                    }`}
+                    aria-hidden="true"
+                  />
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Icons */}
@@ -148,9 +242,9 @@ export default function Header() {
                   d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                 />
               </svg>
-              {favoritesCount > 0 && (
+              {(favoritesCount ?? 0) > 0 && (
                 <span className="absolute -top-1 -right-1 bg-rose-gold text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                  {toArabicNumber(favoritesCount)}
+                  {toArabicNumber(favoritesCount ?? 0)}
                 </span>
               )}
             </button>
@@ -169,9 +263,9 @@ export default function Header() {
               >
                 <path strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17" />
               </svg>
-              {cartCount > 0 && (
+              {(cartCount ?? 0) > 0 && (
                 <span className="absolute -top-1 -right-1 bg-rose-gold text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                  {toArabicNumber(cartCount)}
+                  {toArabicNumber(cartCount ?? 0)}
                 </span>
               )}
             </button>
@@ -181,7 +275,7 @@ export default function Header() {
               href="https://wa.me/201500125133"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-1 px-4 py-2 rounded-full text-xs font-bold text-white bg-linear-to-r from-rose-gold-light via-rose-gold to-copper transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-rose-gold/30"
+              className="hidden md:flex items-center gap-1 px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-rose-gold-light via-rose-gold to-copper transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-rose-gold/30"
               aria-label="واتساب"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -192,7 +286,10 @@ export default function Header() {
 
             {/* Mobile Menu Button */}
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={() => {
+                setIsMenuOpen(!isMenuOpen);
+                setIsMobileProductsOpen(false);
+              }}
               className="md:hidden p-2 rounded-full hover:bg-rose-gold/10 text-black transition-colors"
               aria-label={isMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
             >
@@ -210,29 +307,54 @@ export default function Header() {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden mt-4 mx-4 bg-white/95 backdrop-blur-xl border border-rose-gold/20 rounded-2xl shadow-lg p-4 animate-slideDown">
-            <nav className="flex flex-col gap-3">
-              {[
-                { href: '/', label: 'الرئيسية' },
-                { href: '/products', label: 'المنتجات' },
-                { href: '/blog', label: 'المدونة' },
-                { href: '/faq', label: 'أسئلة شائعة' },
-                { href: '/about', label: 'عن البراند' },
-                { href: '/contact', label: 'اتصل بنا' }
-              ].map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="text-sm font-semibold text-black hover:text-rose-gold py-2 transition-all"
+            <nav className="flex flex-col gap-3" aria-label="القائمة الرئيسية للجوال">
+              <Link href="/" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold text-black hover:text-rose-gold py-2 transition-all">
+                الرئيسية
+              </Link>
+              
+              {/* المنتجات في الموبايل مع dropdown منفصل */}
+              <div>
+                <button
+                  onClick={() => setIsMobileProductsOpen(!isMobileProductsOpen)}
+                  aria-expanded={isMobileProductsOpen}
+                  className="w-full text-right text-sm font-semibold text-black hover:text-rose-gold py-2 transition-all flex items-center justify-between"
                 >
-                  {link.label}
-                </Link>
-              ))}
+                  <span>المنتجات</span>
+                  <svg className={`w-4 h-4 transition-transform ${isMobileProductsOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {isMobileProductsOpen && (
+                  <div className="mr-4 mt-2 space-y-2 border-r-2 border-rose-gold/20 pr-3">
+                    <Link href="/products" onClick={() => setIsMenuOpen(false)} className="block text-sm text-black/70 hover:text-rose-gold py-1 font-medium">
+                      كل المنتجات
+                    </Link>
+                    {categories.map((cat) => (
+                      <Link key={cat.href} href={cat.href} onClick={() => setIsMenuOpen(false)} className="block text-sm text-black/70 hover:text-rose-gold py-1">
+                        {cat.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold text-black hover:text-rose-gold py-2 transition-all">
+                المدونة
+              </Link>
+              <Link href="/faq" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold text-black hover:text-rose-gold py-2 transition-all">
+                أسئلة شائعة
+              </Link>
+              <Link href="/about" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold text-black hover:text-rose-gold py-2 transition-all">
+                عن البراند
+              </Link>
+              <Link href="/contact" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold text-black hover:text-rose-gold py-2 transition-all">
+                اتصل بنا
+              </Link>
               <a
                 href="https://wa.me/201500125133"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white text-center py-2 rounded-full text-sm mt-2 font-bold"
+                className="bg-gradient-to-r from-rose-gold-light via-rose-gold to-copper text-white text-center py-2 rounded-full text-sm mt-2 font-bold"
               >
                 واتساب
               </a>
@@ -258,7 +380,7 @@ export default function Header() {
         href="https://wa.me/201500125133"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-linear-to-r from-rose-gold-light via-rose-gold to-copper flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-rose-gold/30"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-rose-gold-light via-rose-gold to-copper flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-rose-gold/30"
         aria-label="تواصل عبر واتساب"
       >
         <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">

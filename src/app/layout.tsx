@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ToastProvider from "@/components/ToastProvider";
 import SplashScreen from "@/components/SplashScreen";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const cairo = Cairo({
   subsets: ['arabic'],
@@ -52,6 +53,12 @@ export default function RootLayout({
         
         {/* Sitemap */}
         <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+        
+        {/* Google Merchant Feed */}
+        <link rel="alternate" type="application/rss+xml" title="VELIX Products Feed" href="https://velix-eg.store/api/products/feed" />
+        
+        {/* Preload Cairo Font */}
+        <link rel="preload" href="/_next/static/media/cairo-font.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         
         {/* DNS Prefetch */}
         <link rel="dns-prefetch" href="https://wa.me" />
@@ -120,6 +127,7 @@ export default function RootLayout({
         <SplashScreen />
         <ToastProvider />
         <Header />
+        <Breadcrumbs />
         <main className="grow">
           {children}
         </main>

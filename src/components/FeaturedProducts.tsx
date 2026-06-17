@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
 import { Product } from "@/lib/products";
@@ -12,61 +12,77 @@ interface FeaturedProductsProps {
 
 type TabType = 'all' | 'latest' | 'bestsellers';
 
+// ✅ الأقسام مع الحملات التسويقية
+const categories = [
+  { id: 'تيشرتات', name: 'تيشرتات', slogan: 'تيشرتات من VELIX', desc: 'قطن مصري ١٠٠٪ | جودة تدوم' },
+  { id: 'هوديز', name: 'هوديز', slogan: 'هوديز من VELIX', desc: 'دفا وراحة في كل شتوية' },
+  { id: 'شروال', name: 'شروال', slogan: 'شروال من VELIX', desc: 'حرية في الحركة | ستايل رياضي' },
+  { id: 'جينز', name: 'جينز', slogan: 'جينز من VELIX', desc: 'كلاسيك بعصرية | إطلالة لا تنسى' },
+  { id: 'جواكت', name: 'جواكت', slogan: 'جواكت من VELIX', desc: 'أناقة شتوية | خامات فاخرة' },
+  { id: 'شوزات', name: 'شوزات', slogan: 'شوزات من VELIX', desc: 'خطوة مميزة | إحساس مختلف' },
+];
+
 export default function FeaturedProducts({ products }: FeaturedProductsProps) {
   const [activeTab, setActiveTab] = useState<TabType>('all');
 
-  // ✅ حساب المنتجات
+  // حساب المنتجات
   const bestSellers = useMemo(() => 
     [...products]
       .filter(p => (p.salesCount || 0) > 0)
       .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0))
-      .slice(0, 8)
+      .slice(0, 12)
   , [products]);
 
   const latestProducts = useMemo(() => 
     [...products]
       .filter(p => p.createdAt)
       .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-      .slice(0, 8)
+      .slice(0, 12)
   , [products]);
 
-  // ✅ تعريف التبويبات اللي هتظهر (اللي فيها منتجات بس)
+  const categoryProducts = useMemo(() => {
+    const result: Record<string, Product[]> = {};
+    categories.forEach(cat => {
+      result[cat.id] = products.filter(p => p.category === cat.id).slice(0, 12);
+    });
+    return result;
+  }, [products]);
+
   const tabs = useMemo(() => {
     const tabsList = [];
-    
-    // تبويب "كل المنتجات" - بيظهر دايمًا لو فيه منتجات أصلًا
-    if (products.length > 0) {
-      tabsList.push({ id: 'all', label: 'كل المنتجات', icon: '🎯', count: products.length });
-    }
-    
-    // تبويب "الجديد" - بيظهر بس لو فيه منتجات جديدة
-    if (latestProducts.length > 0) {
-      tabsList.push({ id: 'latest', label: 'الجديد', icon: '🆕', count: latestProducts.length });
-    }
-    
-    // تبويب "الأكثر مبيعاً" - بيظهر بس لو فيه منتجات اتباعت
-    if (bestSellers.length > 0) {
-      tabsList.push({ id: 'bestsellers', label: 'الأكثر مبيعاً', icon: '⭐', count: bestSellers.length });
-    }
-    
+    if (products.length > 0) tabsList.push({ id: 'all', label: 'كل المنتجات', icon: '🎯', count: products.length });
+    if (latestProducts.length > 0) tabsList.push({ id: 'latest', label: 'الجديد', icon: '🆕', count: latestProducts.length });
+    if (bestSellers.length > 0) tabsList.push({ id: 'bestsellers', label: 'الأكثر مبيعاً', icon: '⭐', count: bestSellers.length });
     return tabsList;
   }, [products.length, latestProducts.length, bestSellers.length]);
 
-  // ✅ المنتجات اللي هتظهر حسب التبويب النشط
   const displayedProducts = useMemo(() => {
-    if (activeTab === 'latest') {
-      return latestProducts;
-    } else if (activeTab === 'bestsellers') {
-      return bestSellers;
-    } else {
-      return products.slice(0, 8);
-    }
+    if (activeTab === 'latest') return latestProducts;
+    if (activeTab === 'bestsellers') return bestSellers;
+    return products.slice(0, 12);
   }, [activeTab, products, latestProducts, bestSellers]);
 
-  // لو مفيش منتجات خالص، متعرضش حاجة
+  // Refs للتمرير
+  const mainScrollRef = useRef<HTMLDivElement>(null);
+  const categoryScrollRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // دوال التمرير (بسيطة وشغالة)
+  const scrollLeft = (ref: React.RefObject<HTMLDivElement | null> | HTMLDivElement | null) => {
+    const container = ref && 'current' in ref ? ref.current : ref;
+    if (container) {
+      container.scrollBy({ left: -280, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = (ref: React.RefObject<HTMLDivElement | null> | HTMLDivElement | null) => {
+    const container = ref && 'current' in ref ? ref.current : ref;
+    if (container) {
+      container.scrollBy({ left: 280, behavior: 'smooth' });
+    }
+  };
+
   if (products.length === 0) return null;
 
-  // لو التبويب النشط اختفى (مثلاً كان الأكثر مبيعاً واتمسح)، نغير التبويب لأول تبويب موجود
   const currentTabExists = tabs.some(tab => tab.id === activeTab);
   if (!currentTabExists && tabs.length > 0) {
     setActiveTab(tabs[0].id as TabType);
@@ -76,7 +92,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
     <section className="bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] py-20 md:py-28">
       <div className="container mx-auto px-4">
         
-        {/* Header - بالعامية */}
+        {/* Header */}
         <div className="text-center mb-12">
           <span className="text-xs text-rose-gold tracking-[0.2em] uppercase font-bold mb-3 block">
             شوف عندنا إيه
@@ -90,7 +106,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
           </p>
         </div>
 
-        {/* Tabs - بيظهر بس التبويبات اللي فيها حاجة */}
+        {/* Tabs */}
         {tabs.length > 1 && (
           <div className="flex justify-center gap-2 mb-10 flex-wrap">
             {tabs.map((tab) => (
@@ -111,36 +127,152 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
           </div>
         )}
 
-        {/* Products Grid */}
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
-        >
-          {displayedProducts.map((product) => (
-            <ProductCard key={product.slug} product={product} />
-          ))}
-        </motion.div>
-
-        {/* زر عرض الكل - يظهر بس لو فيه منتجات أكتر من اللي ظاهر */}
-        {(activeTab === 'all' && products.length > 8) && (
-          <div className="text-center mt-12">
-            <Link
-              href="/products"
-              className="group inline-flex items-center gap-2 border-2 border-rose-gold/30 text-rose-gold font-bold px-8 py-3 rounded-full hover:bg-rose-gold hover:text-white hover:border-rose-gold transition-all duration-300"
+        {/* ============================================ */}
+        {/* الصف الأول: منتجات مميزة */}
+        {/* ============================================ */}
+        <div className="mb-20">
+          <div className="text-center mb-6">
+            <h3 className="text-2xl md:text-3xl font-black text-black">
+              {activeTab === 'all' && 'أحدث المنتجات'}
+              {activeTab === 'latest' && 'جديد VELIX'}
+              {activeTab === 'bestsellers' && 'الأكثر مبيعاً'}
+            </h3>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <div className="w-12 h-0.5 bg-rose-gold/30" />
+              <p className="text-rose-gold font-bold text-sm">تشكيلة مميزة تليق بيك</p>
+              <div className="w-12 h-0.5 bg-rose-gold/30" />
+            </div>
+          </div>
+          
+          {/* أزرار التنقل */}
+          <div className="flex justify-end gap-2 mb-3">
+            <button
+              onClick={() => scrollLeft(mainScrollRef)}
+              className="w-9 h-9 rounded-full border-2 border-rose-gold/40 text-rose-gold hover:bg-rose-gold hover:text-white transition-all duration-300 flex items-center justify-center shadow-sm"
             >
-              شوف كل المنتجات
-              <svg 
-                className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
-            </Link>
+            </button>
+            <button
+              onClick={() => scrollRight(mainScrollRef)}
+              className="w-9 h-9 rounded-full border-2 border-rose-gold/40 text-rose-gold hover:bg-rose-gold hover:text-white transition-all duration-300 flex items-center justify-center shadow-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+          
+          {/* المنتجات */}
+          <div
+            ref={mainScrollRef}
+            className="overflow-x-auto scrollbar-hide"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            <div className="flex gap-4 md:gap-6" style={{ width: 'max-content' }}>
+              {displayedProducts.map((product, idx) => (
+                <motion.div
+                  key={product.slug}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  className="w-40-[180px] md:w-50 lg:w-55 shrink-0"
+                >
+                  <ProductCard product={product} />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+          
+          {activeTab === 'all' && products.length > 12 && (
+            <div className="text-center mt-8">
+              <Link href="/products" className="inline-flex items-center gap-2 text-rose-gold font-bold hover:gap-3 transition-all">
+                شوف كل المنتجات
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* ============================================ */}
+        {/* الأقسام */}
+        {/* ============================================ */}
+        {activeTab === 'all' && (
+          <div className="space-y-16">
+            {categories.map((category) => {
+              const catProducts = categoryProducts[category.id];
+              if (catProducts.length === 0) return null;
+              
+              return (
+                <div key={category.id}>
+                  {/* عنوان القسم */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-20 invisible md:visible" />
+                    <div className="text-center flex-1">
+                      <h3 className="text-xl md:text-2xl font-black text-black">
+                        {category.slogan}
+                      </h3>
+                      <div className="flex items-center justify-center gap-2 mt-1">
+                        <div className="w-8 h-0.5 bg-rose-gold/30" />
+                        <p className="text-rose-gold font-bold text-xs md:text-sm">
+                          {category.desc}
+                        </p>
+                        <div className="w-8 h-0.5 bg-rose-gold/30" />
+                      </div>
+                    </div>
+                    <div className="w-20 flex justify-end">
+                      <Link
+                        href={`/collections/${category.id}`}
+                        className="inline-flex items-center gap-1 text-xs md:text-sm text-rose-gold/60 hover:text-rose-gold transition-all group whitespace-nowrap"
+                      >
+                        <span>تسوق {category.name}</span>
+                        <svg className="w-3 h-3 md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    </div>
+                  </div>
+                  
+                  {/* أزرار التنقل لكل قسم */}
+                  <div className="flex justify-end gap-2 mb-3">
+                    <button
+                      onClick={() => scrollLeft(categoryScrollRefs.current[category.id])}
+                      className="w-9 h-9 rounded-full border-2 border-rose-gold/40 text-rose-gold hover:bg-rose-gold hover:text-white transition-all duration-300 flex items-center justify-center shadow-sm"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => scrollRight(categoryScrollRefs.current[category.id])}
+                      className="w-9 h-9 rounded-full border-2 border-rose-gold/40 text-rose-gold hover:bg-rose-gold hover:text-white transition-all duration-300 flex items-center justify-center shadow-sm"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* منتجات القسم */}
+                  <div
+                    ref={(el) => { categoryScrollRefs.current[category.id] = el; }}
+                    className="overflow-x-auto scrollbar-hide"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  >
+                    <div className="flex gap-4 md:gap-6" style={{ width: 'max-content' }}>
+                      {catProducts.map((product) => (
+                        <div key={product.slug} className="w-40 sm:w-45 md:w-50 lg:w-55 shrink-0">
+                          <ProductCard product={product} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
