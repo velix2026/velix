@@ -8,6 +8,13 @@ import { posts } from './posts-data'
 
 const allCategories = ["الكل", ...new Set(posts.map(post => post.category))]
 
+const isNewPost = (date: string) => {
+  const postDate = new Date(date)
+  const now = new Date()
+  const diffDays = (now.getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24)
+  return diffDays <= 30
+}
+
 export default function BlogClient() {
   const [selectedCategory, setSelectedCategory] = useState("الكل")
   const [searchQuery, setSearchQuery] = useState("")
@@ -200,7 +207,10 @@ export default function BlogClient() {
                     <div className="grid md:grid-cols-2 gap-0">
                       <div className={`relative h-64 md:h-full bg-linear-to-br ${featuredPost.imageBg} flex items-center justify-center overflow-hidden`}>
                         <div className="text-8xl md:text-9xl group-hover:scale-110 transition-transform duration-500">{featuredPost.categoryIcon}</div>
-                        <div className="absolute top-4 left-4">
+                        <div className="absolute top-4 right-4 flex gap-2">
+                          {isNewPost(featuredPost.date) && (
+                            <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">جديد</span>
+                          )}
                           <span className="bg-rose-gold text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">⭐ مقال مميز</span>
                         </div>
                       </div>
@@ -245,6 +255,11 @@ export default function BlogClient() {
                     <Link href={`/blog/${post.slug}`} className="block">
                       <div className={`relative h-48 bg-linear-to-br ${post.imageBg} flex items-center justify-center overflow-hidden`}>
                         <div className="text-6xl group-hover:scale-110 transition-transform duration-500">{post.categoryIcon}</div>
+                        <div className="absolute top-3 right-3 flex gap-1">
+                          {isNewPost(post.date) && (
+                            <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">جديد</span>
+                          )}
+                        </div>
                         <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1">
                           <span className="text-white text-[10px] font-bold">⏱️ {post.readTime}</span>
                         </div>

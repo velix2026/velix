@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "دليل المقاسات الكامل | ازاي تختار المقاس المناسب لأي قطعة ملابس",
     description: "دليل شامل لقياس الجسم واختيار المقاس المناسب للتيشرتات والهوديز والشروال. جدول مقاسات ونصائح عملية.",
-    url: "https://velix-eg.store/blog/%D8%AF%D9%84%D9%8A%D9%84-%D8%A7%D9%84%D9%85%D9%82%D8%A7%D8%B3%D8%A7%D8%AA-%D8%A7%D9%84%D9%83%D8%A7%D9%85%D9%84",
+    url: "https://velix-eg.store/blog/complete-size-guide",
     type: "article",
     publishedTime: "2026-04-15",
     images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: "VELIX - دليل المقاسات الكامل" }],
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     images: ["/images/og-image.png"],
   },
   alternates: {
-    canonical: "https://velix-eg.store/blog/دليل-المقاسات-الكامل",
+    canonical: "https://velix-eg.store/blog/complete-size-guide",
   },
 }
 
