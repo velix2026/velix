@@ -24,15 +24,15 @@ export default function Header() {
   const { favoritesCount } = useFavorites();
   const { cartCount } = useCart();
 
-  // الأقسام
+  // الأقسام - English slugs عشان Vercel
   const categories = [
-    { href: '/collections/تيشرتات', label: 'تيشرتات' },
-    { href: '/collections/هوديز', label: 'هوديز' },
-    { href: '/collections/شروال', label: 'شروال' },
-    { href: '/collections/جينز', label: 'جينز' },
-    { href: '/collections/جواكت', label: 'جواكت' },
-    { href: '/collections/شوزات', label: 'شوزات' },
-    { href: '/collections/اكسسوارات', label: 'اكسسوارات' },
+    { href: '/collections/tshirts', label: 'تيشرتات' },
+    { href: '/collections/hoodies', label: 'هوديز' },
+    { href: '/collections/pants', label: 'شروال' },
+    { href: '/collections/jeans', label: 'جينز' },
+    { href: '/collections/jackets', label: 'جواكت' },
+    { href: '/collections/shoes', label: 'شوزات' },
+    { href: '/collections/accessories', label: 'اكسسوارات' },
   ];
 
   // تحسين أداء السكرول
@@ -170,29 +170,28 @@ export default function Header() {
                       </svg>
                     </button>
                     
-                    {/* Dropdown Menu - عرض واسع ومناسب */}
+                    {/* Dropdown Menu */}
                     {isProductsDropdownOpen && (
-                      <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-100 z-50 animate-slideDown">
-                        {/* كل المنتجات */}
-                        <Link
-                          href="/products"
-                          onClick={() => setIsProductsDropdownOpen(false)}
-                          className="block px-6 py-3 bg-gradient-to-r from-rose-gold/5 to-transparent border-b border-gray-100 hover:bg-rose-gold/10 transition-colors"
-                        >
-                          <p className="font-bold text-black text-sm">كل المنتجات</p>
-                          <p className="text-xs text-gray-500 mt-0.5">استعراض كل التشكيلة</p>
-                        </Link>
-                        
-                        {/* الأقسام - عمود واحد */}
-                        <div className="py-2">
-                          <p className="px-6 py-2 text-xs text-rose-gold font-bold">أقسام المتجر</p>
-                          <div className="flex flex-col">
+                      <div className="absolute top-full mt-2 bg-white rounded-xl shadow-xl border border-rose-gold/20 z-50 animate-slideDown min-w-48" style={{ left: '50%', transform: 'translateX(-50%)' }}>
+                        <div className="py-1">
+                          {/* كل المنتجات */}
+                          <Link
+                            href="/products"
+                            onClick={() => setIsProductsDropdownOpen(false)}
+                            className="block px-5 py-3 text-sm font-bold text-gray-900 hover:bg-rose-gold/5 hover:text-rose-gold transition-colors border-b border-rose-gold/10"
+                          >
+                            كل المنتجات
+                          </Link>
+                          
+                          {/* الأقسام */}
+                          <div className="py-1">
+                            <p className="px-5 py-2 text-xs font-bold text-rose-gold tracking-wide">أقسام المتجر</p>
                             {categories.map((cat) => (
                               <Link
                                 key={cat.href}
                                 href={cat.href}
                                 onClick={() => setIsProductsDropdownOpen(false)}
-                                className="px-6 py-2.5 text-sm text-gray-700 hover:text-rose-gold hover:bg-rose-gold/5 transition-colors whitespace-nowrap"
+                                className="block px-5 py-2 text-sm text-gray-700 hover:text-rose-gold hover:bg-rose-gold/5 transition-colors"
                               >
                                 {cat.label}
                               </Link>

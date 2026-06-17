@@ -98,7 +98,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // ============================================
   // 3. صفحات التصنيفات (Collections)
   // ============================================
-  const collectionSlugs = ['تيشرتات', 'هوديز', 'شروال', 'جينز', 'جواكت', 'شوزات', 'اكسسوارات'];
+  const collectionSlugs = ['tshirts', 'hoodies', 'pants', 'jeans', 'jackets', 'shoes', 'accessories'];
   const collectionPages: MetadataRoute.Sitemap = collectionSlugs.map((slug) => ({
     url: `${baseUrl}/collections/${encodeURIComponent(slug)}`,
     lastModified: new Date(),

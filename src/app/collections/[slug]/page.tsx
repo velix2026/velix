@@ -5,15 +5,15 @@ import ProductCard from '@/components/ProductCard';
 import Link from 'next/link';
 import { Metadata } from 'next';
 
-// ✅ الأقسام المتاحة مع أسمائها العربية
+// ✅ الأقسام - English slugs عشان Vercel (Arabic characters مش بتشتغل في الـ URLs)
 const categories = [
-  { slug: 'تيشرتات', name: 'تيشرتات', icon: '👕', description: 'تشكيلة مميزة من التيشرتات القطن الفاخر' },
-  { slug: 'هوديز', name: 'هوديز', icon: '🧥', description: 'هوديز شتوية وصيفية بجودة عالية' },
-  { slug: 'شروال', name: 'شروال', icon: '👖', description: 'شروال رياضي مريح للاستخدام اليومي' },
-  { slug: 'جينز', name: 'جينز', icon: '👖', description: 'جينز عصري يناسب كل الأذواق' },
-  { slug: 'جواكت', name: 'جواكت', icon: '🧥', description: 'جواكت شتوية أنيقة' },
-  { slug: 'شوزات', name: 'شوزات', icon: '👟', description: 'أحذية رياضية عالية الجودة' },
-  { slug: 'اكسسوارات', name: '✨ أكسسوارات VELIX', icon: '💎', description: 'أكسسوارات تكمل إطلالتك' },
+  { slug: 'tshirts', arabicSlug: 'تيشرتات', name: 'تيشرتات', icon: '👕', description: 'تشكيلة مميزة من التيشرتات القطن الفاخر' },
+  { slug: 'hoodies', arabicSlug: 'هوديز', name: 'هوديز', icon: '🧥', description: 'هوديز شتوية وصيفية بجودة عالية' },
+  { slug: 'pants', arabicSlug: 'شروال', name: 'شروال', icon: '👖', description: 'شروال رياضي مريح للاستخدام اليومي' },
+  { slug: 'jeans', arabicSlug: 'جينز', name: 'جينز', icon: '👖', description: 'جينز عصري يناسب كل الأذواق' },
+  { slug: 'jackets', arabicSlug: 'جواكت', name: 'جواكت', icon: '🧥', description: 'جواكت شتوية أنيقة' },
+  { slug: 'shoes', arabicSlug: 'شوزات', name: 'شوزات', icon: '👟', description: 'أحذية رياضية عالية الجودة' },
+  { slug: 'accessories', arabicSlug: 'اكسسوارات', name: '✨ أكسسوارات VELIX', icon: '💎', description: 'أكسسوارات تكمل إطلالتك' },
 ];
 
 // ✅ توليد الـ metadata الديناميكي لكل قسم
@@ -48,7 +48,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   }
   
   const allProducts = await getProducts();
-  const products = allProducts.filter(p => p.category === slug);
+  const products = allProducts.filter(p => p.category === category.arabicSlug);
   
   // ✅ عدد المنتجات في القسم
   const productCount = products.length;

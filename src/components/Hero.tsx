@@ -176,9 +176,9 @@ export default function Hero() {
               {/* الصف الأول - 3 صور */}
               <div className="grid grid-cols-3 gap-2 md:gap-3 mb-2 md:mb-3">
                 {[
-                  { src: "/images/hoodie-flat.png", alt: "VELIX هودي أوفر سايز - قطن نضيف", name: "هوديز", link: "/collections/هوديز" },
-                  { src: "/images/pants-flat.png", alt: "VELIX شروال رياضي - مريح وأنيق", name: "شروال", link: "/collections/شروال" },
-                  { src: "/images/tshirt-flat.png", alt: "VELIX تيشرت كلاسيك - قطن فاخر", name: "تيشرتات", link: "/collections/تيشرتات" }
+                  { src: "/images/hoodie-flat.png", alt: "VELIX هودي أوفر سايز - قطن نضيف", name: "هوديز", link: "/collections/hoodies" },
+                  { src: "/images/pants-flat.png", alt: "VELIX شروال رياضي - مريح وأنيق", name: "شروال", link: "/collections/pants" },
+                  { src: "/images/tshirt-flat.png", alt: "VELIX تيشرت كلاسيك - قطن فاخر", name: "تيشرتات", link: "/collections/tshirts" }
                 ].map((item, idx) => (
                   <Link 
                     key={idx}
@@ -206,9 +206,9 @@ export default function Hero() {
               {/* الصف الثاني - 3 صور إضافية */}
               <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {[
-                  { src: "/images/jeans-flat.png", alt: "VELIX جينز كلاسيك - قطن مريح", name: "جينز", link: "/collections/جينز" },
-                  { src: "/images/jacket-flat.png", alt: "VELIX جاكيت شتوي - أنيق ودافي", name: "جواكت", link: "/collections/جواكت" },
-                  { src: "/images/shoes-flat.png", alt: "VELIX حذاء رياضي - سنيكرز عصري", name: "شوزات", link: "/collections/شوزات" }
+                  { src: "/images/jeans-flat.png", alt: "VELIX جينز كلاسيك - قطن مريح", name: "جينز", link: "/collections/jeans" },
+                  { src: "/images/jacket-flat.png", alt: "VELIX جاكيت شتوي - أنيق ودافي", name: "جواكت", link: "/collections/jackets" },
+                  { src: "/images/shoes-flat.png", alt: "VELIX حذاء رياضي - سنيكرز عصري", name: "شوزات", link: "/collections/shoes" }
                 ].map((item, idx) => (
                   <Link 
                     key={idx}
