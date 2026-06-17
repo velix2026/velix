@@ -86,8 +86,16 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
   const [orderSelection, setOrderSelection] = useState({ size: '', color: '', quantity: 1 });
 
   useEffect(() => {
-    if (product?.slug) {  // ✅ slug بدل id
+    if (product?.slug) {
       fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: 'view_product', productSlug: product.slug }) }).catch(() => {});
+      
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'view_item', {
+          currency: 'EGP',
+          value: product.price,
+          items: [{ item_id: product.slug, item_name: product.name, price: product.price, quantity: 1 }],
+        });
+      }
     }
   }, [product?.slug]);
 

@@ -133,6 +133,30 @@ export default function RootLayout({
         </main>
         <Footer />
         
+        {/* Google Customer Reviews Badge */}
+        <Script
+          id="google-customer-reviews"
+          strategy="afterInteractive"
+          src="https://apis.google.com/js/platform.js?onload=renderBadge"
+          async
+          defer
+        />
+        <Script
+          id="google-customer-reviews-config"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.renderBadge = function() {
+                var ratingBadgeContainer = document.createElement("div");
+                document.body.appendChild(ratingBadgeContainer);
+                window.gapi.load('ratingbadge', function() {
+                  window.gapi.ratingbadge.render(ratingBadgeContainer, {"merchant_id": 5810030916});
+                });
+              }
+            `,
+          }}
+        />
+        
         <Script
           id="service-worker"
           strategy="afterInteractive"

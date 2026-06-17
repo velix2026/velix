@@ -14,6 +14,7 @@ interface OrderItemVariation {
 
 interface OrderItem {
   id: number;
+  slug: string;
   name: string;
   price: number;
   oldPrice?: number;
@@ -146,6 +147,40 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
         if (onCartCleared) onCartCleared();
         onClose();
         setFormData({ name: '', phone: '', altPhone: '', address: '', landmark: '', notes: '' });
+        
+        // === Google Customer Reviews Survey Opt-in ===
+        try {
+          if (typeof window !== 'undefined' && (window as any).gapi) {
+            const deliveryDate = new Date();
+            deliveryDate.setDate(deliveryDate.getDate() + 5);
+            (window as any).gapi.load('surveyoptin', function() {
+              (window as any).gapi.surveyoptin.render({
+                merchant_id: 5810030916,
+                order_id: data.orderId || orderData.orderId,
+                email: orderData.phone,
+                delivery_country: 'EG',
+                estimated_delivery_date: deliveryDate.toISOString().split('T')[0],
+              });
+            });
+          }
+        } catch (err) { console.error('GCR survey error:', err); }
+        
+        // === Google Analytics Purchase Event ===
+        try {
+          if (typeof window !== 'undefined' && (window as any).gtag) {
+            (window as any).gtag('event', 'purchase', {
+              transaction_id: data.orderId || orderData.orderId,
+              value: totalAmount,
+              currency: 'EGP',
+              items: cartItems.map(item => ({
+                item_id: item.slug,
+                item_name: item.name,
+                price: item.price,
+                quantity: item.variations.reduce((s, v) => s + v.quantity, 0),
+              })),
+            });
+          }
+        } catch (err) { console.error('GA purchase error:', err); }
       } else throw new Error(data.error || 'فشل إرسال الطلب');
     } catch (error) {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { message: '❌ حصل مشكلة، حاول تاني', type: 'error' } }));
