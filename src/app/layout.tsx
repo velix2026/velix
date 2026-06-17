@@ -23,6 +23,10 @@ export const viewport: Viewport = {
   themeColor: "#B76E79",
 };
 
+export const metadata = {
+  metadataBase: new URL('https://velix-eg.store'),
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
