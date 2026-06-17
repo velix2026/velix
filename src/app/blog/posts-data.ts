@@ -1,5 +1,65 @@
 // app/blog/posts-data.ts
 export const posts = [
+  // المقالة 14 - ازاي تفرق بين الأصلي والتقليد
+  {
+    slug: "original-vs-fake-clothes-egypt",
+    title: "ازاي تفرق بين الملابس الأصلية والتقليد في مصر؟ | ٧ علامات أكيدة",
+    excerpt: "ازاي تعرف التيشرت الأصلي من المغشوش؟ دليل كامل بالصور والعلامات اللي تفرق بين الأصلي والتقليد في الملابس.",
+    content: `
+      <div class="space-y-8">
+        <div class="bg-rose-gold/5 rounded-2xl p-6 border border-rose-gold/20">
+          <p class="text-lg font-bold text-black/80 leading-relaxed">"التيشرت ده أصلي ولا تقليد؟" — سؤال بنسمعه كتير، خصوصاً مع انتشار الملابس المغشوشة في مصر. في المقال ده هنعلمك ازاي تفرق ب ٧ علامات بسيطة.</p>
+        </div>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">🔍 ١. الخامة (القماش)</h2>
+        <p>أول حاجة تميز الأصلي من التقليد — الخامة:</p>
+        <ul class="list-none space-y-2">
+          <li class="flex items-start gap-2"><span class="text-green-600">✓</span> <strong>الأصلي:</strong> قطن ناعم الملمس، ثقيل شوية (مش خفيف أوي)، ليه رائحة قماش طبيعي</li>
+          <li class="flex items-start gap-2"><span class="text-red-500">✗</span> <strong>التقليد:</strong> خامه رخيصة، خفيفة أوي، خشنة على الجلد</li>
+        </ul>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">🧵 ٢. الخياطة والدرزات</h2>
+        <ul class="list-none space-y-2">
+          <li class="flex items-start gap-2"><span class="text-green-600">✓</span> <strong>الأصلي:</strong> خياطة منتظمة ومتساوية، الخيوط مش طالعة، الدرزات قوية</li>
+          <li class="flex items-start gap-2"><span class="text-red-500">✗</span> <strong>التقليد:</strong> خياطة عشوائية، خيوط طالعة من هنا وهناك</li>
+        </ul>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">🏷️ ٣. التاج (Label) والبطاقة</h2>
+        <ul class="list-none space-y-2">
+          <li class="flex items-start gap-2"><span class="text-green-600">✓</span> <strong>الأصلي:</strong> التاج متطابق مع البراند (خط واضح، ألوان ثابتة)، فيه تعليمات غسيل كاملة</li>
+          <li class="flex items-start gap-2"><span class="text-red-500">✗</span> <strong>التقليد:</strong> التاج مكتوب بشكل مختلف، تعليمات الغسيل ناقصة أو خطها مش واضح</li>
+        </ul>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">💰 ٤. السعر</h2>
+        <p>لو السعر أقل من الطبيعي بكتير — فهو تقليد. مثال: تيشرت قطن مصري فاخر سعته الطبيعي ٢٠٠-٣٠٠ جنيه، لو لقيته ب ٥٠ جنيه يبقى تقليد ١٠٠٪.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">📦 ٥. التغليف (لما تشتري أونلاين)</h2>
+        <ul class="list-none space-y-2">
+          <li class="flex items-start gap-2"><span class="text-green-600">✓</span> <strong>الأصلي:</strong> تغليف كويس، في أكياس محكمة، واصل نظيف ومكوي</li>
+          <li class="flex items-start gap-2"><span class="text-red-500">✗</span> <strong>التقليد:</strong> أكياس بلاستيك رخيصة، مكرمش، ريحته غريبة</li>
+        </ul>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">📱 ٦. سمعة المتجر</h2>
+        <p>دور على تقييمات المتجر قبل الشراء. شوف الصفحات الرسمية على السوشيال ميديا. لو مفيش صفحة أو نشاط يبقى احذر.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">🔄 ٧. سياسة الاسترجاع</h2>
+        <p>المتاجر الموثوقة عندها سياسة استرجاع واضحة. لو مفيش سياسة استرجاع — احذر.</p>
+
+        <div class="bg-rose-gold/10 rounded-2xl p-6 my-8 text-center border border-rose-gold/20">
+          <p class="text-rose-gold font-black text-lg mb-2">✅ اطلب أصلي ومضمون من VELIX</p>
+          <p class="text-black/70 font-bold mb-4">كل منتجات VELIX قطن مصري فاخر ١٠٠٪، مع سياسة استبدال مجاني ١٤ يوم. تقدر تشوف المنتج بنفسك قبل الدفع — شحن لكل مصر.</p>
+          <Link href="/products" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">تسوق الآن — أصلي ومضمون</Link>
+        </div>
+      </div>
+    `,
+    date: "2026-06-17",
+    readTime: "6 دقايق",
+    category: "نصائح",
+    categoryIcon: "🔍",
+    categoryColor: "bg-green-100 text-green-700",
+    imageBg: "from-green-100 to-green-50",
+    tags: ["أصلي", "تقليد", "جودة", "نصائح شراء"],
+  },
   // المقالة 1 - دليل المقاسات الكامل
   {
     slug: "complete-size-guide",

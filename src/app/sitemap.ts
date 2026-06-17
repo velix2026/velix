@@ -96,7 +96,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
   
   // ============================================
-  // 3. صفحات مقالات المدونة (من posts-data)
+  // 3. صفحات التصنيفات (Collections)
+  // ============================================
+  const collectionSlugs = ['تيشرتات', 'هوديز', 'شروال', 'جينز', 'جواكت', 'شوزات', 'اكسسوارات'];
+  const collectionPages: MetadataRoute.Sitemap = collectionSlugs.map((slug) => ({
+    url: `${baseUrl}/collections/${encodeURIComponent(slug)}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily' as const,
+    priority: 0.8,
+  }));
+  
+  // ============================================
+  // 4. صفحات مقالات المدونة (من posts-data)
   // ============================================
   let blogPages: MetadataRoute.Sitemap = [];
   try {
@@ -113,7 +124,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
   
   // ============================================
-  // 4. دمج كل الصفحات
+  // 5. دمج كل الصفحات
   // ============================================
-  return [...staticPages, ...productPages, ...blogPages];
+  return [...staticPages, ...productPages, ...collectionPages, ...blogPages];
 }
