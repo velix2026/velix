@@ -1,5 +1,66 @@
 // app/blog/posts-data.ts
 export const posts = [
+  // المقالة 15 - ازاي تبقى شيك بميزانية محدودة
+  {
+    slug: "stylish-on-budget-egypt",
+    title: "ازاي تبقى شيك بميزانية محدودة في مصر؟ | ٨ نصائح عملية",
+    excerpt: "عايز تبقى شيك ولبسك راقي وميزانيتك محدودة؟ المقال ده ليك. هنقولك ازاي تختار قطع أساسية وتنسقها عشان تطلع stylish من غير ما تكسر الفلوس.",
+    content: `
+      <div class="space-y-8">
+        <div class="bg-rose-gold/5 rounded-2xl p-6 border border-rose-gold/20">
+          <p class="text-lg font-bold text-black/80 leading-relaxed">"مفيش فلوس أشتري هدوم غالية، فعشان كده شكلي مش حلو" — لو بتفكر كده، فأنت غلطان. الشياكة مش فلوس، الشياكة ذوق واختيارات صح.</p>
+        </div>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">👕 ١. استثمر في القطع الأساسية</h2>
+        <p>الـ Basic pieces هي أساس أي دولاب شيك:</p>
+        <ul class="list-none space-y-2">
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>تيشرت أبيض واسود</strong> — هتلبسهم مع أي حاجة</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>هودي رمادي أو بيج</strong> — مع أي بنطلون أو شروال</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>شروال رياضي أو جينز كحلي</strong> — أساسي لأي لوك</li>
+        </ul>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">🧵 ٢. اختار خامات كويسة مش ماركات غالية</h2>
+        <p>البراندات الغالية سعرها عشان اسمها، مش عشان جودتها. في VELIX بنقدملك <strong class="text-rose-gold">قطن مصري أصلي</strong> بنفس جودة الماركات العالمية بسعر مناسب. القطن المصري ناعم، بيدخل هوا، وبيعيش معاك سنين.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">🎨 ٣. الألوان المحايدة هي صديقك</h2>
+        <p>الأسود، الأبيض، الرمادي، والكحلي — الألوان دي تخلط مع بعضها بأي طريقة وهتطلع حلو. مش محتاج تشتري ألوان صارخة عشان تلفت النظر.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">🔄 ٤. قطعة وحيدة تغير شكل اللوك كله</h2>
+        <p>نفس التيشرت الأبيض ممكن تلبسه:
+          <ul>
+            <li>مع شروال رياضي = ستريت وير كاجوال</li>
+            <li>مع جينز وجاكيت = أنيق للخروجات</li>
+            <li>مع بنطلون رسمي = شبه رسمي للجامعة أو الشغل</li>
+          </ul>
+        قطعة واحدة، تلات لوكات مختلفة. نقطة تانية للميزانية.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">📏 ٥. المقاس الصح يفرق كل حاجة</h2>
+        <p>تيشرت ب ١٠٠٠ جنيه بمقاس غلط هيكون شكله وحش. تيشرت ب ٢٠٠ جنيه بمقاس مضبوط هيبقى شيك. <strong class="text-rose-gold">المقاس الصح أهم من سعر القطعة</strong>. شوف <Link href="/blog/complete-size-guide" class="text-rose-gold underline">دليل المقاسات بتاعنا</Link> عشان تظبط مقاسك.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">🧼 ٦. اعتنِي بهدومك عشان تعيش أطول</h2>
+        <p>التيشرت الغالي لو مغسلتوش صح هيتلف بسرعة. اقرأ <Link href="/blog/how-to-care-for-clothes" class="text-rose-gold underline">دليل العناية بالملابس</Link> بتاعنا — هتتعلم ازاي تحافظ على هدومك لأطول فترة.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">📱 ٧. اشتري أونلاين — أوفر وأسهل</h2>
+        <p>التسوق أونلاين في مصر بقى آمن وسهل. اقرأ <Link href="/blog/online-shopping-tips-egypt" class="text-rose-gold underline">نصايح التسوق أونلاين</Link> عشان تعرف ازاي تشتري من النت من غير وجع دماغ. وفي VELIX تقدر تطلب وتدفع عند الاستلام — يعني متخاطرتش بفلوسك.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">🏷️ ٨. اشتري من براندات مصرية</h2>
+        <p>البراندات المصرية بتقدم نفس الجودة وبأسعار أقل من الماركات العالمية، عشان مفيش تكاليف استيراد ولا جمارك. وانت كمان بتدعم صناعة بلدك. VELIX مثلاً — براند مصري للشباب، بنقدم قطن مصري أصلي بأسعار تناسب الجميع.</p>
+
+        <div class="bg-rose-gold/10 rounded-2xl p-6 my-8 text-center border border-rose-gold/20">
+          <p class="text-rose-gold font-black text-lg mb-2">🔥 ابدأ من النهاردة — لبس شيك بميزانية محدودة</p>
+          <p class="text-black/70 font-bold mb-4">تيشرتات VELIX القطن المصري تبدأ من أسعار تناسب الجميع. تقارنها بالماركات العالمية، هتلاقي نفس الجودة بنصف السعر. جرب وانت مطمن — استبدال مجاني ١٤ يوم.</p>
+          <Link href="/products" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">تسوق VELIX — لبس شيك بسعر مناسب</Link>
+        </div>
+      </div>
+    `,
+    date: "2026-06-17",
+    readTime: "6 دقايق",
+    category: "نصائح",
+    categoryIcon: "💡",
+    categoryColor: "bg-green-100 text-green-700",
+    imageBg: "from-green-100 to-green-50",
+    tags: ["شياكة", "ميزانية", "توفير", "نصائح", "ستايل"],
+  },
   // المقالة 14 - ازاي تفرق بين الأصلي والتقليد
   {
     slug: "original-vs-fake-clothes-egypt",

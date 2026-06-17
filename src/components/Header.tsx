@@ -71,7 +71,7 @@ export default function Header() {
     'url': 'https://velix-eg.store',
     'logo': 'https://velix-eg.store/images/logo.png',
     'image': 'https://velix-eg.store/images/og-image.png',
-    'description': 'براند ملابس مصري بيقدم ستايل عصري للشباب. جودة عالية وتفاصيل مميزة مع دفع عند الاستلام.',
+    'description': 'VELIX - لبس ولاد البلد. تيشرتات، هوديز، وشروال قطن مصري أصلي للشباب.',
     'telephone': '+201500125133',
     'priceRange': '$$',
     'paymentAccepted': 'Cash on Delivery',

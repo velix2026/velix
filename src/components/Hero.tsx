@@ -178,7 +178,7 @@ export default function Hero() {
                 {[
                   { src: "/images/hoodie-flat.png", alt: "VELIX هودي أوفر سايز - قطن نضيف", name: "هوديز", link: "/collections/hoodies" },
                   { src: "/images/pants-flat.png", alt: "VELIX شروال رياضي - مريح وأنيق", name: "شروال", link: "/collections/pants" },
-                  { src: "/images/tshirt-flat.png", alt: "VELIX تيشرت كلاسيك - قطن فاخر", name: "تيشرتات", link: "/collections/tshirts" }
+                  { src: "/images/tshirt-flat.png", alt: "VELIX تيشرت قطن مصري أصلي", name: "تيشرتات", link: "/collections/tshirts" }
                 ].map((item, idx) => (
                   <Link 
                     key={idx}

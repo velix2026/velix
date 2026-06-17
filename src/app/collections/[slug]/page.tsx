@@ -7,7 +7,7 @@ import { Metadata } from 'next';
 
 // ✅ الأقسام - English slugs عشان Vercel (Arabic characters مش بتشتغل في الـ URLs)
 const categories = [
-  { slug: 'tshirts', arabicSlug: 'تيشرتات', name: 'تيشرتات', icon: '👕', description: 'تشكيلة مميزة من التيشرتات القطن الفاخر' },
+  { slug: 'tshirts', arabicSlug: 'تيشرتات', name: 'تيشرتات', icon: '👕', description: 'تشكيلة تيشرتات قطن مصري أصلي للشباب' },
   { slug: 'hoodies', arabicSlug: 'هوديز', name: 'هوديز', icon: '🧥', description: 'هوديز شتوية وصيفية بجودة عالية' },
   { slug: 'pants', arabicSlug: 'شروال', name: 'شروال', icon: '👖', description: 'شروال رياضي مريح للاستخدام اليومي' },
   { slug: 'jeans', arabicSlug: 'جينز', name: 'جينز', icon: '👖', description: 'جينز عصري يناسب كل الأذواق' },

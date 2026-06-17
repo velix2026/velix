@@ -47,9 +47,9 @@ export async function GET() {
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
   <channel>
-    <title>VELIX - براند ملابس مصري</title>
+    <title>VELIX (فيلكس) - لبس ولاد البلد</title>
     <link>${baseUrl}</link>
-    <description>منتجات VELIX - ملابس مصرية فاخرة بجودة عالمية</description>
+    <description>منتجات VELIX - تيشرتات، هوديز، وشروال قطن مصري أصلي للشباب</description>
 `;
 
   for (const product of products) {
