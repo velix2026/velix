@@ -9,7 +9,7 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: "VELIX | لبس ولاد البلد - ستايل مصري عصري",
+  title: "VELIX | لبس ولاد البلد",
   description: "VELIX | لبس ولاد البلد. تيشرتات، هوديز، وشروال قطن مصري أصلي للشباب. جودة عالية، أسعار مناسبة، وشحن لكل مصر. اطلب وادفع عند الاستلام.",
   keywords: [
     "براند ملابس مصري",
