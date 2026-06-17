@@ -4,6 +4,7 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { Ruler, Shirt, Lightbulb } from 'lucide-react';
 
 interface SizeGuideModalProps {
   isOpen: boolean;
@@ -68,7 +69,7 @@ export default function SizeGuideModal({ isOpen, onClose }: SizeGuideModalProps)
                   </svg>
                 </button>
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-2xl">📏</span>
+                  <Ruler className="w-6 h-6" />
                   <h3 className="text-lg font-black text-white">دليل المقاسات</h3>
                 </div>
               </div>
@@ -78,32 +79,32 @@ export default function SizeGuideModal({ isOpen, onClose }: SizeGuideModalProps)
                 {/* ازاي تقيس نفسك */}
                 <div>
                   <h4 className="text-lg font-black text-black mb-3 flex items-center gap-2">
-                    <span className="text-rose-gold">📏</span> ازاي تقيس نفسك صح؟
+                    <Ruler className="w-5 h-5 text-rose-gold" /> ازاي تقيس نفسك صح؟
                   </h4>
                   <div className="space-y-3 text-sm">
                     <div className="flex items-start gap-2">
-                      <span className="text-rose-gold font-bold">1️⃣</span>
+                      <span className="w-6 h-6 rounded-full bg-rose-gold/10 text-rose-gold text-xs font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
                       <div>
                         <p className="font-bold text-black">محيط الصدر (Chest)</p>
                         <p className="text-black/60">لف شريط القياس حوالين أعرض جزء في صدرك (تحت الإبط بشوية)</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-2">
-                      <span className="text-rose-gold font-bold">2️⃣</span>
+                      <span className="w-6 h-6 rounded-full bg-rose-gold/10 text-rose-gold text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
                       <div>
                         <p className="font-bold text-black">طول الجسم (Length)</p>
                         <p className="text-black/60">من أعلى كتفك لحد المكان اللي عايز التيشرت يوصل له</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-2">
-                      <span className="text-rose-gold font-bold">3️⃣</span>
+                      <span className="w-6 h-6 rounded-full bg-rose-gold/10 text-rose-gold text-xs font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
                       <div>
                         <p className="font-bold text-black">عرض الكتف (Shoulder)</p>
                         <p className="text-black/60">المسافة بين طرف كتفك الأيمن والأيسر</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-2">
-                      <span className="text-rose-gold font-bold">4️⃣</span>
+                      <span className="w-6 h-6 rounded-full bg-rose-gold/10 text-rose-gold text-xs font-black flex items-center justify-center shrink-0 mt-0.5">4</span>
                       <div>
                         <p className="font-bold text-black">محيط الخصر (Waist)</p>
                         <p className="text-black/60">لف شريط القياس حوالين أنحف جزء في خصرك</p>
@@ -115,7 +116,7 @@ export default function SizeGuideModal({ isOpen, onClose }: SizeGuideModalProps)
                 {/* جدول المقاسات - التيشرتات */}
                 <div>
                   <h4 className="text-lg font-black text-black mb-3 flex items-center gap-2">
-                    <span className="text-rose-gold">👕</span> جدول مقاسات التيشرتات
+                    <Shirt className="w-5 h-5 text-rose-gold" /> جدول مقاسات التيشرتات
                   </h4>
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse text-sm">
@@ -142,7 +143,7 @@ export default function SizeGuideModal({ isOpen, onClose }: SizeGuideModalProps)
                 {/* جدول المقاسات - الهوديز */}
                 <div>
                   <h4 className="text-lg font-black text-black mb-3 flex items-center gap-2">
-                    <span className="text-rose-gold">🧥</span> جدول مقاسات الهوديز
+                    <Shirt className="w-5 h-5 text-rose-gold" /> جدول مقاسات الهوديز
                   </h4>
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse text-sm">
@@ -169,7 +170,7 @@ export default function SizeGuideModal({ isOpen, onClose }: SizeGuideModalProps)
                 {/* نصائح إضافية */}
                 <div className="bg-rose-gold/5 rounded-xl p-4 border border-rose-gold/20">
                   <h4 className="font-black text-black mb-2 flex items-center gap-2">
-                    <span className="text-rose-gold">💡</span> نصائح مهمة
+                    <Lightbulb className="w-5 h-5 text-rose-gold" /> نصائح مهمة
                   </h4>
                   <ul className="space-y-1 text-sm text-black/70">
                     <li>• لو بين مقاسين، اختار المقاس الأكبر (تقدري تستبدل مجاناً)</li>

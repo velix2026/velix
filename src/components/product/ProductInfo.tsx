@@ -111,12 +111,12 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             <svg className="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="border-b border-rose-gold/30 group-hover:border-rose-gold transition">📏 مش عارف مقاسك؟ شوف دليل المقاسات</span>
+            <span className="border-b border-rose-gold/30 group-hover:border-rose-gold transition">مش عارف مقاسك؟ شوف دليل المقاسات</span>
           </button>
         </div>
 
         <div className="border-t border-rose-gold/20 pt-6">
-          <h3 className="font-black text-lg text-black mb-3 flex items-center gap-2">📝 وصف المنتج</h3>
+          <h3 className="font-black text-lg text-black mb-3 flex items-center gap-2">وصف المنتج</h3>
           <p className="text-black/70 leading-relaxed whitespace-pre-line font-medium">{product.description}</p>
         </div>
 
@@ -125,7 +125,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             <div className="flex items-center gap-2"><span className="text-black/60">القسم:</span><span className="font-bold text-black">{product.category}</span></div>
             <div className="flex items-center gap-2"><span className="text-black/60">رمز المنتج:</span><span className="font-bold text-black">VEL-{product.slug}</span></div>
             <div className="flex items-center gap-2"><span className="text-black/60">الحالة:</span><span className={`font-bold ${totalStock > 0 ? 'text-rose-gold' : 'text-red-500'}`}>{totalStock > 0 ? 'متوفر' : 'خلص'}</span></div>
-            <div className="flex items-center gap-2"><span className="text-black/60">الشحن:</span><span className="font-bold text-rose-gold">🚚 مجاني</span></div>
+            <div className="flex items-center gap-2"><span className="text-black/60">الشحن:</span><span className="font-bold text-rose-gold">مجاني</span></div>
           </div>
         </div>
       </motion.div>

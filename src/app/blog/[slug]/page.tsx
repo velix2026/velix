@@ -84,8 +84,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               <span className="text-xs font-bold text-rose-gold bg-rose-gold/10 px-3 py-1 rounded-full">
                 📖 {post.category}
               </span>
-              <span className="text-xs text-black/40">📅 {post.date}</span>
-              <span className="text-xs text-black/40">⏱️ {post.readTime}</span>
+              <span className="text-xs text-black/40"> {post.date}</span>
+              <span className="text-xs text-black/40"> {post.readTime}</span>
             </div>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-black mb-4">{post.title}</h1>
             <div className="w-20 h-1 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper rounded-full mx-auto" />

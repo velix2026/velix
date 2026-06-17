@@ -228,7 +228,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
           <div className="mt-3 pt-2 border-t border-rose-gold/20">
             <div className="flex justify-between"><span className="font-bold">إجمالي القطع:</span><span>{toArabicNumber(totalItems)} قطعة</span></div>
             <div className="flex justify-between mt-1"><span className="font-bold">الإجمالي:</span><span className="text-xl font-bold text-rose-gold">{formatPrice(totalAmount)}</span></div>
-            {totalAmount > 500 && <p className="text-xs text-rose-gold mt-1">🚚 شامل الشحن المجاني</p>}
+            {totalAmount > 500 && <p className="text-xs text-rose-gold mt-1">شامل الشحن المجاني</p>}
           </div>
         </div>
 
@@ -246,7 +246,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
             <button type="submit" onClick={handleSubmit} disabled={loading} className="flex-1 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold py-2.5 rounded-xl hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 shadow-md hover:shadow-rose-gold/30">{loading ? 'بيتم الإرسال...' : 'أكد الطلب'}</button>
             <button type="button" onClick={onClose} disabled={loading} className="flex-1 bg-linear-to-r from-gray-500 via-gray-600 to-gray-700 text-white font-bold py-2.5 rounded-xl hover:scale-[1.02] transition-all shadow-md">إلغاء</button>
           </div>
-          <p className="text-center text-xs font-bold text-black/60 mt-3">📍 بعد التأكيد، هنتواصل معاك عشان نأكد الطلب</p>
+          <p className="text-center text-xs font-bold text-black/60 mt-3">بعد التأكيد، هنتواصل معاك عشان نأكد الطلب</p>
         </div>
       </div>
     </div>

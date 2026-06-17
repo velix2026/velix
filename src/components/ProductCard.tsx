@@ -402,7 +402,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             )}
             {showDiscountBadge && (
               <span className="bg-linear-to-r from-rose-gold-dark via-red-600 to-rose-gold-dark text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
-                <span className="text-[11px]">🏷️</span> {formatDiscount(discountPercent)}
+                <span className="text-[11px]">●</span> {formatDiscount(discountPercent)}
               </span>
             )}
             {showLowStockBadge && (
@@ -412,7 +412,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             )}
             {isOutOfStock && (
               <span className="bg-linear-to-r from-gray-600 to-gray-500 text-white font-bold text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full shadow-md flex items-center gap-1">
-                <span className="text-[11px]">🚫</span> خلص من عندنا
+                <span className="text-[11px]">✕</span> خلص من عندنا
               </span>
             )}
           </div>
@@ -522,7 +522,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
             {product.price > 500 && (
               <p className="text-rose-gold font-bold text-[9px] md:text-[10px]">
-                🚚 شحن مجاني
+                شحن مجاني
               </p>
             )}
           </Link>
@@ -740,7 +740,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                 </div>
                 {hasDiscount && (
                   <div className="mt-2 text-xs text-rose-gold font-bold text-center">
-                    🎉 خصم الكمية: وفرت {formatPrice(totalItems * product.price - getQuantityDiscountPrice(totalItems))}
+                    خصم الكمية: وفرت {formatPrice(totalItems * product.price - getQuantityDiscountPrice(totalItems))}
                   </div>
                 )}
               </div>

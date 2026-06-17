@@ -50,7 +50,7 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
 
   const tabs = useMemo(() => {
     const tabsList = [];
-    if (products.length > 0) tabsList.push({ id: 'all', label: 'كل المنتجات', icon: '🎯', count: products.length });
+    if (products.length > 0) tabsList.push({ id: 'all', label: 'كل المنتجات', icon: '●', count: products.length });
     if (latestProducts.length > 0) tabsList.push({ id: 'latest', label: 'الجديد', icon: '🆕', count: latestProducts.length });
     if (bestSellers.length > 0) tabsList.push({ id: 'bestsellers', label: 'الأكثر مبيعاً', icon: '⭐', count: bestSellers.length });
     return tabsList;

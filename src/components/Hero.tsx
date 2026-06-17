@@ -168,7 +168,7 @@ export default function Hero() {
                 
                 <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-sm rounded-full px-3 py-1.5 z-10">
                   <span className="text-rose-gold text-xs font-bold flex items-center gap-1">
-                    <span>🚚</span> شحن مجاني لكل مصر
+                    <span>شحن مجاني لكل مصر</span>
                   </span>
                 </div>
               </div>

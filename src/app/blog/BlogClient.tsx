@@ -3,8 +3,19 @@
 
 import Link from 'next/link'
 import { useState, useMemo } from 'react'
+import { BookOpen, Search, Star, Calendar, Clock, FolderOpen, X, Mail, Sparkles, Ruler, Heart, Shirt, Gift, ShoppingBag, Lightbulb } from 'lucide-react'
 import NewsletterModal from '@/components/NewsletterModal'
 import { posts } from './posts-data'
+
+const categoryIcons: Record<string, React.ReactNode> = {
+  "نصائح": <Lightbulb className="w-4 h-4" />,
+  "دليل مقاسات": <Ruler className="w-4 h-4" />,
+  "عناية": <Heart className="w-4 h-4" />,
+  "خامات": <Sparkles className="w-4 h-4" />,
+  "ستايل": <Sparkles className="w-4 h-4" />,
+  "هدايا": <Gift className="w-4 h-4" />,
+  "تسوق": <ShoppingBag className="w-4 h-4" />,
+}
 
 const allCategories = ["الكل", ...new Set(posts.map(post => post.category))]
 
@@ -88,7 +99,7 @@ export default function BlogClient() {
           {/* Header Section */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-rose-gold/10 rounded-full px-4 py-1.5 mb-4">
-              <span className="text-rose-gold text-sm">📖</span>
+              <BookOpen className="w-4 h-4 text-rose-gold" />
               <span className="text-rose-gold text-xs font-bold tracking-wider">مدونتنا</span>
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-black mb-4">
@@ -123,7 +134,7 @@ export default function BlogClient() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="🔍 ابحث عن مقال... (مثال: مقاسات، قطن، غسيل)"
+                placeholder="ابحث عن مقال... (مثال: مقاسات، قطن، غسيل)"
                 className="w-full p-3 pr-4 bg-white border-2 border-rose-gold/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-gold focus:border-transparent text-black font-bold"
               />
               {searchQuery && (
@@ -131,7 +142,7 @@ export default function BlogClient() {
                   onClick={() => setSearchQuery("")}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-black/40 hover:text-rose-gold transition"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -156,7 +167,7 @@ export default function BlogClient() {
                         : "bg-gray-100 text-gray-700 shadow-sm"
                   }`}
                 >
-                  {category === "الكل" ? "🎯 الكل" : `${categoryData?.categoryIcon || "📌"} ${category}`}
+                  {category === "الكل" ? "الكل" : `${category}`}
                   <span className={`mr-1 text-xs ${isActive ? "text-white/80" : "opacity-60"}`}>
                     ({count})
                   </span>
@@ -169,7 +180,7 @@ export default function BlogClient() {
           {searchQuery && (
             <div className="text-center mb-6">
               <p className="text-black/60 text-sm">
-                🎯 نتائج البحث عن "<span className="text-rose-gold font-bold">{searchQuery}</span>": 
+                نتائج البحث عن "<span className="text-rose-gold font-bold">{searchQuery}</span>": 
                 <span className="font-bold text-rose-gold"> {filteredPosts.length} </span> 
                 مقالة
               </p>
@@ -179,7 +190,7 @@ export default function BlogClient() {
           {/* No Results */}
           {filteredPosts.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl border border-rose-gold/20">
-              <div className="text-6xl mb-4">🔍</div>
+              <Search className="w-12 h-12 mx-auto mb-4 text-black/30" />
               <h3 className="text-xl font-black text-black mb-2">مفيش نتائج</h3>
               <p className="text-black/60 mb-4">
                 {searchQuery 
@@ -205,13 +216,26 @@ export default function BlogClient() {
                   <div className="relative bg-white rounded-3xl overflow-hidden shadow-xl border border-rose-gold/20 hover:shadow-2xl transition-all duration-500 group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-rose-gold/5 rounded-full blur-2xl z-0" />
                     <div className="grid md:grid-cols-2 gap-0">
-                      <div className={`relative h-64 md:h-full bg-linear-to-br ${featuredPost.imageBg} flex items-center justify-center overflow-hidden`}>
-                        <div className="text-8xl md:text-9xl group-hover:scale-110 transition-transform duration-500">{featuredPost.categoryIcon}</div>
+                        <div className={`relative h-64 md:h-full bg-linear-to-br ${featuredPost.imageBg} flex items-center justify-center overflow-hidden`}>
+                          <div className="opacity-20 group-hover:scale-110 transition-transform duration-500">
+                            {(() => {
+                              const iconMap: Record<string, React.ReactNode> = {
+                                "نصائح": <Lightbulb className="w-24 h-24 md:w-32 md:h-32" />,
+                                "دليل مقاسات": <Ruler className="w-24 h-24 md:w-32 md:h-32" />,
+                                "عناية": <Heart className="w-24 h-24 md:w-32 md:h-32" />,
+                                "خامات": <Sparkles className="w-24 h-24 md:w-32 md:h-32" />,
+                                "ستايل": <Sparkles className="w-24 h-24 md:w-32 md:h-32" />,
+                                "هدايا": <Gift className="w-24 h-24 md:w-32 md:h-32" />,
+                                "تسوق": <ShoppingBag className="w-24 h-24 md:w-32 md:h-32" />,
+                              }
+                              return iconMap[featuredPost.category] || <Sparkles className="w-24 h-24 md:w-32 md:h-32" />
+                            })()}
+                          </div>
                         <div className="absolute top-4 right-4 flex gap-2">
                           {isNewPost(featuredPost.date) && (
                             <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">جديد</span>
                           )}
-                          <span className="bg-rose-gold text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">⭐ مقال مميز</span>
+                          <span className="bg-rose-gold text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg"><Star className="w-3 h-3 inline mr-1 mb-0.5" />مقال مميز</span>
                         </div>
                       </div>
                       <div className="p-8 md:p-10">
@@ -219,8 +243,8 @@ export default function BlogClient() {
                           <span className={`text-xs font-bold px-3 py-1 rounded-full ${featuredPost.categoryColor}`}>
                             {featuredPost.categoryIcon} {featuredPost.category}
                           </span>
-                          <span className="text-xs text-black/40 flex items-center gap-1">📅 {featuredPost.date}</span>
-                          <span className="text-xs text-black/40 flex items-center gap-1">⏱️ {featuredPost.readTime}</span>
+                          <span className="text-xs text-black/40 flex items-center gap-1"><Calendar className="w-3 h-3" /> {featuredPost.date}</span>
+                          <span className="text-xs text-black/40 flex items-center gap-1"><Clock className="w-3 h-3" /> {featuredPost.readTime}</span>
                         </div>
                         <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-black mb-4 leading-tight">
                           <Link href={`/blog/${featuredPost.slug}`} className="hover:text-rose-gold transition duration-300">
@@ -243,7 +267,7 @@ export default function BlogClient() {
               {/* Section Title */}
               <div className="text-center mb-10">
                 <h2 className="text-2xl md:text-3xl font-black text-black">
-                  {searchQuery ? "🔍 نتائج البحث" : "📚 أحدث المقالات"}
+                  {searchQuery ? <><Search className="w-5 h-5 inline mb-1" /> نتائج البحث</> : <><BookOpen className="w-5 h-5 inline mb-1" /> أحدث المقالات</>}
                 </h2>
                 <div className="w-16 h-0.5 bg-rose-gold/30 mx-auto mt-3" />
               </div>
@@ -254,22 +278,35 @@ export default function BlogClient() {
                   <article key={post.slug} className="group bg-white rounded-2xl overflow-hidden shadow-md border border-rose-gold/20 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500">
                     <Link href={`/blog/${post.slug}`} className="block">
                       <div className={`relative h-48 bg-linear-to-br ${post.imageBg} flex items-center justify-center overflow-hidden`}>
-                        <div className="text-6xl group-hover:scale-110 transition-transform duration-500">{post.categoryIcon}</div>
+                        <div className="opacity-30 group-hover:scale-110 transition-transform duration-500">
+                          {(() => {
+                            const iconMap: Record<string, React.ReactNode> = {
+                              "نصائح": <Lightbulb className="w-16 h-16" />,
+                              "دليل مقاسات": <Ruler className="w-16 h-16" />,
+                              "عناية": <Heart className="w-16 h-16" />,
+                              "خامات": <Sparkles className="w-16 h-16" />,
+                              "ستايل": <Sparkles className="w-16 h-16" />,
+                              "هدايا": <Gift className="w-16 h-16" />,
+                              "تسوق": <ShoppingBag className="w-16 h-16" />,
+                            }
+                            return iconMap[post.category] || <Sparkles className="w-16 h-16" />
+                          })()}
+                        </div>
                         <div className="absolute top-3 right-3 flex gap-1">
                           {isNewPost(post.date) && (
                             <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">جديد</span>
                           )}
                         </div>
                         <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1">
-                          <span className="text-white text-[10px] font-bold">⏱️ {post.readTime}</span>
+                          <span className="text-white text-[10px] font-bold flex items-center gap-1"><Clock className="w-3 h-3" /> {post.readTime}</span>
                         </div>
                       </div>
                       <div className="p-5">
                         <div className="flex items-center justify-between mb-3">
-                          <span className={`text-xs font-bold px-3 py-1 rounded-full ${post.categoryColor}`}>
-                            {post.categoryIcon} {post.category}
+                          <span className={`text-xs font-bold px-3 py-1 rounded-full inline-flex items-center gap-1 ${post.categoryColor}`}>
+                            {categoryIcons[post.category] || <Sparkles className="w-3 h-3" />} {post.category}
                           </span>
-                          <span className="text-xs text-black/40 flex items-center gap-1">📅 {post.date}</span>
+                          <span className="text-xs text-black/40 flex items-center gap-1"><Calendar className="w-3 h-3" /> {post.date}</span>
                         </div>
                         <h2 className="text-lg md:text-xl font-black text-black mb-2 line-clamp-2 group-hover:text-rose-gold transition duration-300">
                           {post.title}
@@ -278,7 +315,7 @@ export default function BlogClient() {
                         <div className="flex items-center justify-between pt-3 border-t border-rose-gold/10">
                           <div className="flex items-center gap-1">
                             <div className="w-6 h-6 rounded-full bg-rose-gold/10 flex items-center justify-center">
-                              <span className="text-rose-gold text-[10px]">📖</span>
+                              <BookOpen className="w-3 h-3 text-rose-gold" />
                             </div>
                             <span className="text-xs text-black/40">VELIX</span>
                           </div>
@@ -299,7 +336,7 @@ export default function BlogClient() {
 
           {/* Categories Section */}
           <div className="mt-16 bg-white rounded-2xl p-8 border border-rose-gold/20">
-            <h3 className="text-xl font-black text-black text-center mb-6">📂 استكشف بالأقسام</h3>
+            <h3 className="text-xl font-black text-black text-center mb-6 flex items-center justify-center gap-2"><FolderOpen className="w-5 h-5" /> استكشف بالأقسام</h3>
             <div className="flex flex-wrap justify-center gap-3">
               {allCategories.filter(c => c !== "الكل").map((category) => {
                 const post = posts.find(p => p.category === category)
@@ -309,7 +346,7 @@ export default function BlogClient() {
                     onClick={() => setSelectedCategory(category)}
                     className={`px-4 py-2 rounded-full text-sm font-bold transition-all hover:scale-105 ${post?.categoryColor} shadow-sm`}
                   >
-                    {post?.categoryIcon} {category} ({getCategoryCount(category)})
+                    {categoryIcons[category] || <Sparkles className="w-4 h-4" />} {category} ({getCategoryCount(category)})
                   </button>
                 )
               })}
@@ -329,7 +366,7 @@ export default function BlogClient() {
               onClick={() => setIsNewsletterOpen(true)}
               className="inline-flex items-center gap-2 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-8 py-3 rounded-full hover:scale-[1.02] transition-all duration-300 shadow-md hover:shadow-rose-gold/30 cursor-pointer"
             >
-              📧 اشترك دلوقتي
+              <Mail className="w-5 h-5" /> اشترك دلوقتي
             </button>
           </div>
 

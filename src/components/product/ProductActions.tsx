@@ -168,7 +168,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
             <svg className="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="border-b border-rose-gold/30 group-hover:border-rose-gold transition">📏 مش عارف مقاسك؟ شوف دليل المقاسات</span>
+            <span className="border-b border-rose-gold/30 group-hover:border-rose-gold transition">مش عارف مقاسك؟ شوف دليل المقاسات</span>
           </button>
         </div>
 
@@ -258,7 +258,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
               <div className="bg-rose-gold/5 rounded-xl p-3 border border-rose-gold/20">
                 <div className="flex justify-between items-center"><span className="text-sm font-bold text-black/70">إجمالي القطع:</span><span className="text-sm font-bold text-rose-gold">{toArabicNumber(totalQuantity)} قطعة</span></div>
                 <div className="flex justify-between items-center mt-1"><span className="text-sm font-bold text-black/70">الإجمالي:</span><span className="text-lg font-bold text-rose-gold">{formatPrice(getTotalPrice())}</span></div>
-                {hasDiscount && <div className="mt-2 text-xs text-rose-gold font-bold text-center">🎉 خصم الكمية: وفرت {formatPrice(getSavings())}</div>}
+                {hasDiscount && <div className="mt-2 text-xs text-rose-gold font-bold text-center">خصم الكمية: وفرت {formatPrice(getSavings())}</div>}
               </div>
 
               <button onClick={handleAddMultiToCart} disabled={totalQuantity === 0} className="w-full bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold py-3 rounded-xl hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 shadow-lg">أضف ({toArabicNumber(totalQuantity)}) قطعة للسلة</button>
@@ -308,7 +308,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
               {product.quantityDiscount?.enabled && singleSelection.quantity >= (product.quantityDiscount.tiers?.[0]?.minQuantity || 999) && (
                 <div className="mb-4 p-3 bg-rose-gold/10 rounded-xl border border-rose-gold/30">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2"><span className="text-lg">🎉</span><span className="text-sm font-black text-rose-gold">خصم الكمية!</span></div>
+                    <div className="flex items-center gap-2"><span className="text-sm font-black text-rose-gold">خصم الكمية!</span></div>
                     <div className="text-right"><div className="text-xs text-rose-gold/60 line-through">{formatPrice(getOriginalPrice())}</div><div className="text-sm font-black text-rose-gold">{formatPrice(getTotalPrice())}</div></div>
                   </div>
                   <p className="text-xs text-rose-gold mt-1 font-bold">وفرت {formatPrice(getSavings())}</p>
@@ -332,7 +332,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
             <svg className="w-5 h-5" fill={isFavoritedState ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
             {isFavoritedState ? 'في المفضلة' : 'ضيف للمفضلة'}
           </button>
-          <button onClick={async () => { const url = window.location.href; if (navigator.share) { try { await navigator.share({ title: `VELIX - ${product.name}`, text: `شوف منتج ${product.name} من VELIX`, url }); } catch (err) {} } else { await navigator.clipboard.writeText(url); alert('تم نسخ الرابط 📋'); } }} className="py-3 px-6 rounded-full font-bold bg-white text-black border-2 border-rose-gold/20 hover:border-rose-gold hover:bg-rose-gold/5 transition-all duration-300 flex items-center justify-center gap-2">
+          <button onClick={async () => { const url = window.location.href; if (navigator.share) { try { await navigator.share({ title: `VELIX - ${product.name}`, text: `شوف منتج ${product.name} من VELIX`, url }); } catch (err) {} } else { await navigator.clipboard.writeText(url); alert('تم نسخ الرابط'); } }} className="py-3 px-6 rounded-full font-bold bg-white text-black border-2 border-rose-gold/20 hover:border-rose-gold hover:bg-rose-gold/5 transition-all duration-300 flex items-center justify-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
             مشاركة
           </button>

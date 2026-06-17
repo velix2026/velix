@@ -82,9 +82,9 @@ export default function Footer() {
                 </div>
               </Link>
               <p className="text-black/60 text-xs leading-relaxed max-w-xs font-medium">
-                براند ملابس مصري بيقدم ستايل عصري يناسب الشباب اللي بيحبوا يبانوا بشكل مختلف 👕🔥
+                براند ملابس مصري بيقدم ستايل عصري يناسب الشباب اللي بيحبوا يبانوا بشكل مختلف
                 <br className="hidden md:block" />
-                بنركز على الجودة والتفاصيل عشان نطلعلك منتج يليق بيك في أي وقت 👌
+                بنركز على الجودة والتفاصيل عشان نطلعلك منتج يليق بيك في أي وقت
               </p>
               
               {/* Trust Badges */}
