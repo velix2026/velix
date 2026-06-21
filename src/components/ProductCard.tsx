@@ -302,7 +302,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
         if (selection.quantity > availableStock) {
           window.dispatchEvent(new CustomEvent('showToast', {
             detail: {
-              message: `⚠️ العدد المطلوب (${toArabicNumber(selection.quantity)}) للقطعة (مقاس ${selection.size || 'غير محدد'}، لون ${getColorName(selection.color)}) أكتر من المتاح (${toArabicNumber(availableStock)})`,
+              message: `! العدد المطلوب (${toArabicNumber(selection.quantity)}) للقطعة (مقاس ${selection.size || 'غير محدد'}، لون ${getColorName(selection.color)}) أكتر من المتاح (${toArabicNumber(availableStock)})`,
               type: 'warning'
             }
           }));
@@ -706,7 +706,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                             } else {
                               window.dispatchEvent(new CustomEvent('showToast', {
                                 detail: {
-                                  message: `⚠️ معندناش غير ${toArabicNumber(availableStock)} قطعة من المنتج ده`,
+                                  message: `! معندناش غير ${toArabicNumber(availableStock)} قطعة من المنتج ده`,
                                   type: 'warning'
                                 }
                               }));

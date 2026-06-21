@@ -76,7 +76,7 @@ export default function RootLayout({
         <meta name="twitter:creator" content="@velixstore" />
 
         {/* ChatGPT Search Verification */}
-        <meta name="openai-domain-verification" content="dv-Nra9mNCXVFSVO1P6qZX1VhJG" />
+        <meta name="openai-domain-verification" content="dv-2PmqVRRiAdC0ozu60zptZrJ6" />
         <meta name="msvalidate.01" content="" />
         <meta name="google-site-verification" content="" />
 

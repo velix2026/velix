@@ -34,7 +34,7 @@ export default function Newsletter() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setMessageType('error');
-      setMessage('❌ البريد الإلكتروني مش صحيح، حاول تاني');
+      setMessage('✗ البريد الإلكتروني مش صحيح، حاول تاني');
       setTimeout(() => setMessage(''), 3000);
       return;
     }
@@ -57,7 +57,7 @@ export default function Newsletter() {
         setSubscribedEmail(email);
         setNewEmail(email);
         setMessageType('success');
-        setMessage(data.reactivated ? '✅ مرحبا بعودتك! تم تفعيل اشتراكك تاني' : '✅ اشتركت معانا! هتوصلک العروض أول بأول');
+        setMessage(data.reactivated ? '✓ مرحبا بعودتك! تم تفعيل اشتراكك تاني' : '✓ اشتركت معانا! هتوصلک العروض أول بأول');
         setEmail('');
         setTimeout(() => setMessage(''), 4000);
       } else if (data.alreadySubscribed) {
@@ -66,17 +66,17 @@ export default function Newsletter() {
         setSubscribedEmail(email);
         setNewEmail(email);
         setMessageType('info');
-        setMessage('ℹ️ انت مشترك معانا بالفعل، شكراً لدعمك');
+        setMessage('i انت مشترك معانا بالفعل، شكراً لدعمك');
         setEmail('');
         setTimeout(() => setMessage(''), 3000);
       } else {
         setMessageType('error');
-        setMessage(data.error || '❌ حصل مشكلة، حاول تاني');
+        setMessage(data.error || '✗ حصل مشكلة، حاول تاني');
         setTimeout(() => setMessage(''), 3000);
       }
     } catch (error) {
       setMessageType('error');
-      setMessage('❌ مشكلة في الاتصال، تأكد من النت بتاعك');
+      setMessage('✗ مشكلة في الاتصال، تأكد من النت بتاعك');
       setTimeout(() => setMessage(''), 3000);
     } finally {
       setLoading(false);
@@ -86,7 +86,7 @@ export default function Newsletter() {
   const handleUpdateEmail = async () => {
     if (!newEmail || !newEmail.includes('@')) {
       setMessageType('error');
-      setMessage('❌ البريد الإلكتروني مش صحيح');
+      setMessage('✗ البريد الإلكتروني مش صحيح');
       setTimeout(() => setMessage(''), 3000);
       return;
     }
@@ -106,16 +106,16 @@ export default function Newsletter() {
         setSubscribedEmail(newEmail);
         setIsEditing(false);
         setMessageType('success');
-        setMessage('✅ تم تعديل بريدك بنجاح');
+        setMessage('✓ تم تعديل بريدك بنجاح');
         setTimeout(() => setMessage(''), 3000);
       } else {
         setMessageType('error');
-        setMessage(data.error || '❌ فشل التعديل، حاول تاني');
+        setMessage(data.error || '✗ فشل التعديل، حاول تاني');
         setTimeout(() => setMessage(''), 3000);
       }
     } catch (error) {
       setMessageType('error');
-      setMessage('❌ حصل مشكلة، حاول تاني');
+      setMessage('✗ حصل مشكلة، حاول تاني');
       setTimeout(() => setMessage(''), 3000);
     } finally {
       setLoading(false);
@@ -140,16 +140,16 @@ export default function Newsletter() {
         setNewEmail('');
         setShowUnsubscribeConfirm(false);
         setMessageType('success');
-        setMessage('✅ تم إلغاء الاشتراك. نقدرك وانتظرك في أي وقت');
+        setMessage('✓ تم إلغاء الاشتراك. نقدرك وانتظرك في أي وقت');
         setTimeout(() => setMessage(''), 4000);
       } else {
         setMessageType('error');
-        setMessage(data.error || '❌ فشل إلغاء الاشتراك');
+        setMessage(data.error || '✗ فشل إلغاء الاشتراك');
         setTimeout(() => setMessage(''), 3000);
       }
     } catch (error) {
       setMessageType('error');
-      setMessage('❌ حصل مشكلة، حاول تاني');
+      setMessage('✗ حصل مشكلة، حاول تاني');
       setTimeout(() => setMessage(''), 3000);
     } finally {
       setLoading(false);

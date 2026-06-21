@@ -113,7 +113,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
       if (colors.length > 0 && !item.color) { alert('اختار اللون لكل القطع'); return false; }
       const availableStock = getAvailableStock(product, item.size, item.color);
       if (item.quantity > availableStock) {
-        alert(`⚠️ الكمية المطلوبة (${item.quantity}) للقطعة (مقاس ${item.size}، لون ${getColorName(item.color)}) أكتر من المتاح (${availableStock})`);
+        alert(`! الكمية المطلوبة (${item.quantity}) للقطعة (مقاس ${item.size}، لون ${getColorName(item.color)}) أكتر من المتاح (${availableStock})`);
         return false;
       }
     }
@@ -135,7 +135,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
     if (sizes.length > 0 && !singleSelection.size) { alert('اختار المقاس'); return; }
     if (colors.length > 0 && !singleSelection.color) { alert('اختار اللون'); return; }
     if (singleSelection.quantity > singleAvailableStock) {
-      alert(`⚠️ الكمية المطلوبة (${singleSelection.quantity}) أكتر من المتاح (${singleAvailableStock})`);
+      alert(`! الكمية المطلوبة (${singleSelection.quantity}) أكتر من المتاح (${singleAvailableStock})`);
       return;
     }
     addToCart(product, singleSelection.size || undefined, singleSelection.color || undefined, singleSelection.quantity);
@@ -245,7 +245,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
                         <div className="flex items-center gap-2">
                           <button onClick={() => updateItem(item.id, 'quantity', Math.max(1, item.quantity - 1))} className="w-6 h-6 rounded-full bg-white border border-rose-gold/20 text-black font-bold hover:bg-rose-gold/10">-</button>
                           <span className="w-8 text-center text-sm font-bold text-black">{toArabicNumber(item.quantity)}</span>
-                          <button onClick={() => { const newQ = item.quantity + 1; if (newQ <= itemAvailableStock) updateItem(item.id, 'quantity', newQ); else alert(`⚠️ معندناش غير ${itemAvailableStock} قطعة`); }} className="w-6 h-6 rounded-full bg-white border border-rose-gold/20 text-black font-bold hover:bg-rose-gold/10">+</button>
+                          <button onClick={() => { const newQ = item.quantity + 1; if (newQ <= itemAvailableStock) updateItem(item.id, 'quantity', newQ); else alert(`! معندناش غير ${itemAvailableStock} قطعة`); }} className="w-6 h-6 rounded-full bg-white border border-rose-gold/20 text-black font-bold hover:bg-rose-gold/10">+</button>
                         </div>
                       </div>
                     </motion.div>

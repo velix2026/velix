@@ -2,6 +2,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Metadata } from 'next'
+import { BookOpen, Calendar, Clock } from 'lucide-react'
 import { posts } from '../posts-data'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -95,11 +96,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
-              <span className="text-xs font-bold text-rose-gold bg-rose-gold/10 px-3 py-1 rounded-full">
-                📖 {post.category}
+              <span className="text-xs font-bold text-rose-gold bg-rose-gold/10 px-3 py-1 rounded-full flex items-center gap-1">
+                <BookOpen className="w-3 h-3" /> {post.category}
               </span>
-              <span className="text-xs text-black/40"> {post.date}</span>
-              <span className="text-xs text-black/40"> {post.readTime}</span>
+              <span className="text-xs text-black/40 flex items-center gap-1"><Calendar className="w-3 h-3" /> {post.date}</span>
+              <span className="text-xs text-black/40 flex items-center gap-1"><Clock className="w-3 h-3" /> {post.readTime}</span>
             </div>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-black mb-4">{post.title}</h1>
             <div className="w-20 h-1 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper rounded-full mx-auto" />
@@ -118,7 +119,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
           {relatedPosts.length > 0 && (
             <div className="mt-12 pt-8 border-t border-rose-gold/20">
-              <h3 className="text-xl font-black text-black mb-6 text-center">📚 مقالات تانية ممكن تعجبك</h3>
+              <h3 className="text-xl font-black text-black mb-6 text-center flex items-center justify-center gap-2"><BookOpen className="w-5 h-5" /> مقالات تانية ممكن تعجبك</h3>
               <div className="grid md:grid-cols-3 gap-4">
                 {relatedPosts.map(related => (
                   <Link key={related.slug} href={`/blog/${related.slug}`} className="block bg-white rounded-xl p-4 border border-rose-gold/20 hover:shadow-md transition group">

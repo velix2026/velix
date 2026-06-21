@@ -90,9 +90,9 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           <div className="flex justify-between items-center mb-3">
             <span className="text-sm font-bold text-black">المخزون:</span>
             {totalStock > 0 ? (
-              <span className="text-rose-gold text-sm font-bold">{totalStock <= 10 ? `⚠️ باقي ${toArabicNumber(totalStock)} قطع بس` : '✅ متوفر'}</span>
+              <span className="text-rose-gold text-sm font-bold">{totalStock <= 10 ? `! باقي ${toArabicNumber(totalStock)} قطع بس` : '✓ متوفر'}</span>
             ) : (
-              <span className="text-red-500 text-sm font-bold">❌ خلص</span>
+              <span className="text-red-500 text-sm font-bold">✗ خلص</span>
             )}
           </div>
           {totalStock > 0 && totalStock <= 10 && (

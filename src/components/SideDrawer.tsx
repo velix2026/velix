@@ -117,7 +117,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
       setIsOrderModalOpen(false);
       onClose();
       window.dispatchEvent(new CustomEvent('showToast', {
-        detail: { message: '✅ تم تأكيد طلبك! هنكلمك على واتساب قريب', type: 'success' }
+        detail: { message: '✓ تم تأكيد طلبك! هنكلمك على واتساب قريب', type: 'success' }
       }));
     } catch (error) { console.error('Order submission error:', error); }
   }, [clearCart, onClose]);

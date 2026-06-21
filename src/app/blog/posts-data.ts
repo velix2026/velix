@@ -1,5 +1,126 @@
 // app/blog/posts-data.ts
 export const posts = [
+  // المقالة 17 - ازاي تلبس في عز الحر في مصر
+  {
+    slug: "summer-fashion-tips-egypt",
+    title: "ازاي تلبس في عز الحر في مصر من غير ما تذوب | ٧ نصائح للصيف",
+    excerpt: "عز الحر في مصر تقيل بس ذوقك مش لازم يتأثر. هنقولك ازاي تختار خامات وألوان وقصات تخليك شيك ومنعش في أشد الأيام حراً.",
+    content: `
+      <div class="space-y-8">
+        <div class="bg-rose-gold/5 rounded-2xl p-6 border border-rose-gold/20">
+          <p class="text-lg font-bold text-black/80 leading-relaxed">"الحر في مصر مش طبيعي، مينفعش ألبس حاجة غير فانلة وكلسون" — لا طبعاً، في حلول كتير تخليك شيك ومنعش في نفس الوقت. كل السر في اختيار الخامة واللون المناسب.</p>
+        </div>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">١. القطن المصري هو صديقك الأول</h2>
+        <p>في الصيف، القطن هو أنسب خامة ممكن تلبسها. عكس البوليستر والنايلون اللي بيسخنوا ويمنعوا دخول الهوا، القطن المصري بيدخل هوا وبيمتص العرق وبيبرد جسمك طبيعي. <strong class="text-rose-gold">تيشرتات VELIX القطن المصري</strong> مصنوعة خصيصاً عشان الأجواء الحارة — خامة ناعمة وخفيفة تنفس.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">٢. الألوان الفاتحة مش للجمال بس</h2>
+        <p>الألوان الفاتحة زي الأبيض، البيج، الرمادي الفاتح، والأزرق السماوي مش بس شكلها حلو — هي كمان بتعكس أشعة الشمس بدل ما تمتصها زي الألوان الغامقة. فرق ٥-١٠ درجات مئوية حرفياً بين تيشرت أبيض وتيشرت أسود في الشمس.</p>
+        <ul class="list-none space-y-2">
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>الأبيض:</strong> أفضلها — بيعكس كل حاجة</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>البيج والرمادي الفاتح:</strong> عملية وشيكة</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>الأزرق السماوي:</strong> ريحة الصيف</li>
+        </ul>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">٣. القصات الواسعة مش الأوفر سايز</h2>
+        <p>في الصيف، القصات الواسعة أو الـ Regular Fit أحسن بكتير من الـ Slim Fit الضيقة. القطعة الواسعة بتخلي الهوا يدور حوالين جسمك ويبرده، بينما القطعة الضيقة بتخلي العرق يتجمع. فرق بسيط في المقاس ممكن يغير إحساسك بالحر بشكل كبير.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">٤. شورال قصير ولا بنطلون فضفاض؟</h2>
+        <p>تقدر تلبس شورال قصير مع تيشرت أوفر سايز — دي أريح حاجة في الحر. ولو مش من نوعية اللي يلبسوا شورال، اختار بنطلون قطن أو كتان فضفاض. البنطلون القطن بيخليك شيك وفي نفس時間 مريح. <strong class="text-rose-gold">شروال VELIX الرياضي</strong> مصنوع من قطن ناعم مناسب حتى لأشد أيام الحر.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">٥. الطبقات الخفيفة (Light Layers)</h2>
+        <p>حتى في الصيف، تقدر تلبس طبقتين بس بخامات خفيفة. مثال: تيشرت أبيض قطن + قميص كتان مفتوح من قدام. القميص بتاع الكتان هيديك شكل أنيق، وفي نفس الوقت لما تشيله هتبقى لابس تيشرت شيك تحته.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">٦. اختار أحذية مريحة وجيدة التهوية</h2>
+        <p>الجزمة الجلد أو الرياضي السميك في الصيف بيسخن رجلك جامد. اختار حذاء رياضي خفيف بقماش يسمح بالتهوية، أو حتى شندل جلدي لو المناسبة تسمح. رجلك هتكون شاكرة ليك.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">٧. الأكسسوارات مش حرام في الصيف</h2>
+        <p>نضارة شمسية، كاب أو قبعة، وساعة — دول بيكملوا اللوك بتاعك من غير ما يزودوا حرارة. اختار كاب قطن عشان ما يسخنش راسك، ونضارة شمسية UV protection عشان تحمي عينك.</p>
+
+        <div class="bg-rose-gold/10 rounded-2xl p-6 my-8 text-center border border-rose-gold/20">
+          <p class="text-rose-gold font-black text-lg mb-2">عايز تيشرتات قطن مصري تخليك منعش في الحر؟</p>
+          <p class="text-black/70 font-bold mb-4">تيشرتات VELIX قطن مصري ١٠٠٪ — خفيفة، ناعمة، وبيدخلها هوا. اختار من الألوان الفاتحة اللي تناسبك واطلب دلوقتي وادفع عند الاستلام. شحن لكل مصر.</p>
+          <a href="/collections/tshirts" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">تسوق تيشرتات صيفية من VELIX</a>
+        </div>
+      </div>
+    `,
+    date: "2026-06-21",
+    readTime: "7 دقايق",
+    category: "نصائح",
+    categoryIcon: "",
+    categoryColor: "bg-green-100 text-green-700",
+    imageBg: "from-yellow-100 to-orange-50",
+    tags: ["صيف", "حر", "نصائح", "قطن", "ستايل صيفي"],
+  },
+  // المقالة 16 - ازاي تختار بنطلون جينز
+  {
+    slug: "how-to-choose-jeans-egypt",
+    title: "ازاي تختار بنطلون جينز مناسب لجسمك | دليل كامل 2026",
+    excerpt: "الجينز قطعة أساسية في دولاب أي حد. بس ازاي تختار المقاس واللون والقص اللي يناسب جسمك؟ دليل شامل لاختيار البنطلون الجينز المثالي.",
+    content: `
+      <div class="space-y-8">
+        <div class="bg-rose-gold/5 rounded-2xl p-6 border border-rose-gold/20">
+          <p class="text-lg font-bold text-black/80 leading-relaxed">"الجينز ده أنا شكلي فيه وحش" — يمكن المش مش فيك، المش في اختيارك. الجينز المناسب لجسمك بيغير شكلك ١٨٠ درجة. في المقال ده هنعلمك ازاي تختار الجينز اللي يليق عليك.</p>
+        </div>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">١. اعرف شكل جسمك</h2>
+        <p>أول خطوة في اختيار الجينز المناسب — تعرف شكل جسمك:</p>
+        <ul class="list-none space-y-2">
+          <li class="flex items-start gap-2"><span class="text-rose-gold">●</span> <strong>جسم رياضي (مثلث مقلوب):</strong> أكتاف عريضة وخصر ضيق — اختار Slim Fit أو Regular Fit</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">●</span> <strong>جسم نحيف (مستطيل):</strong> أكتاف وخصر متقاربين — الـ Skinny Fit أو Slim Fit هيدوك شكل ممشوق</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">●</span> <strong>جسم ممتليء (بيضاوي):</strong> الـ Regular Fit أو Straight Cut الأفضل — بيوازن الشكل ومش ضيق</li>
+        </ul>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">٢. اختار القصة (Cut) الصح</h2>
+        <ul class="list-none space-y-2">
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>Slim Fit:</strong> ضيق من الفخذ للكاحل — يناسب الأجسام الرياضية والنحيفة</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>Regular Fit:</strong> كلاسيكي، مش ضيق مش واسع — يناسب أي جسم</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>Straight Cut:</strong> واسع شوية وقصته مستقيمة — يناسب الأجسام الممتلية</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>Bootcut:</strong> واسع من تحت — للشباب اللي بيلبسوا جزمة أو حذاء عريض</li>
+        </ul>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">٣. اختار اللون المناسب</h2>
+        <ul class="list-none space-y-2">
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>كحلي غامق:</strong> الأكثر عملية — يناسب الشغل والخروجات والجامعة</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>رمادي:</strong> أنيق وحديث — يناسب التيشرتات البيضاء والسودا</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>أسود:</strong> رسمي شوية — يناسب اللوكات الليلية</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>بني فاتح:</strong> للكاجوال — يناسب الألوان الترابية</li>
+        </ul>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">٤. المقاس الصح بيفرق</h2>
+        <p>الجينز مش لازم يكون ضيق على خصرك ولا واسع أوي. المقاس الصح هو اللي تقدر تدخل صباعين ايدك في الخصر من غير ما يكون فضفاض. طول البنطلون يكون مناسب — مش يجر على الأرض ولا يبان قصير. وطول الكسر (Inseam) يبقى مناسب لطول رجلك.</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">٥. خامة الدنيم (الخامة)</h2>
+        <p>في نوعين أساسيين من الدنيم:</p>
+        <ul class="list-none space-y-2">
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>الدنيم الصلب (Raw Denim):</strong> متين وعمره طويل، بس محتاج فترة عشان يتليّن</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">✓</span> <strong>الدنيم المخلوط (Stretch Denim):</strong> فيه إيلاستين، مريح أكتر ومن أول مرة</li>
+        </ul>
+        <p>لو عايز بنطلون شيك ومريح من أول مرة، اختار الدنيم المخلوط بنسبة قطن عالية (٩٨٪ قطن + ٢٪ إيلاستين).</p>
+
+        <h2 class="text-2xl md:text-3xl font-black text-black mb-4">٦. ازاي تنسق الجينز مع لبسك</h2>
+        <ul class="list-none space-y-2">
+          <li class="flex items-start gap-2"><span class="text-rose-gold">●</span> الجينز الكحلي + تيشرت أبيض + حذاء رياضي = لوك يومي جامد</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">●</span> الجينز الأسود + تيشرت أسود أو رمادي + جاكيت جينز = لوك ستريت وير</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">●</span> الجينز الرمادي + تيشرت بيج أو أزرق سماوي + كوتشي = لوك صيفي منعش</li>
+          <li class="flex items-start gap-2"><span class="text-rose-gold">●</span> الجينز البني + هودي أبيض + بوت = لوك شتوي</li>
+        </ul>
+
+        <div class="bg-rose-gold/10 rounded-2xl p-6 my-8 text-center border border-rose-gold/20">
+          <p class="text-rose-gold font-black text-lg mb-2">عايز تيشرت يظبط مع الجينز بتاعك؟</p>
+          <p class="text-black/70 font-bold mb-4">تيشرتات VELIX القطن المصري تناسب أي بنطلون جينز. ألوان محايدة تناسب كل الألوان وتنسيقات. اطلب وادفع عند الاستلام — شحن لكل مصر.</p>
+          <a href="/collections/tshirts" class="inline-block bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition">اشتري تيشرت يناسب جينزك</a>
+        </div>
+      </div>
+    `,
+    date: "2026-06-21",
+    readTime: "8 دقايق",
+    category: "ستايل",
+    categoryIcon: "",
+    categoryColor: "bg-pink-100 text-pink-700",
+    imageBg: "from-blue-100 to-indigo-50",
+    tags: ["جينز", "بنطلون", "مقاسات", "ستايل", "تنسيق"],
+  },
   // المقالة 15 - ازاي تبقى شيك بميزانية محدودة
   {
     slug: "stylish-on-budget-egypt",

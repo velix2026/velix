@@ -139,7 +139,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
       const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData) });
       const data = await res.json();
       if (res.ok) {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: `✅ تم استلام طلبك! رقم الطلب: ${data.orderId} - هنتواصل معاك قريب`, type: 'success' } }));
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: `✓ تم استلام طلبك! رقم الطلب: ${data.orderId} - هنتواصل معاك قريب`, type: 'success' } }));
         onSubmit(orderData);
         localStorage.removeItem('cart');
         localStorage.removeItem('tempOrderData');
@@ -183,7 +183,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
         } catch (err) { console.error('GA purchase error:', err); }
       } else throw new Error(data.error || 'فشل إرسال الطلب');
     } catch (error) {
-      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: '❌ حصل مشكلة، حاول تاني', type: 'error' } }));
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: '✗ حصل مشكلة، حاول تاني', type: 'error' } }));
     } finally { setLoading(false); }
   };
 

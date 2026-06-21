@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Mail } from 'lucide-react';
 
 interface NewsletterModalProps {
   isOpen: boolean;
@@ -60,7 +61,7 @@ export default function NewsletterModal({ isOpen, onClose }: NewsletterModalProp
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setMessageType('error');
-      setMessage('❌ البريد الإلكتروني مش صحيح، حاول تاني');
+      setMessage('✗ البريد الإلكتروني مش صحيح، حاول تاني');
       setTimeout(() => setMessage(''), 3000);
       return;
     }
@@ -83,7 +84,7 @@ export default function NewsletterModal({ isOpen, onClose }: NewsletterModalProp
         setSubscribedEmail(email);
         setNewEmail(email);
         setMessageType('success');
-        setMessage(data.reactivated ? '✅ مرحبا بعودتك! تم تفعيل اشتراكك تاني' : '✅ اشتركت معانا! هتوصلک العروض أول بأول');
+        setMessage(data.reactivated ? '✓ مرحبا بعودتك! تم تفعيل اشتراكك تاني' : '✓ اشتركت معانا! هتوصلک العروض أول بأول');
         setEmail('');
         setTimeout(() => {
           setMessage('');
@@ -103,12 +104,12 @@ export default function NewsletterModal({ isOpen, onClose }: NewsletterModalProp
         }, 2000);
       } else {
         setMessageType('error');
-        setMessage(data.error || '❌ حصل مشكلة، حاول تاني');
+        setMessage(data.error || '✗ حصل مشكلة، حاول تاني');
         setTimeout(() => setMessage(''), 3000);
       }
     } catch (error) {
       setMessageType('error');
-      setMessage('❌ مشكلة في الاتصال، تأكد من النت بتاعك');
+      setMessage('✗ مشكلة في الاتصال، تأكد من النت بتاعك');
       setTimeout(() => setMessage(''), 3000);
     } finally {
       setLoading(false);
@@ -118,7 +119,7 @@ export default function NewsletterModal({ isOpen, onClose }: NewsletterModalProp
   const handleUpdateEmail = async () => {
     if (!newEmail || !newEmail.includes('@')) {
       setMessageType('error');
-      setMessage('❌ البريد الإلكتروني مش صحيح');
+      setMessage('✗ البريد الإلكتروني مش صحيح');
       setTimeout(() => setMessage(''), 3000);
       return;
     }
@@ -138,19 +139,19 @@ export default function NewsletterModal({ isOpen, onClose }: NewsletterModalProp
         setSubscribedEmail(newEmail);
         setIsEditing(false);
         setMessageType('success');
-        setMessage('✅ تم تعديل بريدك بنجاح');
+        setMessage('✓ تم تعديل بريدك بنجاح');
         setTimeout(() => {
           setMessage('');
           onClose();
         }, 1500);
       } else {
         setMessageType('error');
-        setMessage(data.error || '❌ فشل التعديل، حاول تاني');
+        setMessage(data.error || '✗ فشل التعديل، حاول تاني');
         setTimeout(() => setMessage(''), 3000);
       }
     } catch (error) {
       setMessageType('error');
-      setMessage('❌ حصل مشكلة، حاول تاني');
+      setMessage('✗ حصل مشكلة، حاول تاني');
       setTimeout(() => setMessage(''), 3000);
     } finally {
       setLoading(false);
@@ -175,19 +176,19 @@ export default function NewsletterModal({ isOpen, onClose }: NewsletterModalProp
         setNewEmail('');
         setShowUnsubscribeConfirm(false);
         setMessageType('success');
-        setMessage('✅ تم إلغاء الاشتراك. نقدرك وانتظرك في أي وقت');
+        setMessage('✓ تم إلغاء الاشتراك. نقدرك وانتظرك في أي وقت');
         setTimeout(() => {
           setMessage('');
           onClose();
         }, 1500);
       } else {
         setMessageType('error');
-        setMessage(data.error || '❌ فشل إلغاء الاشتراك');
+        setMessage(data.error || '✗ فشل إلغاء الاشتراك');
         setTimeout(() => setMessage(''), 3000);
       }
     } catch (error) {
       setMessageType('error');
-      setMessage('❌ حصل مشكلة، حاول تاني');
+      setMessage('✗ حصل مشكلة، حاول تاني');
       setTimeout(() => setMessage(''), 3000);
     } finally {
       setLoading(false);
@@ -337,7 +338,7 @@ export default function NewsletterModal({ isOpen, onClose }: NewsletterModalProp
                 ) : (
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-2 mb-4">
-                      <span className="text-5xl">✉️</span>
+                      <Mail className="w-12 h-12 text-rose-gold" />
                     </div>
                     <h3 className="text-xl font-black text-black mb-2">اشترك في النشرة البريدية</h3>
                     <p className="text-black/60 text-sm mb-6">
