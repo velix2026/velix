@@ -101,6 +101,24 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
 
   const handleOrder = (selection: { size: string; color: string; quantity: number }) => {
     setOrderSelection(selection);
+    const tempOrder = {
+      items: [{
+        id: product.id,
+        slug: product.slug,
+        name: product.name,
+        price: product.price,
+        oldPrice: product.oldPrice,
+        mainImage: product.mainImage,
+        quantityDiscount: product.quantityDiscount,
+        variations: [{
+          variationId: `${product.slug}-${selection.size}-${selection.color}`,
+          size: selection.size,
+          color: selection.color,
+          quantity: selection.quantity,
+        }],
+      }],
+    };
+    localStorage.setItem('tempOrderData', JSON.stringify(tempOrder));
     setIsOrderModalOpen(true);
   };
 
