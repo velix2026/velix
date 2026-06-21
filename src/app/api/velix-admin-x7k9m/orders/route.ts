@@ -4,16 +4,11 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 
+import { checkAdminAuth } from '@/lib/admin-auth';
+
 export async function GET(request: NextRequest) {
   try {
-    // التحقق من صلاحيات الأدمن
-    const authHeader = request.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
-    
-    console.log('🔍 GET /api/admin/orders - auth header:', authHeader);
-    
-    if (authHeader !== `Bearer ${adminPassword}`) {
-      console.log('🔒 Unauthorized - wrong password');
+    if (!await checkAdminAuth(request)) {
       return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
     }
 

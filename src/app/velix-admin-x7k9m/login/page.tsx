@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, CSSProperties } from 'react';
+import { useState, useEffect, CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,7 +8,13 @@ import { motion } from 'framer-motion';
 
 const ADMIN_SECRET_PATH = process.env.NEXT_PUBLIC_ADMIN_SECRET_PATH || 'velix-admin-x7k9m';
 
+const ACCOUNTS = [
+  { id: 'admin', username: 'admin', label: 'Admin', icon: '★' },
+  { id: 'manager', username: 'manager', label: 'Manager', icon: '◆' },
+];
+
 export default function AdminLoginPage() {
+  const [selectedAccount, setSelectedAccount] = useState('admin');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -16,11 +22,16 @@ export default function AdminLoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const auth = sessionStorage.getItem('adminAuth');
-    if (auth === 'true') {
-      router.push(`/${ADMIN_SECRET_PATH}`);
-    }
+    checkSession();
   }, [router]);
+
+  async function checkSession() {
+    try {
+      const res = await fetch(`/api/${ADMIN_SECRET_PATH}/verify-session`);
+      const data = await res.json();
+      if (data.authenticated) router.push(`/${ADMIN_SECRET_PATH}`);
+    } catch {}
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,53 +39,35 @@ export default function AdminLoginPage() {
     setError('');
 
     try {
-      const res = await fetch(`/api/${ADMIN_SECRET_PATH}/verify`, {
+      const res = await fetch(`/api/${ADMIN_SECRET_PATH}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username: selectedAccount, password }),
       });
 
       const data = await res.json();
-
       if (res.ok && data.success) {
-        sessionStorage.setItem('adminAuth', 'true');
-        sessionStorage.setItem('adminLoginTime', Date.now().toString());
-        document.cookie = `adminAuth=true; path=/; max-age=3600; SameSite=Strict`;
+        sessionStorage.setItem('adminUser', JSON.stringify(data.user));
         router.push(`/${ADMIN_SECRET_PATH}`);
       } else {
-        setError('كلمة المرور غير صحيحة');
+        setError(data.error || 'بيانات الدخول غلط');
       }
     } catch {
-      setError('حدث خطأ، حاول مرة أخرى');
+      setError('حصل مشكلة، حاول تاني');
     } finally {
       setLoading(false);
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
   return (
     <div className="min-h-screen bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] flex items-center justify-center p-4">
-      <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
+      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         <div className="bg-white rounded-3xl shadow-2xl border border-rose-gold/20 overflow-hidden">
           <div className="h-1 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper" />
           
           <div className="px-8 pt-12 pb-6 text-center">
             <div className="relative w-20 h-20 mx-auto mb-4">
-              <Image 
-                src="/images/logo.png" 
-                alt="VELIX" 
-                fill 
-                className="object-contain" 
-                priority
-                sizes="80px"
-              />
+              <Image src="/images/logo.png" alt="VELIX" fill className="object-contain" priority sizes="80px" />
             </div>
             <h1 className="text-2xl font-black text-black">VELIX</h1>
             <div className="w-12 h-0.5 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper mx-auto mt-3 mb-3" />
@@ -82,6 +75,23 @@ export default function AdminLoginPage() {
           </div>
           
           <div className="px-8 pb-8">
+            <div className="flex gap-2 mb-6">
+              {ACCOUNTS.map(acc => (
+                <button
+                  key={acc.id}
+                  onClick={() => setSelectedAccount(acc.username)}
+                  className={`flex-1 p-3 rounded-2xl text-center font-bold transition border-2 ${
+                    selectedAccount === acc.username
+                      ? 'bg-rose-gold text-white border-rose-gold shadow-md'
+                      : 'bg-[#FDF8F5] text-black/60 border-transparent hover:border-rose-gold/20'
+                  }`}
+                >
+                  <span className="text-lg block">{acc.icon}</span>
+                  <span className="text-sm">{acc.label}</span>
+                </button>
+              ))}
+            </div>
+
             <form onSubmit={handleSubmit}>
               <div className="mb-6">
                 <label className="flex text-xs font-black text-black uppercase tracking-wider mb-2 items-center gap-2">
@@ -91,7 +101,6 @@ export default function AdminLoginPage() {
                   كلمة المرور
                 </label>
                 <div className="relative">
-                  {/* ✅ الحقل دايمًا type="text" عشان منع زر العين بتاع المتصفح */}
                   <input
                     type="text"
                     value={password}
@@ -101,9 +110,6 @@ export default function AdminLoginPage() {
                     required
                     autoFocus
                     autoComplete="off"
-                    autoCapitalize="off"
-                    spellCheck="false"
-                    data-form-type="other"
                     style={{
                       WebkitTextSecurity: showPassword ? 'none' : 'disc',
                       textSecurity: showPassword ? 'none' : 'disc',
@@ -111,15 +117,14 @@ export default function AdminLoginPage() {
                   />
                   <button
                     type="button"
-                    onClick={togglePasswordVisibility}
+                    onClick={() => setShowPassword(!showPassword)}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-rose-gold transition z-10"
-                    aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                    aria-label={showPassword ? 'إخفاء' : 'إظهار'}
                   >
                     {showPassword ? (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
                       </svg>
                     ) : (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,29 +137,21 @@ export default function AdminLoginPage() {
               </div>
               
               {error && (
-                <motion.div 
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="mb-6 p-3 bg-red-50 border border-red-200 text-red-500 rounded-xl text-sm text-center font-bold"
-                >
+                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+                  className="mb-6 p-3 bg-red-50 border border-red-200 text-red-500 rounded-xl text-sm text-center font-bold">
                   {error}
                 </motion.div>
               )}
               
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white py-4 rounded-2xl disabled:opacity-50 font-black shadow-lg hover:shadow-rose-gold/30 transition"
-              >
+              <button type="submit" disabled={loading}
+                className="w-full bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white py-4 rounded-2xl disabled:opacity-50 font-black shadow-lg hover:shadow-rose-gold/30 transition">
                 {loading ? 'جاري التحقق...' : 'دخول'}
               </button>
             </form>
           </div>
           
           <div className="px-8 pb-10 text-center border-t border-rose-gold/20 pt-6">
-            <Link href="/" className="text-sm font-bold text-black/40 hover:text-rose-gold transition">
-              العودة للمتجر
-            </Link>
+            <Link href="/" className="text-sm font-bold text-black/40 hover:text-rose-gold transition">العودة للمتجر</Link>
           </div>
         </div>
       </motion.div>
