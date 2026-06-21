@@ -2,7 +2,15 @@ import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import bcrypt from 'bcryptjs';
 
+export async function GET() {
+  return runSetup();
+}
+
 export async function POST() {
+  return runSetup();
+}
+
+async function runSetup() {
   try {
     const migration = `
       CREATE TABLE IF NOT EXISTS admin_users (
