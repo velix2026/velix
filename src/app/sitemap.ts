@@ -8,8 +8,15 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 export const revalidate = 0;
 
+const INDEXNOW_KEY = '17f14e12a20f409db338c6c3de08161b';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://velix-eg.store';
+
+  // Ping IndexNow to notify Bing of content changes
+  try {
+    fetch(`https://indexnow.bing.com/indexnow?url=${baseUrl}/sitemap.xml&key=${INDEXNOW_KEY}`, { method: 'GET' });
+  } catch {} // fire-and-forget
   
   // ============================================
   // 1. الصفحات الثابتة
