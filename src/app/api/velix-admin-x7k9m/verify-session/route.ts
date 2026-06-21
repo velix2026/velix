@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         await sql.query(`DELETE FROM admin_sessions WHERE token = $1`, [token]);
       }
       const response = NextResponse.json({ success: true });
-      response.cookies.set('admin_token', '', { maxAge: 0, path: '/velix-admin-x7k9m' });
+      response.cookies.set('admin_token', '', { maxAge: 0, path: '/' });
       return response;
     }
   } catch {}

@@ -66,9 +66,9 @@ export async function POST(request: NextRequest) {
     response.cookies.set('admin_token', token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
-      path: '/velix-admin-x7k9m',
-      maxAge: 86400 // 24 hours
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 86400
     });
 
     return response;
