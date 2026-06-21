@@ -1,0 +1,65 @@
+# VELIX | لبس ولاد البلد
+> دليل المحتوى للمساعدين الذكيين (LLMs)
+> هذا الملف يساعد نماذج اللغة على فهم وتصفح موقع VELIX
+
+## عن الموقع
+VELIX (فيلكس) - براند ملابس مصري للشباب. بنقدم تيشرتات، هوديز، شروال، وجواكت قطن مصري 100%.
+السوق المستهدف: مصر. اللغة: العربية (اللهجة المصرية).
+شحن لكل مصر، دفع عند الاستلام، استبدال مجاني 14 يوم.
+
+## الصفحات الأساسية
+- الصفحة الرئيسية: https://velix-eg.store
+- المنتجات: https://velix-eg.store/products
+- المدونة: https://velix-eg.store/blog
+- عن VELIX: https://velix-eg.store/about
+- اتصل بنا: https://velix-eg.store/contact
+- الأسئلة الشائعة: https://velix-eg.store/faq
+
+## الأقسام
+- تيشرتات: https://velix-eg.store/collections/tshirts
+- هوديز: https://velix-eg.store/collections/hoodies
+- شروال: https://velix-eg.store/collections/pants
+- جينز: https://velix-eg.store/collections/jeans
+- جواكت: https://velix-eg.store/collections/jackets
+- شوزات: https://velix-eg.store/collections/shoes
+- اكسسوارات: https://velix-eg.store/collections/accessories
+
+## المقالات (المدونة)
+- دليل المقاسات الكامل: https://velix-eg.store/blog/complete-size-guide
+- ازاي تختار التيشرت المناسب: https://velix-eg.store/blog/how-to-choose-right-tshirt
+- دليل مقاسات الهوديز: https://velix-eg.store/blog/hoodie-size-guide
+- ازاي تحافظ على ملابسك: https://velix-eg.store/blog/how-to-care-for-clothes
+- الفرق بين القطن المصري والعادي: https://velix-eg.store/blog/egyptian-cotton-vs-regular
+- ستريت وير مصري: https://velix-eg.store/blog/egyptian-streetwear-style
+- أنواع الأقمشة: https://velix-eg.store/blog/fabric-types-guide
+- ازاي تغسل الهودي والتيشرت: https://velix-eg.store/blog/how-to-wash-hoodie-tshirt
+- دليل هدايا الملابس: https://velix-eg.store/blog/clothing-gift-guide
+- نصائح التسوق أونلاين في مصر: https://velix-eg.store/blog/online-shopping-tips-egypt
+- ازاي تزيل البقع: https://velix-eg.store/blog/remove-stains-from-clothes
+- دليل الألوان حسب البشرة: https://velix-eg.store/blog/colors-for-skin-tone
+- دليل المقاسات للمبتدئين: https://velix-eg.store/blog/size-guide-for-beginners
+- ازاي تبقى شيك بميزانية محدودة: https://velix-eg.store/blog/stylish-on-budget-egypt
+- الأصلي vs التقليد: https://velix-eg.store/blog/original-vs-fake-clothes-egypt
+
+## API
+- جميع المنتجات (JSON): https://velix-eg.store/api/products
+- Google Merchant Feed (XML): https://velix-eg.store/api/products/feed
+- خريطة الموقع: https://velix-eg.store/sitemap.xml
+
+## السياسات
+- سياسة الشحن: https://velix-eg.store/shipping
+- سياسة الاستبدال والاسترجاع: https://velix-eg.store/returns
+- سياسة الخصوصية: https://velix-eg.store/privacy
+- شروط الاستخدام: https://velix-eg.store/terms
+
+## معلومات الاتصال
+- واتساب: https://wa.me/201500125133
+- إنستجرام: https://instagram.com/velixstore.eg
+- فيسبوك: https://facebook.com/velixstore.eg
+- تيك توك: https://tiktok.com/@velixstore.eg
+
+## ملاحظات
+- المحتوى بالعربية (لهجة مصرية)
+- الأسعار بالجنيه المصري (EGP)
+- الشحن: 30 ج.م (مجاني للطلبات فوق 1000 ج.م)
+- الدفع: كاش عند الاستلام

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "أنواع الأقمشة الكامل | دليل اختيار القماش المناسب لكل فصل",
     description: "دليل شامل لأنواع الأقمشة: قطن، بوليستر، صوف، حرير، دنيم. مميزات وعيوب كل نوع. ازاي تختار القماش المناسب للصيف والشتاء.",
-    url: "https://velix-eg.store/blog/%D8%A7%D9%86%D9%88%D8%A7%D8%B9-%D8%A7%D9%84%D8%A7%D9%82%D9%85%D8%B4%D8%A9-%D9%88%D8%AF%D9%84%D9%8A%D9%84-%D8%A7%D8%AE%D8%AA%D9%8A%D8%A7%D8%B1%D9%87%D8%A7",
+    url: "https://velix-eg.store/blog/fabric-types-guide",
     type: "article",
     publishedTime: "2026-04-15",
     images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: "VELIX - أنواع الأقمشة ودليل اختيارها" }],
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     images: ["/images/og-image.png"],
   },
   alternates: {
-    canonical: "https://velix-eg.store/blog/انواع-الأقمشة-ودليل-اختيارها",
+    canonical: "https://velix-eg.store/blog/fabric-types-guide",
   },
 }
 

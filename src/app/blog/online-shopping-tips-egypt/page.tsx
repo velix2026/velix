@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "نصائح التسوق أونلاين في مصر | ازاي تشتري من النت من غير وجع دماغ",
     description: "دليل كامل للتسوق أونلاين في مصر. ازاي تتأكد من جودة المنتج، ازاي تختار المقاس، وايه حقوقك كعميل.",
-    url: "https://velix-eg.store/blog/%D9%86%D8%B5%D8%A7%D8%A6%D8%AD-%D9%84%D9%84%D8%AA%D8%B3%D9%88%D9%82-%D8%A7%D9%88%D9%86%D9%84%D8%A7%D9%8A%D9%86-%D9%81%D9%8A-%D9%85%D8%B5%D8%B1",
+    url: "https://velix-eg.store/blog/online-shopping-tips-egypt",
     type: "article",
     publishedTime: "2026-04-15",
     images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: "VELIX - نصائح التسوق أونلاين في مصر" }],
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     images: ["/images/og-image.png"],
   },
   alternates: {
-    canonical: "https://velix-eg.store/blog/نصائح-للتسوق-اونلاين-في-مصر",
+    canonical: "https://velix-eg.store/blog/online-shopping-tips-egypt",
   },
 }
 

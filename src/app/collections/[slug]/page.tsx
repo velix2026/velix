@@ -28,7 +28,25 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${category.name} | VELIX`,
     description: category.description,
-    keywords: [`${category.name}`, 'ملابس مصرية', 'VELIX', 'تسوق أونلاين'],
+    keywords: [`${category.name}`, 'ملابس مصرية', 'VELIX', 'تسوق أونلاين', 'لبس ولاد البلد'],
+    alternates: {
+      canonical: `https://velix-eg.store/collections/${category.slug}`,
+    },
+    openGraph: {
+      title: `${category.name} | VELIX`,
+      description: category.description,
+      url: `https://velix-eg.store/collections/${category.slug}`,
+      siteName: "VELIX",
+      locale: "ar_EG",
+      type: "website",
+      images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: `${category.name} - VELIX` }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${category.name} | VELIX`,
+      description: category.description,
+      images: ["/images/og-image.png"],
+    },
   };
 }
 

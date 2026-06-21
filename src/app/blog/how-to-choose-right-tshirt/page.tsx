@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "ازاي تختار التيشرت المناسب ليك؟ دليل كامل",
     description: "دليل شامل لاختيار التيشرت المناسب حسب شكل جسمك ولون بشرتك والمناسبة. نصائح من VELIX عشان تبقى شيك دايماً.",
-    url: "https://velix-eg.store/blog/%D8%A7%D8%B2%D8%A7%D9%8A-%D8%AA%D8%AE%D8%AA%D8%A7%D8%B1-%D8%A7%D9%84%D8%AA%D9%8A%D8%B4%D8%B1%D8%AA-%D8%A7%D9%84%D9%85%D9%86%D8%A7%D8%B3%D8%A8",
+    url: "https://velix-eg.store/blog/how-to-choose-right-tshirt",
     type: "article",
     publishedTime: "2026-04-15",
     images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: "VELIX - ازاي تختار التيشرت المناسب" }],
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     images: ["/images/og-image.png"],
   },
   alternates: {
-    canonical: "https://velix-eg.store/blog/ازاي-تختار-التيشرت-المناسب",
+    canonical: "https://velix-eg.store/blog/how-to-choose-right-tshirt",
   },
 }
 

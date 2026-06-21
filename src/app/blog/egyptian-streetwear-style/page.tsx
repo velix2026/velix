@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "ازاي تنسق الستريت وير المصري؟ 5 ستايلات جامدة",
     description: "دليل تنسيق الستريت وير المصري. 5 ستايلات مختلفة تناسب الشباب المصري، ازاي تختار القطع، وايه اللي يناسب جسمك.",
-    url: "https://velix-eg.store/blog/%D8%A7%D8%B2%D8%A7%D9%8A-%D8%AA%D9%86%D8%B3%D9%82-%D8%A7%D9%84%D8%B3%D8%AA%D8%B1%D9%8A%D8%AA-%D9%88%D9%8A%D8%B1-%D8%A7%D9%84%D9%85%D8%B5%D8%B1%D9%8A",
+    url: "https://velix-eg.store/blog/egyptian-streetwear-style",
     type: "article",
     publishedTime: "2026-04-15",
     images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: "VELIX - ازاي تنسق الستريت وير المصري" }],
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     images: ["/images/og-image.png"],
   },
   alternates: {
-    canonical: "https://velix-eg.store/blog/ازاي-تنسق-الستريت-وير-المصري",
+    canonical: "https://velix-eg.store/blog/egyptian-streetwear-style",
   },
 }
 

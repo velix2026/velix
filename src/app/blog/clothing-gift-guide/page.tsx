@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "ازاي تختار هدية من الملابس لحد بتحبه؟ دليل الهدايا المثالية",
     description: "دليل كامل لاختيار هدية من الملابس لأي مناسبة. ازاي تعرف المقاس، ازاي تختار اللون، وأفضل أفكار هدايا.",
-    url: "https://velix-eg.store/blog/ازاي-تختار-هدية-من-الملابس",
+    url: "https://velix-eg.store/blog/clothing-gift-guide",
     type: "article",
     publishedTime: "2026-04-12",
     images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: "VELIX - دليل الهدايا" }],
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     images: ["/images/og-image.png"],
   },
   alternates: {
-    canonical: "https://velix-eg.store/blog/ازاي-تختار-هدية-من-الملابس",
+    canonical: "https://velix-eg.store/blog/clothing-gift-guide",
   },
 }
 

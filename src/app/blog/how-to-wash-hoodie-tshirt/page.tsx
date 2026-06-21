@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "ازاي تغسل الهودي والتيشرت عشان يفضلوا زي الجديد",
     description: "دليل كامل لغسيل الهوديز والتيشرتات. ازاي تغسل، ازاي تنشف، ازاي تكوي عشان ملابسك تفضل زي الجديدة.",
-    url: "https://velix-eg.store/blog/%D8%A7%D8%B2%D8%A7%D9%8A-%D8%AA%D8%BA%D8%B3%D9%84-%D8%A7%D9%84%D9%87%D9%88%D8%AF%D9%8A-%D9%88%D8%A7%D9%84%D8%AA%D9%8A%D8%B4%D8%B1%D8%AA",
+    url: "https://velix-eg.store/blog/how-to-wash-hoodie-tshirt",
     type: "article",
     publishedTime: "2026-04-15",
     images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: "VELIX - ازاي تغسل الهودي والتيشرت" }],
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     images: ["/images/og-image.png"],
   },
   alternates: {
-    canonical: "https://velix-eg.store/blog/ازاي-تغسل-الهودي-والتيشرت",
+    canonical: "https://velix-eg.store/blog/how-to-wash-hoodie-tshirt",
   },
 }
 

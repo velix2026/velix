@@ -70,6 +70,16 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://facebook.com" />
         <link rel="dns-prefetch" href="https://tiktok.com" />
 
+        {/* Social Meta Tags — سجل في Facebook Developers عشان تاخد App ID */}
+        <meta property="fb:app_id" content="" />
+        <meta name="twitter:site" content="@velixstore" />
+        <meta name="twitter:creator" content="@velixstore" />
+
+        {/* AI Platform Verification — سجل في كل منصة وهات verification code */}
+        <meta name="chatgpt-site-verification" content="" />
+        <meta name="msvalidate.01" content="" />
+        <meta name="google-site-verification" content="" />
+
         {/* ✅ Schema 1: Website - عشان جوجل تعرف اسم الموقع */}
         <script
           type="application/ld+json"

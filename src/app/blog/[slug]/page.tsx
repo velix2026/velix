@@ -16,12 +16,26 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `${post.title} | VELIX مدونة`,
     description: post.excerpt,
     keywords: [...post.tags, post.category],
+    alternates: {
+      canonical: `https://velix-eg.store/blog/${post.slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt,
       url: `https://velix-eg.store/blog/${post.slug}`,
+      siteName: "VELIX",
+      locale: "ar_EG",
       type: "article",
       publishedTime: post.date,
+      modifiedTime: post.date,
+      images: [{ url: "/images/og-image.png", width: 1200, height: 630, alt: post.title }],
+      authors: ["VELIX"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt,
+      images: ["/images/og-image.png"],
     },
   }
 }
