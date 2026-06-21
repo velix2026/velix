@@ -75,8 +75,8 @@ export default function RootLayout({
         <meta name="twitter:site" content="@velixstore" />
         <meta name="twitter:creator" content="@velixstore" />
 
-        {/* AI Platform Verification — سجل في كل منصة وهات verification code */}
-        <meta name="chatgpt-site-verification" content="" />
+        {/* ChatGPT Search Verification */}
+        <meta name="openai-domain-verification" content="dv-Nra9mNCXVFSVO1P6qZX1VhJG" />
         <meta name="msvalidate.01" content="" />
         <meta name="google-site-verification" content="" />
 
