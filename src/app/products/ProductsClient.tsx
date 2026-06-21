@@ -76,7 +76,7 @@ const BestSellerBadge = () => (
     <div className="relative">
       <div className="absolute inset-0 bg-rose-gold rounded-full blur-md animate-pulse" />
       <div className="relative bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
-        <span>⭐</span> الأكثر مبيعاً
+        <span>★</span> الأكثر مبيعاً
       </div>
     </div>
   </div>
@@ -91,7 +91,7 @@ const allCategories = [
   { id: 'جينز', name: 'جينز', image: '/images/jeans-category.png', order: 4 },
   { id: 'جواكت', name: 'جواكت', image: '/images/jacket-category.png', order: 5 },
   { id: 'شوزات', name: 'شوزات', image: '/images/shoes-category.png', order: 6 },
-  { id: 'اكسسوارات', name: '✨ أكسسوارات VELIX', image: '/images/accessories-category.png', order: 7 },
+  { id: 'اكسسوارات', name: 'أكسسوارات VELIX', image: '/images/accessories-category.png', order: 7 },
 ];
 
 const sortOptions = [
@@ -279,7 +279,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
           >
             <div className="text-center mb-8">
               <h2 className="text-2xl md:text-3xl font-bold text-black flex items-center justify-center gap-2">
-                <span className="text-2xl animate-pulse text-rose-gold">⭐</span>
+                <span className="text-2xl animate-pulse text-rose-gold">★</span>
                 الأكثر مبيعاً
               </h2>
               <div className="w-16 h-0.5 bg-rose-gold/30 mx-auto mt-3 mb-4" />
@@ -435,7 +435,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
             </AutoGrid>
           ) : (
             <div className="text-center py-16">
-              <div className="text-5xl mb-4">🔍</div>
+              <div className="text-5xl mb-4">!</div>
               <h3 className="text-xl font-bold text-black mb-2">{searchQuery ? 'مفيش نتائج' : 'مفيش منتجات'}</h3>
               <p className="text-black/60 mb-4">{searchQuery ? `مفيش منتجات تطابق "${searchQuery}"` : 'مفيش منتجات في التصنيف ده حالياً'}</p>
               {(searchQuery || selectedCategory !== 'all') && (
@@ -452,6 +452,26 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
 
         {/* Load More Trigger */}
         {hasMore && <div ref={loadMoreRef} className="h-10" />}
+
+        {/* SEO Content Section */}
+        <div className="mt-16 pt-8 border-t border-rose-gold/20">
+          <div className="max-w-4xl mx-auto space-y-6">
+            <h2 className="text-2xl md:text-3xl font-bold text-black text-center">اشترى ملابس أونلاين في مصر — VELIX | لبس ولاد البلد</h2>
+            <div className="w-16 h-0.5 bg-rose-gold/30 mx-auto" />
+            <p className="text-black/70 font-bold leading-relaxed">
+              VELIX هو براند ملابس مصري للشباب. بنقدم لك تشكيلة كاملة من التيشرتات القطن المصري، الهوديز الشتوية، الشروال الرياضي، والجينز العصري. كل منتجاتنا مصنوعة من خامات عالية الجودة عشان تديك راحة وشياكة في نفس الوقت.
+            </p>
+            <p className="text-black/70 font-bold leading-relaxed">
+              التيشرتات بتاعتنا قطن مصري ١٠٠٪ — ناعم على بشرتك، بيدخل هوا في الصيف، وبيطلعك شيك في الشتاء تحت الجاكيت. مقاسات من S لـ 3XL تناسب كل الأجسام. تقدر تطلبه دلوقتي ويدفع عند الاستلام — وشحن لكل محافظات مصر.
+            </p>
+            <p className="text-black/70 font-bold leading-relaxed">
+              الهوديز عندنا بقوا أيقونة ستريت وير في مصر. قطن تقيل شوية يدفيك في الشتا، وتصميمات عصرية تناسب الشباب. الشروال الرياضي كمان مصنوع من قطن مرن يناسب الجيم والكاجوال اليومي.
+            </p>
+            <p className="text-black/70 font-bold leading-relaxed">
+              تسوق الآن واستفيد بخصومات تبدأ من ٢٠٪ على أول طلب. تقدر ترجع المنتج مجاناً خلال ١٤ يوم لو مش مناسبك. اطلب وادفع عند الاستلام — فلوسك في أمان وشغلك مضمون.
+            </p>
+          </div>
+        </div>
 
         {/* Recommended Section */}
         {recommended.length > 0 && (
