@@ -21,9 +21,18 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // ✅ أضف السطرين دول
   skipTrailingSlashRedirect: true,
   trailingSlash: false,
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.velix-eg.store' }],
+        destination: 'https://velix-eg.store/:path*',
+        permanent: true,
+      },
+    ]
+  },
 };
 
 export default nextConfig;
