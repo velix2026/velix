@@ -71,14 +71,14 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://tiktok.com" />
 
         {/* Social Meta Tags — سجل في Facebook Developers عشان تاخد App ID */}
-        <meta property="fb:app_id" content="" />
+        <meta property="fb:app_id" content="1007410575268127" />
         <meta name="twitter:site" content="@velixstore" />
         <meta name="twitter:creator" content="@velixstore" />
 
         {/* ChatGPT Search Verification */}
         <meta name="openai-domain-verification" content="dv-lSSFBSPcG3WSIkAJHP6Bi45w" />
         <meta name="msvalidate.01" content="" />
-        <meta name="google-site-verification" content="" />
+        <meta name="google-site-verification" content="LKhe0Le89oaA-8M19LF88YhP9yHaJw39RWcn0b5MtS4" />
 
         {/* ✅ Schema 1: Website - عشان جوجل تعرف اسم الموقع */}
         <script
