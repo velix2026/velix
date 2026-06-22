@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toArabicNumber } from '@/lib/utils';
 import { clothingColors, getColorByCode } from '@/lib/colors';
@@ -31,9 +30,6 @@ interface StockItem {
 }
 
 export default function AddProductPage() {
-  const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState({
     name: '',
     price: '',
@@ -80,28 +76,7 @@ export default function AddProductPage() {
     setSelectedSizes([]);
   }, [product.category]);
 
-  useEffect(() => {
-    const auth = sessionStorage.getItem('adminAuth');
-    const loginTime = sessionStorage.getItem('adminLoginTime');
-    
-    let isValid = false;
-    if (auth === 'true' && loginTime) {
-      const elapsed = Date.now() - parseInt(loginTime);
-      if (elapsed < 60 * 60 * 1000) {
-        isValid = true;
-      } else {
-        sessionStorage.removeItem('adminAuth');
-        sessionStorage.removeItem('adminLoginTime');
-      }
-    }
-    
-    if (isValid) {
-      setIsAuthenticated(true);
-    } else {
-      router.push(`/${ADMIN_SECRET_PATH}/login`);
-    }
-    setLoading(false);
-  }, [router]);
+
 
   const handleSizeToggle = (size: string) => {
     setSelectedSizes(prev =>
@@ -252,16 +227,6 @@ export default function AddProductPage() {
 
   const discount = calculateDiscount();
   const availableSizes = getAvailableSizes();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#F5F3F0] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-rose-gold/20 border-t-rose-gold rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] pt-20 pb-12">

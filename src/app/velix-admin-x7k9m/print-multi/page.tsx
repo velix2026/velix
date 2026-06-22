@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toArabicNumber, formatPrice } from '@/lib/utils';
 
 const ADMIN_SECRET_PATH = process.env.NEXT_PUBLIC_ADMIN_SECRET_PATH || 'velix-admin-x7k9m';
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'velix@2026';
 
 interface Order {
   id: number;
@@ -23,46 +21,19 @@ interface Order {
 }
 
 export default function PrintMultiPage() {
-  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
 
-  // التحقق من الجلسة
   useEffect(() => {
-    const auth = sessionStorage.getItem('adminAuth');
-    const loginTime = sessionStorage.getItem('adminLoginTime');
-    
-    let isValid = false;
-    if (auth === 'true' && loginTime) {
-      const elapsed = Date.now() - parseInt(loginTime);
-      if (elapsed < 60 * 60 * 1000) {
-        isValid = true;
-      } else {
-        sessionStorage.removeItem('adminAuth');
-        sessionStorage.removeItem('adminLoginTime');
-      }
-    }
-    
-    if (isValid) {
-      setIsAuthenticated(true);
-      fetchOrders();
-    } else {
-      router.push(`/${ADMIN_SECRET_PATH}/login`);
-    }
-  }, [router]);
+    fetchOrders();
+  }, []);
 
-  // ✅ جلب الطلبات مع Authorization header
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/${ADMIN_SECRET_PATH}/orders`, {
-        headers: {
-          'Authorization': `Bearer ${ADMIN_PASSWORD}`
-        }
-      });
+      const res = await fetch(`/api/${ADMIN_SECRET_PATH}/orders`);
       const data = await res.json();
       if (Array.isArray(data)) {
         setOrders(data);
@@ -106,8 +77,6 @@ export default function PrintMultiPage() {
 
   const selectedOrdersData = orders.filter(o => selectedOrders.has(o.order_id));
 
-  if (!isAuthenticated) return null;
-  
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F5F3F0] pt-28 flex items-center justify-center">

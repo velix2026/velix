@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // ✅ GET - جلب المشتركين
 export async function GET(request: NextRequest) {
+  if (!await checkAdminAuth(request)) return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
   try {
     const subscribers = await sql`
       SELECT id, email, subscribed_at, status FROM newsletter_subscribers 
@@ -20,6 +22,7 @@ export async function GET(request: NextRequest) {
 
 // ✅ POST - إضافة مشترك يدوي
 export async function POST(request: NextRequest) {
+  if (!await checkAdminAuth(request)) return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
   try {
     const { email } = await request.json();
     
@@ -67,6 +70,7 @@ export async function POST(request: NextRequest) {
 
 // ✅ DELETE - حذف مشترك
 export async function DELETE(request: NextRequest) {
+  if (!await checkAdminAuth(request)) return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
   try {
     const { id, email } = await request.json();
     

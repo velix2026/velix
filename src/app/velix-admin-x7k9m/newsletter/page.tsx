@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toArabicNumber } from '@/lib/utils';
 
@@ -15,8 +14,6 @@ interface Subscriber {
 }
 
 export default function AdminNewsletter() {
-  const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
@@ -28,27 +25,8 @@ export default function AdminNewsletter() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
-    const auth = sessionStorage.getItem('adminAuth');
-    const loginTime = sessionStorage.getItem('adminLoginTime');
-    
-    let isValid = false;
-    if (auth === 'true' && loginTime) {
-      const elapsed = Date.now() - parseInt(loginTime);
-      if (elapsed < 60 * 60 * 1000) {
-        isValid = true;
-      } else {
-        sessionStorage.removeItem('adminAuth');
-        sessionStorage.removeItem('adminLoginTime');
-      }
-    }
-    
-    if (isValid) {
-      setIsAuthenticated(true);
-      fetchSubscribers();
-    } else {
-      router.push(`/${ADMIN_SECRET_PATH}/login`);
-    }
-  }, [router]);
+    fetchSubscribers();
+  }, []);
 
   // ✅ من غير Authorization header - الـ middleware هو اللي بيحمي
   const fetchSubscribers = async () => {
@@ -164,8 +142,6 @@ export default function AdminNewsletter() {
       setSending(false);
     }
   };
-
-  if (!isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] pt-28 pb-12">

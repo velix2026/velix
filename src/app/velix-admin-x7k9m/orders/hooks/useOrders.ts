@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 const ADMIN_SECRET_PATH = process.env.NEXT_PUBLIC_ADMIN_SECRET_PATH || 'velix-admin-x7k9m';
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'velix@2026';
 
 export interface OrderItem {
   product_id: number;
@@ -46,52 +45,19 @@ export function useOrders() {
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('all');
 
-  // ✅ التحقق من الجلسة
-  useEffect(() => {
-    const auth = sessionStorage.getItem('adminAuth');
-    const loginTime = sessionStorage.getItem('adminLoginTime');
-    
-    let isValid = false;
-    if (auth === 'true' && loginTime) {
-      const elapsed = Date.now() - parseInt(loginTime);
-      if (elapsed < 60 * 60 * 1000) {
-        isValid = true;
-      } else {
-        sessionStorage.removeItem('adminAuth');
-        sessionStorage.removeItem('adminLoginTime');
-      }
-    }
-    
-    if (isValid) {
-      setIsAuthenticated(true);
-      fetchOrders();
-    } else {
-      router.push(`/${ADMIN_SECRET_PATH}/login`);
-    }
-  }, [router]);
-
-  // ✅ جلب الطلبات مع console.log
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     setError('');
-    console.log('🔍 [fetchOrders] Starting...');
     
     try {
-      const res = await fetch(`/api/${ADMIN_SECRET_PATH}/orders`, {
-        headers: {
-          'Authorization': `Bearer ${ADMIN_PASSWORD}`
-        }
-      });
-      
-      console.log('🔍 [fetchOrders] Response status:', res.status);
+      const res = await fetch(`/api/${ADMIN_SECRET_PATH}/orders`);
       
       if (!res.ok) {
         if (res.status === 401) {
-          console.log('🔒 [fetchOrders] Unauthorized, redirecting to login');
           router.push(`/${ADMIN_SECRET_PATH}/login`);
           return;
         }
@@ -100,45 +66,26 @@ export function useOrders() {
       
       const data = await res.json();
       
-      // ✅ console.log مفصلة للبيانات
-      console.log('📦 [fetchOrders] ====== START ======');
-      console.log('📦 typeof data:', typeof data);
-      console.log('📦 Is array?', Array.isArray(data));
-      console.log('📦 data:', data);
-      
       if (Array.isArray(data)) {
-        console.log('📦 Array length:', data.length);
-        
-        if (data.length > 0) {
-          console.log('📦 First order:', data[0]);
-          console.log('📦 First order keys:', Object.keys(data[0]));
-          console.log('📦 First order status:', data[0]?.status);
-          console.log('📦 First order total_amount:', data[0]?.total_amount);
-          console.log('📦 First order total_amount type:', typeof data[0]?.total_amount);
-        }
-        
         setOrders(data);
         setFilteredOrders(data);
       } else {
-        console.error('❌ Data is NOT an array! It is:', typeof data);
-        console.error('❌ Data content:', data);
         setOrders([]);
         setFilteredOrders([]);
       }
-      
-      console.log('📦 [fetchOrders] ====== END ======');
     } catch (error) {
-      console.error('❌ Error fetching orders:', error);
+      console.error('Error fetching orders:', error);
       setError('فشل تحميل الطلبات');
     } finally {
       setLoading(false);
     }
   }, [router]);
 
-  // ✅ تحديث حالة الطلب
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
   const updateOrderStatus = useCallback(async (orderId: string, newStatus: string) => {
-    console.log('🔍 [updateOrderStatus] Order:', orderId, 'New status:', newStatus);
-    
     try {
       const timestamp = new Date().toISOString();
       const updateData: any = { status: newStatus };
@@ -147,17 +94,11 @@ export function useOrders() {
       
       const res = await fetch(`/api/${ADMIN_SECRET_PATH}/orders/${orderId}`, {
         method: 'PATCH',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ADMIN_PASSWORD}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),
       });
       
-      console.log('🔍 [updateOrderStatus] Response status:', res.status);
-      
       if (res.ok) {
-        console.log('✅ Order status updated successfully');
         await fetchOrders();
         return true;
       }
@@ -169,22 +110,13 @@ export function useOrders() {
     }
   }, [fetchOrders]);
 
-  // ✅ حذف طلب
   const deleteOrder = useCallback(async (orderId: string) => {
-    console.log('🔍 [deleteOrder] Order:', orderId);
-    
     try {
       const res = await fetch(`/api/${ADMIN_SECRET_PATH}/orders/${orderId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${ADMIN_PASSWORD}`
-        }
       });
       
-      console.log('🔍 [deleteOrder] Response status:', res.status);
-      
       if (res.ok) {
-        console.log('✅ Order deleted successfully');
         await fetchOrders();
         return true;
       }

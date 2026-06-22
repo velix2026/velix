@@ -10,7 +10,6 @@ import { toArabicNumber, formatPrice, formatDiscount } from '@/lib/utils';
 import { clothingColors, getColorByCode } from '@/lib/colors';
 
 const ADMIN_SECRET_PATH = process.env.NEXT_PUBLIC_ADMIN_SECRET_PATH || 'velix-admin-x7k9m';
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'velix@2026';
 
 // ✅ مقاسات الملابس
 const clothingSizes = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
@@ -51,7 +50,6 @@ const getAvailableSizes = (category: string) => {
 
 export default function AdminProductsPage() {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -66,29 +64,9 @@ export default function AdminProductsPage() {
   });
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
 
-  // التحقق من الجلسة
   useEffect(() => {
-    const auth = sessionStorage.getItem('adminAuth');
-    const loginTime = sessionStorage.getItem('adminLoginTime');
-    
-    let isValid = false;
-    if (auth === 'true' && loginTime) {
-      const elapsed = Date.now() - parseInt(loginTime);
-      if (elapsed < 60 * 60 * 1000) {
-        isValid = true;
-      } else {
-        sessionStorage.removeItem('adminAuth');
-        sessionStorage.removeItem('adminLoginTime');
-      }
-    }
-    
-    if (isValid) {
-      setIsAuthenticated(true);
-      loadProducts();
-    } else {
-      router.push(`/${ADMIN_SECRET_PATH}/login`);
-    }
-  }, [router]);
+    loadProducts();
+  }, []);
 
   const loadProducts = async () => {
     setLoading(true);
@@ -110,7 +88,6 @@ export default function AdminProductsPage() {
     try {
       const res = await fetch(`/api/products/${product.slug}`, { 
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${ADMIN_PASSWORD}` },
       });
       if (res.ok) {
         setProducts(prev => prev.filter(p => p.slug !== product.slug));
@@ -218,7 +195,6 @@ export default function AdminProductsPage() {
     try {
       const res = await fetch(`/api/products/${editingProduct.slug}`, {
         method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${ADMIN_PASSWORD}` },
         body: formData,
       });
       
@@ -309,8 +285,6 @@ export default function AdminProductsPage() {
       </div>
     );
   }
-
-  if (!isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] pt-28 pb-12">

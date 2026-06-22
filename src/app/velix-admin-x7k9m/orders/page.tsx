@@ -41,8 +41,6 @@ export default function AdminOrdersPage() {
     return result;
   };
 
-  if (!isAuthenticated) return null;
-  
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F5F3F0] pt-28 flex items-center justify-center">
