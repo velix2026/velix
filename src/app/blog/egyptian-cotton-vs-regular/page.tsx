@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import EgyptianCottonClient from './EgyptianCottonClient'
 
 export const metadata: Metadata = {
-  title: "الفرق بين القطن المصري والقطن العادي | ليه القطن المصري الأحسن؟ | VELIX",
+  title: "الفرق بين القطن المصري والقطن العادي | VELIX",
   description: "دليل كامل عن الفرق بين القطن المصري والقطن العادي. ازاي تفرق بينهم، ليه القطن المصري غالي، وايه اللي يخليك تختاره.",
   keywords: [
     "الفرق بين القطن المصري والقطن العادي",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "VELIX قطن مصري"
   ],
   openGraph: {
-    title: "الفرق بين القطن المصري والقطن العادي | ليه القطن المصري الأحسن؟",
+    title: "الفرق بين القطن المصري والقطن العادي",
     description: "دليل كامل عن الفرق بين القطن المصري والقطن العادي. ازاي تفرق بينهم، ليه القطن المصري غالي، وايه اللي يخليك تختاره.",
     url: "https://velix-eg.store/blog/egyptian-cotton-vs-regular",
     type: "article",

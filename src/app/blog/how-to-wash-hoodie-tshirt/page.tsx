@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import WashingGuideClient from './WashingGuideClient'
 
 export const metadata: Metadata = {
-  title: "ازاي تغسل الهودي والتيشرت عشان يفضلوا زي الجديد | دليل الغسيل الكامل | VELIX",
+  title: "ازاي تغسل الهودي والتيشرت زي الجديد | VELIX",
   description: "دليل كامل لغسيل الهوديز والتيشرتات. ازاي تغسل، ازاي تنشف، ازاي تكوي عشان ملابسك تفضل زي الجديدة لسنين.",
   keywords: [
     "ازاي تغسل الهودي",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "نصائح غسيل الملابس"
   ],
   openGraph: {
-    title: "ازاي تغسل الهودي والتيشرت عشان يفضلوا زي الجديد",
+    title: "ازاي تغسل الهودي والتيشرت زي الجديد",
     description: "دليل كامل لغسيل الهوديز والتيشرتات. ازاي تغسل، ازاي تنشف، ازاي تكوي عشان ملابسك تفضل زي الجديدة.",
     url: "https://velix-eg.store/blog/how-to-wash-hoodie-tshirt",
     type: "article",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ازاي تغسل الهودي والتيشرت عشان يفضلوا زي الجديد",
+    title: "ازاي تغسل الهودي والتيشرت زي الجديد",
     description: "دليل كامل لغسيل الهوديز والتيشرتات",
     images: ["/images/og-image.png"],
   },

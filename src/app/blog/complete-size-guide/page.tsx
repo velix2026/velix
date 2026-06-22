@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import SizeGuideClient from './SizeGuideClient'
 
 export const metadata: Metadata = {
-  title: "دليل المقاسات الكامل | ازاي تختار المقاس المناسب لأي قطعة ملابس - VELIX",
+  title: "دليل المقاسات الكامل | VELIX",
   description: "دليل شامل لقياس الجسم واختيار المقاس المناسب للتيشرتات والهوديز والشروال. جدول مقاسات، نصائح، وازاي تقيس نفسك صح قبل ما تشتري أونلاين.",
   keywords: [
     "دليل المقاسات",
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "مقاسات الملابس مصر"
   ],
   openGraph: {
-    title: "دليل المقاسات الكامل | ازاي تختار المقاس المناسب لأي قطعة ملابس",
+    title: "دليل المقاسات الكامل",
     description: "دليل شامل لقياس الجسم واختيار المقاس المناسب للتيشرتات والهوديز والشروال. جدول مقاسات ونصائح عملية.",
     url: "https://velix-eg.store/blog/complete-size-guide",
     type: "article",

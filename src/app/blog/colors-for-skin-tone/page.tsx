@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import SkinToneColorGuideClient from './SkinToneColorGuideClient'
 
 export const metadata: Metadata = {
-  title: "دليل ألوان الملابس حسب لون البشرة | ازاي تختار اللون اللي يليق بيك | VELIX",
+  title: "دليل ألوان الملابس حسب لون البشرة | VELIX",
   description: "دليل كامل لاختيار ألوان الملابس حسب لون بشرتك. ازاي تعرف لون بشرتك، وايه الألوان اللي تخليك شيك وايه الألوان اللي تخليك باهت.",
   keywords: [
     "ألوان الملابس حسب البشرة",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "VELIX ألوان"
   ],
   openGraph: {
-    title: "دليل ألوان الملابس حسب لون البشرة | ازاي تختار اللون اللي يليق بيك",
+    title: "دليل ألوان الملابس حسب لون البشرة",
     description: "دليل كامل لاختيار ألوان الملابس حسب لون بشرتك. ازاي تعرف لون بشرتك، وايه الألوان اللي تخليك شيك.",
     url: "https://velix-eg.store/blog/colors-for-skin-tone",
     type: "article",

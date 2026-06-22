@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import OnlineShoppingClient from './OnlineShoppingClient'
 
 export const metadata: Metadata = {
-  title: "نصائح التسوق أونلاين في مصر | ازاي تشتري من النت من غير وجع دماغ | VELIX",
+  title: "نصائح التسوق أونلاين في مصر | VELIX",
   description: "دليل كامل للتسوق أونلاين في مصر. ازاي تتأكد من جودة المنتج، ازاي تختار المقاس، وايه حقوقك كعميل عند الشراء أونلاين.",
   keywords: [
     "التسوق أونلاين في مصر",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "التسوق الآمن"
   ],
   openGraph: {
-    title: "نصائح التسوق أونلاين في مصر | ازاي تشتري من النت من غير وجع دماغ",
+    title: "نصائح التسوق أونلاين في مصر",
     description: "دليل كامل للتسوق أونلاين في مصر. ازاي تتأكد من جودة المنتج، ازاي تختار المقاس، وايه حقوقك كعميل.",
     url: "https://velix-eg.store/blog/online-shopping-tips-egypt",
     type: "article",

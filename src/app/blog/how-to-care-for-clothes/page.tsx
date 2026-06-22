@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import ClothingCareClient from './ClothingCareClient'
 
 export const metadata: Metadata = {
-  title: "ازاي تحافظ على ملابسك لأطول فترة؟ 10 نصائح ذهبية | دليل العناية بالملابس | VELIX",
+  title: "ازاي تحافظ على ملابسك لأطول فترة؟ | VELIX",
   description: "دليل كامل للعناية بالملابس: ازاي تغسل، ازاي تكوي، ازاي تخزن عشان ملابسك تفضل زي الجديدة لسنين. 10 نصائح عملية هتوفر عليك فلوس كتير.",
   keywords: [
     "ازاي تحافظ على ملابسك",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "ازاي تخلي هدومك تفضل جديدة"
   ],
   openGraph: {
-    title: "ازاي تحافظ على ملابسك لأطول فترة؟ 10 نصائح ذهبية",
+    title: "ازاي تحافظ على ملابسك لأطول فترة؟",
     description: "دليل كامل للعناية بالملابس: ازاي تغسل، ازاي تكوي، ازاي تخزن عشان ملابسك تفضل زي الجديدة لسنين.",
     url: "https://velix-eg.store/blog/how-to-care-for-clothes",
     type: "article",

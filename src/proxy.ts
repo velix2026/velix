@@ -53,12 +53,23 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (pathname === '/api/orders' && method === 'POST') {
+  if (pathname.startsWith('/api/orders/track') && method === 'GET') {
     return NextResponse.next();
   }
 
-  if (pathname.startsWith('/api/orders/track') && method === 'GET') {
-    return NextResponse.next();
+  const arabicSlugMap: Record<string, string> = {
+    'تيشرتات': 'tshirts',
+    'هوديز': 'hoodies',
+    'شروال': 'pants',
+    'جينز': 'jeans',
+    'جواكت': 'jackets',
+    'شوزات': 'shoes',
+    'اكسسوارات': 'accessories',
+  };
+  for (const [arabic, english] of Object.entries(arabicSlugMap)) {
+    if (pathname === `/collections/${encodeURIComponent(arabic)}` || pathname === `/collections/${arabic}`) {
+      return NextResponse.redirect(new URL(`/collections/${english}`, request.url), 301);
+    }
   }
 
   if (pathname === '/api/newsletter' && ['POST', 'PUT', 'DELETE'].includes(method)) {

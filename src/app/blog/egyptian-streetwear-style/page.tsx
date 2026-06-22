@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import StreetwearClient from './StreetwearClient'
 
 export const metadata: Metadata = {
-  title: "ازاي تنسق الستريت وير المصري؟ 5 ستايلات جامدة | دليل الموضة للشباب | VELIX",
+  title: "ازاي تنسق الستريت وير المصري؟ 5 ستايلات جامدة | VELIX",
   description: "دليل تنسيق الستريت وير المصري. 5 ستايلات مختلفة تناسب الشباب المصري، ازاي تختار القطع، وايه اللي يناسب جسمك. نصائح عملية عشان تبقى شيك.",
   keywords: [
     "ستريت وير مصري",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "تنسيق ملابس شباب"
   ],
   openGraph: {
-    title: "ازاي تنسق الستريت وير المصري؟ 5 ستايلات جامدة",
+    title: "ازاي تنسق الستريت وير المصري؟",
     description: "دليل تنسيق الستريت وير المصري. 5 ستايلات مختلفة تناسب الشباب المصري، ازاي تختار القطع، وايه اللي يناسب جسمك.",
     url: "https://velix-eg.store/blog/egyptian-streetwear-style",
     type: "article",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ازاي تنسق الستريت وير المصري؟ 5 ستايلات جامدة",
+    title: "ازاي تنسق الستريت وير المصري؟",
     description: "دليل تنسيق الستريت وير المصري للشباب",
     images: ["/images/og-image.png"],
   },
