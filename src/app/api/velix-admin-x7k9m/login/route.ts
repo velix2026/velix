@@ -32,16 +32,23 @@ export async function POST(request: NextRequest) {
     const token = crypto.randomBytes(48).toString('hex');
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    // Find or create admin user
+    // Find or create admin user automatically
     const { rows: users } = await sql.query(`SELECT id FROM admin_users WHERE username = 'admin'`);
+    let userId: number;
     if (users.length > 0) {
-      await sql.query(`DELETE FROM admin_sessions WHERE user_id = $1 OR expires_at < NOW()`, [users[0].id]);
-      await sql.query(`INSERT INTO admin_sessions (user_id, token, ip_address, expires_at) VALUES ($1, $2, $3, $4)`,
-        [users[0].id, token, ip, expiresAt]);
-      await sql.query(`UPDATE admin_users SET last_login = NOW() WHERE id = $1`, [users[0].id]);
-      await sql.query(`INSERT INTO activity_log (user_id, username, action, details, ip_address) VALUES ($1, $2, 'login', 'تم تسجيل الدخول', $3)`,
-        [users[0].id, 'Admin', ip]);
+      userId = users[0].id;
+    } else {
+      const adminHash = await bcrypt.hash(adminPassword, 10);
+      const { rows: newUser } = await sql.query(
+        `INSERT INTO admin_users (username, password_hash, display_name, role) VALUES ('admin', $1, 'Admin', 'admin') RETURNING id`,
+        [adminHash]
+      );
+      userId = newUser[0].id;
     }
+    await sql.query(`DELETE FROM admin_sessions WHERE user_id = $1 OR expires_at < NOW()`, [userId]);
+    await sql.query(`INSERT INTO admin_sessions (user_id, token, ip_address, expires_at) VALUES ($1, $2, $3, $4)`,
+      [userId, token, ip, expiresAt]);
+    await sql.query(`UPDATE admin_users SET last_login = NOW() WHERE id = $1`, [userId]);
 
     const response = NextResponse.json({ success: true });
     response.cookies.set('admin_token', token, {

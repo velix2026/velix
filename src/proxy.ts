@@ -38,9 +38,10 @@ export function proxy(request: NextRequest) {
 
   if (pathname.startsWith(`/${ADMIN_SECRET_PATH}`)) {
     const adminAuth = request.cookies.get('adminAuth')?.value;
+    const adminToken = request.cookies.get('admin_token')?.value;
     const isLoginPage = pathname === `/${ADMIN_SECRET_PATH}/login`;
 
-    if (!isLoginPage && adminAuth !== 'true') {
+    if (!isLoginPage && adminAuth !== 'true' && !(adminToken && adminToken.length > 20)) {
       const loginUrl = new URL(`/${ADMIN_SECRET_PATH}/login`, request.url);
       return NextResponse.redirect(loginUrl);
     }
