@@ -142,7 +142,7 @@ export default function Header() {
               { href: '/products', label: 'المنتجات', hasDropdown: true },
               { href: '/blog', label: 'المدونة' },
               { href: '/track', label: 'تتبع طلبك' },
-              { href: '/loyalty', label: 'الولاء' },
+              { href: '/loyalty', label: 'المكافآت' },
               { href: '/gifts', label: 'كروت هدايا' },
               { href: '/about', label: 'عن البراند' },
               { href: '/contact', label: 'اتصل بنا' }
@@ -343,7 +343,7 @@ export default function Header() {
                 تتبع طلبك
               </Link>
               <Link href="/loyalty" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold text-black hover:text-rose-gold py-2 transition-all">
-                برنامج الولاء
+                برنامج المكافآت
               </Link>
               <Link href="/gifts" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold text-black hover:text-rose-gold py-2 transition-all">
                 كروت هدايا

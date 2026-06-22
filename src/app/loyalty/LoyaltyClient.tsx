@@ -39,7 +39,7 @@ export default function LoyaltyClient() {
             VELIX LOYALTY
           </span>
           <h1 className="text-3xl md:text-4xl font-black text-black mb-4">
-            برنامج الولاء
+            برنامج المكافآت
           </h1>
           <div className="w-20 h-1 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper rounded-full mx-auto mb-6" />
           <p className="text-black/60 font-bold max-w-2xl mx-auto">
@@ -59,7 +59,7 @@ export default function LoyaltyClient() {
 
         {/* Tiers */}
         <div className="mb-12">
-          <h2 className="text-2xl font-black text-black text-center mb-8">مستويات الولاء</h2>
+          <h2 className="text-2xl font-black text-black text-center mb-8">مستويات المكافآت</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {TIERS.map((tier, idx) => (
               <motion.div
@@ -130,7 +130,7 @@ export default function LoyaltyClient() {
 
         {/* FAQ */}
         <div className="mb-12">
-          <h2 className="text-xl font-black text-black text-center mb-6">أسئلة شائعة عن الولاء</h2>
+          <h2 className="text-xl font-black text-black text-center mb-6">أسئلة شائعة عن المكافآت</h2>
           <div className="space-y-3">
             {faqs.map((faq, i) => (
               <motion.div

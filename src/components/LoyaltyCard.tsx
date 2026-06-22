@@ -66,7 +66,7 @@ export default function LoyaltyCard({ phone: initialPhone }: { phone?: string })
     <div className="bg-white rounded-2xl border border-rose-gold/20 overflow-hidden shadow-sm">
       {!data ? (
         <div className="p-4 space-y-3">
-          <h3 className="font-black text-black text-sm">نقاط الولاء</h3>
+          <h3 className="font-black text-black text-sm">نقاط المكافآت</h3>
           <div className="flex gap-2">
             <input
               type="tel"
@@ -95,7 +95,7 @@ export default function LoyaltyCard({ phone: initialPhone }: { phone?: string })
             className="p-4 space-y-4"
           >
             <div className="flex items-center justify-between">
-              <h3 className="font-black text-black text-sm">نقاط الولاء</h3>
+              <h3 className="font-black text-black text-sm">نقاط المكافآت</h3>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierBadgeColors[data.tier.name] || tierBadgeColors.bronze}`}>
                 {data.tier.nameAr}
               </span>

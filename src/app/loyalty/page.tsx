@@ -2,7 +2,7 @@ import LoyaltyClient from './LoyaltyClient';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "برنامج الولاء | VELIX - نقاط ولاء وخصومات",
+  title: "برنامج المكافآت | VELIX - نقاط ولاء وخصومات",
   description: "برنامج ولاء VELIX: اكسب نقاط على كل طلبك واستبدلها بخصم. مستويات برونزي، فضي، ذهبي، بلاتيني. كل ١٠٠ نقطة = ١٠ جنيه خصم.",
   keywords: [
     "برنامج ولاء ملابس مصر",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "برونزي فضي ذهبي بلاتيني"
   ],
   openGraph: {
-    title: "برنامج الولاء | VELIX - نقاط ولاء وخصومات",
+    title: "برنامج المكافآت | VELIX - نقاط ولاء وخصومات",
     description: "كل ما تطلب، كل ما تكسب نقاط. استبدل نقاطك بخصم على طلباتك الجاية.",
     url: "https://velix-eg.store/loyalty",
     siteName: "VELIX",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "برنامج الولاء | VELIX",
+    title: "برنامج المكافآت | VELIX",
     description: "كل ما تطلب، كل ما تكسب نقاط.",
     images: ["/images/og-image.png"],
   },
