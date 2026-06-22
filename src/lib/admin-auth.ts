@@ -12,7 +12,9 @@ export async function checkAdminAuth(request: NextRequest): Promise<boolean> {
         [token]
       );
       if (rows.length > 0) return true;
-    } catch {}
+    } catch (e) {
+      console.error('admin-auth: session query failed', e);
+    }
   }
 
   // Fallback to Bearer token (old system)
