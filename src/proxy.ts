@@ -25,10 +25,20 @@ export function proxy(request: NextRequest) {
   
   console.log('🔍 Proxy check:', pathname, method);
   
-  // ==================== 1. السماح لـ API التحقق (verify) ====================
+  // ==================== 1. السماح لـ APIs العامة الجديدة ====================
   
-  if (pathname === `/api/${ADMIN_SECRET_PATH}/verify` && method === 'POST') {
-    console.log('✅ Verify API allowed (public)');
+  const publicAdminApis = [
+    `/api/${ADMIN_SECRET_PATH}/verify`,
+    `/api/${ADMIN_SECRET_PATH}/setup`,
+    `/api/${ADMIN_SECRET_PATH}/login`,
+    `/api/${ADMIN_SECRET_PATH}/verify-session`,
+  ];
+  if (publicAdminApis.includes(pathname)) {
+    return NextResponse.next();
+  }
+  
+  // السماح لـ public blog API
+  if (pathname === '/api/blog' && method === 'GET') {
     return NextResponse.next();
   }
   
