@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   if (!await checkAdminAuth(request)) return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
   try {
     const { rows } = await sql.query(
-      `SELECT id, slug, title, excerpt, category, tags, read_time, is_published, published_at, created_at, updated_at
+      `SELECT id, slug, title, excerpt, content, category, tags, read_time, is_published, published_at, created_at, updated_at
        FROM blog_posts ORDER BY created_at DESC`
     );
     return NextResponse.json(rows);
