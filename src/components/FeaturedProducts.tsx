@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
 import { Product } from "@/lib/products";
 import { motion } from "framer-motion";
+import CountdownTimer from "@/components/CountdownTimer";
 
 interface FeaturedProductsProps {
   products: Product[];
@@ -91,6 +92,9 @@ export default function FeaturedProducts({ products }: FeaturedProductsProps) {
   return (
     <section className="bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] py-20 md:py-28">
       <div className="container mx-auto px-4">
+        
+        {/* Countdown Banner for upcoming drops */}
+        <CountdownTimer title="" subtitle="وقت التشكيلة الجديدة" />
         
         {/* Header */}
         <div className="text-center mb-12">

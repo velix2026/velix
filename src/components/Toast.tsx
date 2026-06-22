@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 interface ToastProps {
   message: string;
@@ -8,6 +8,8 @@ interface ToastProps {
   onClose: () => void;
   duration?: number;
   isVisible?: boolean;
+  orderId?: string;
+  whatsappLink?: string;
 }
 
 export default function Toast({ 
@@ -15,10 +17,17 @@ export default function Toast({
   type, 
   onClose, 
   duration = 3000,
-  isVisible = true 
+  isVisible = true,
+  orderId,
+  whatsappLink,
 }: ToastProps) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const toastRef = useRef<HTMLDivElement>(null);
+
+  const handleClose = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
     timeoutRef.current = setTimeout(() => {
@@ -41,12 +50,7 @@ export default function Toast({
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       window.removeEventListener('keydown', handleEscKey);
     };
-  }, [duration]);
-
-  const handleClose = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    onClose();
-  };
+  }, [duration, handleClose, message]);
   
   // 🎨 ألوان نحاسية فخمة
   const bgColor = {
@@ -104,11 +108,8 @@ export default function Toast({
           text-white 
           px-5 
           py-3 
-          rounded-full 
+          rounded-2xl
           shadow-2xl 
-          flex 
-          items-center 
-          gap-3 
           text-sm 
           font-bold
           backdrop-blur-sm
@@ -116,29 +117,52 @@ export default function Toast({
           ${borderColor}
           transition-all
           duration-300
-          hover:scale-105
-          hover:shadow-rose-gold/30
           group
           min-w-50
           max-w-[90vw]
           md:max-w-md
-        `}>
-          <div className="shrink-0">
-            {icons}
+          ${orderId ? 'px-5 pt-4 pb-3' : ''}
+        `} onClick={orderId ? undefined : handleClose}>
+          <div className={`flex items-center gap-3 ${orderId ? 'mb-3' : ''}`}>
+            <div className="shrink-0">
+              {icons}
+            </div>
+            <span className="wrap-break-word text-center font-bold flex-1">{message}</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClose();
+              }}
+              className="shrink-0 mr-1 opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-white rounded-full p-1"
+              aria-label="إغلاق"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-          <span className="wrap-break-word text-center font-bold">{message}</span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleClose();
-            }}
-            className="shrink-0 mr-1 opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-white rounded-full p-1"
-            aria-label="إغلاق"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          {orderId && (
+            <div className="flex gap-2 justify-center border-t border-white/20 pt-3">
+              <a
+                href={`/track?orderId=${orderId}`}
+                onClick={(e) => { e.stopPropagation(); handleClose(); }}
+                className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full transition font-bold"
+              >
+                🔍 تتبع طلبك
+              </a>
+              {whatsappLink && (
+                <a
+                  href={whatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-xs bg-green-500/40 hover:bg-green-500/60 px-3 py-1.5 rounded-full transition font-bold"
+                >
+                  💬 واتساب
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -88,7 +88,7 @@ export function useOrders() {
   const updateOrderStatus = useCallback(async (orderId: string, newStatus: string) => {
     try {
       const timestamp = new Date().toISOString();
-      const updateData: any = { status: newStatus };
+      const updateData: Record<string, string> = { status: newStatus };
       if (newStatus === 'delivered') updateData.delivered_at = timestamp;
       else if (newStatus === 'cancelled') updateData.cancelled_at = timestamp;
       

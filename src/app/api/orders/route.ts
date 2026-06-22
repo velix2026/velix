@@ -35,7 +35,7 @@ async function getAllOrders() {
         return { id: key.split(':')[1], ...order };
       })
     );
-    return orders.sort((a: any, b: any) => (b.createdAt > a.createdAt ? 1 : -1));
+    return orders.sort((a: Record<string, string>, b: Record<string, string>) => ((b.createdAt || '') > (a.createdAt || '') ? 1 : -1));
   } catch (error) {
     console.error('Error getting orders from Redis:', error);
     return [];
@@ -49,8 +49,8 @@ async function updateProductStock(productId: number, quantity: number, selectedS
     const productsData = await kv.get(productsKey);
     if (!productsData) return;
     
-    let products = JSON.parse(productsData as string);
-    const productIndex = products.findIndex((p: any) => p.id === productId);
+    const products = JSON.parse(productsData as string);
+    const productIndex = products.findIndex((p: { id: number }) => p.id === productId);
     
     if (productIndex !== -1) {
       const product = products[productIndex];
@@ -58,7 +58,7 @@ async function updateProductStock(productId: number, quantity: number, selectedS
       // ✅ إذا كان المنتج يستخدم stockItems
       if (product.stockItems && Array.isArray(product.stockItems) && selectedSize && selectedColor) {
         const stockIndex = product.stockItems.findIndex(
-          (item: any) => item.size === selectedSize && item.colorCode === selectedColor
+          (item: { size: string; colorCode: string; quantity: number }) => item.size === selectedSize && item.colorCode === selectedColor
         );
         if (stockIndex !== -1) {
           product.stockItems[stockIndex].quantity -= quantity;
@@ -81,7 +81,7 @@ async function updateProductStock(productId: number, quantity: number, selectedS
       } 
       // ✅ للمنتجات اللي عندها stockItems بس مفيش مقاس/لون محدد (نحسب إجمالي)
       else if (product.stockItems && Array.isArray(product.stockItems)) {
-        const totalStock = product.stockItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+        const totalStock = product.stockItems.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0);
         if (totalStock >= quantity) {
           // نخصم من أول عنصر متاح (أو نوزع)
           let remaining = quantity;
@@ -107,8 +107,8 @@ async function incrementProductSales(productId: number, quantity: number) {
     const productsData = await kv.get(productsKey);
     if (!productsData) return;
     
-    let products = JSON.parse(productsData as string);
-    const productIndex = products.findIndex((p: any) => p.id === productId);
+    const products = JSON.parse(productsData as string);
+    const productIndex = products.findIndex((p: { id: number }) => p.id === productId);
     
     if (productIndex !== -1) {
       products[productIndex].salesCount = (products[productIndex].salesCount || 0) + quantity;
@@ -145,10 +145,10 @@ export async function POST(request: NextRequest) {
     await sql`
       INSERT INTO orders (
         order_id, customer_name, customer_phone, customer_alt_phone,
-        customer_address, landmark, notes, total_amount
+        customer_address, landmark, notes, total_amount, status
       ) VALUES (
         ${orderId}, ${orderData.name}, ${orderData.phone}, ${orderData.altPhone || null},
-        ${orderData.address}, ${orderData.landmark || null}, ${orderData.notes || null}, ${orderData.totalAmount}
+        ${orderData.address}, ${orderData.landmark || null}, ${orderData.notes || null}, ${orderData.totalAmount}, 'pending'
       )
     `;
 
@@ -166,6 +166,40 @@ export async function POST(request: NextRequest) {
     console.log('✅ Saved to Postgres and updated stock');
 
     await updateAnalyticsPostgres(orderData.totalAmount);
+
+    // Loyalty: award points for the order
+    try {
+      const earnedPoints = Math.floor(orderData.totalAmount);
+      if (earnedPoints > 0) {
+        await sql`
+          INSERT INTO loyalty_points (phone, points, total_earned, tier, updated_at)
+          VALUES (${orderData.phone}, ${earnedPoints}, ${earnedPoints}, 'bronze', CURRENT_TIMESTAMP)
+          ON CONFLICT (phone) DO UPDATE SET
+            points = loyalty_points.points + ${earnedPoints},
+            total_earned = loyalty_points.total_earned + ${earnedPoints},
+            updated_at = CURRENT_TIMESTAMP
+        `;
+        await sql`
+          INSERT INTO loyalty_transactions (phone, points, type, reference_type, reference_id, description)
+          VALUES (${orderData.phone}, ${earnedPoints}, 'earned', 'order', ${orderId}, 'نقاط من الطلب')
+        `;
+      }
+    } catch (loyaltyErr) {
+      console.error('Loyalty earn error (non-fatal):', loyaltyErr);
+    }
+
+    // Loyalty: process redemption if user used points
+    if (orderData.loyaltyRedeem) {
+      try {
+        const { phone: lPhone, points: lPoints, discount: lDiscount } = orderData.loyaltyRedeem;
+        await sql`
+          INSERT INTO loyalty_redemptions (order_id, phone, points_used, discount_amount)
+          VALUES (${orderId}, ${lPhone}, ${lPoints}, ${lDiscount})
+        `;
+      } catch (redeemErr) {
+        console.error('Loyalty redeem save error (non-fatal):', redeemErr);
+      }
+    }
 
     // إرسال الإيميل
     try {

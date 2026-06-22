@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 
 interface Feature {
   id: number;
@@ -56,13 +55,8 @@ const features: Feature[] = [
 ];
 
 export default function BrandFeatures() {
-  const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
 
   const featuresSchema = {
     '@context': 'https://schema.org',

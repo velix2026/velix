@@ -3,10 +3,13 @@ import BrandFeatures from '@/components/BrandFeatures';
 import FeaturedProducts from '@/components/FeaturedProducts';
 import BrandStory from '@/components/BrandStory';
 import Newsletter from '@/components/Newsletter';
+import CountdownTimer from '@/components/CountdownTimer';
+import InstagramFeed from '@/components/InstagramFeed';
+import FlashSales from '@/components/FlashSales';
 import { getProducts } from '@/lib/products';
 import Link from 'next/link';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export const metadata = {
   title: "VELIX | لبس ولاد البلد",
@@ -99,6 +102,7 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homePageSchema) }}
       />
       
+      <CountdownTimer title="القادم" subtitle="التشكيلة الجديدة قربت تنزل" />
       <Hero />
       <BrandFeatures />
       
@@ -106,8 +110,10 @@ export default async function Home() {
         <FeaturedProducts products={products} />
       )}
       
+      <FlashSales products={products} />
       <BrandStory />
       <Newsletter />
+      <InstagramFeed />
       
       {/* رابط للمدونة - إضافة قسم صغير */}
       <div className="bg-linear-to-r from-rose-gold/5 to-copper/5 py-12">

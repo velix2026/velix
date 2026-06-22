@@ -54,6 +54,7 @@ export default function RootLayout({
         {/* Preconnect for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://blob.vercel-storage.com" />
         
         {/* Sitemap */}
         <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
@@ -64,11 +65,16 @@ export default function RootLayout({
         {/* Preload Cairo Font */}
         <link rel="preload" href="/_next/static/media/cairo-font.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         
+        {/* Preload critical images */}
+        <link rel="preload" href="/images/hero-model.png" as="image" />
+        <link rel="preload" href="/images/logo.png" as="image" />
+        
         {/* DNS Prefetch */}
         <link rel="dns-prefetch" href="https://wa.me" />
         <link rel="dns-prefetch" href="https://instagram.com" />
         <link rel="dns-prefetch" href="https://facebook.com" />
         <link rel="dns-prefetch" href="https://tiktok.com" />
+        <link rel="dns-prefetch" href="https://blob.vercel-storage.com" />
 
         {/* Social Meta Tags — سجل في Facebook Developers عشان تاخد App ID */}
         <meta property="fb:app_id" content="1007410575268127" />
@@ -136,6 +142,48 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Performance monitoring */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined' && 'performance' in window) {
+                try {
+                  const vitalsObserver = new PerformanceObserver((list) => {
+                    for (const entry of list.getEntries()) {
+                      if (entry.entryType === 'largest-contentful-paint' && window.gtag) {
+                        window.gtag('event', 'web_vital', {
+                          event_category: 'Web Vitals',
+                          event_label: 'LCP',
+                          value: Math.round(entry.startTime),
+                          non_interaction: true
+                        });
+                      }
+                      if (entry.entryType === 'first-input' && window.gtag) {
+                        window.gtag('event', 'web_vital', {
+                          event_category: 'Web Vitals',
+                          event_label: 'FID',
+                          value: Math.round(entry.processingStart - entry.startTime),
+                          non_interaction: true
+                        });
+                      }
+                      if (entry.entryType === 'layout-shift' && window.gtag && !entry.hadRecentInput) {
+                        window.gtag('event', 'web_vital', {
+                          event_category: 'Web Vitals',
+                          event_label: 'CLS',
+                          value: Math.round(entry.value * 1000),
+                          non_interaction: true
+                        });
+                      }
+                    }
+                  });
+                  vitalsObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+                  vitalsObserver.observe({ type: 'first-input', buffered: true });
+                  vitalsObserver.observe({ type: 'layout-shift', buffered: true });
+                } catch (e) {}
+              }
+            `,
+          }}
+        />
       </head>
       <body className="flex flex-col min-h-screen bg-white font-sans antialiased">
         <SplashScreen />
@@ -150,14 +198,12 @@ export default function RootLayout({
         {/* Google Customer Reviews Badge */}
         <Script
           id="google-customer-reviews"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           src="https://apis.google.com/js/platform.js?onload=renderBadge"
-          async
-          defer
         />
         <Script
           id="google-customer-reviews-config"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
               window.renderBadge = function() {
@@ -177,11 +223,16 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
+                const registerSW = () => {
                   navigator.serviceWorker.register('/sw.js')
                     .then(reg => console.log('✅ SW registered for VELIX'))
                     .catch(err => console.log('❌ SW error:', err));
-                });
+                };
+                if ('requestIdleCallback' in window) {
+                  requestIdleCallback(registerSW, { timeout: 3000 });
+                } else {
+                  window.addEventListener('load', registerSW);
+                }
               }
             `,
           }}

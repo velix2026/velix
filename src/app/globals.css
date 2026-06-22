@@ -60,21 +60,6 @@ body {
   animation: slideDown 0.3s ease forwards;
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-.animate-slide-up {
-  animation: slideUp 0.3s ease-out;
-}
-
 @keyframes shimmer {
   0% {
     transform: translateX(-100%);
@@ -101,36 +86,6 @@ body {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes slide-down {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -20px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-}
-
-.animate-slide-down {
-  animation: slide-down 0.3s ease-out;
-}
-
-@keyframes slide-up-key {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 20px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-}
-
-.animate-slide-up {
-  animation: slide-up-key 0.3s ease-out;
-}
-
 @keyframes scale-in {
   from {
     opacity: 0;
@@ -144,74 +99,6 @@ body {
 
 .animate-scale-in {
   animation: scale-in 0.2s ease-out;
-}
-
-@keyframes metallic-shine {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
-.animate-metallic {
-  background: linear-gradient(90deg, var(--copper), var(--rose-gold-light), var(--copper));
-  background-size: 200% auto;
-  animation: metallic-shine 3s linear infinite;
-}
-
-/* ======================================== */
-/* ✨ كلاسات مخصصة للأزرار النحاسية */
-/* ======================================== */
-
-.btn-copper {
-  background: linear-gradient(135deg, var(--rose-gold-light), var(--rose-gold), var(--copper));
-  color: white;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(183, 110, 121, 0.3);
-}
-
-.btn-copper:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(183, 110, 121, 0.4);
-}
-
-.btn-copper-outline {
-  background: transparent;
-  border: 2px solid var(--rose-gold);
-  color: var(--rose-gold);
-  transition: all 0.3s ease;
-}
-
-.btn-copper-outline:hover {
-  background: var(--rose-gold);
-  color: white;
-  transform: translateY(-2px);
-}
-
-/* ======================================== */
-/* ✨ كلاسات للبطاقات والفخامة */
-/* ======================================== */
-
-.card-luxury {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
-  transition: all 0.4s ease;
-  border: 1px solid rgba(183, 110, 121, 0.1);
-}
-
-.card-luxury:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(183, 110, 121, 0.15);
-  border-color: rgba(183, 110, 121, 0.3);
-}
-
-.copper-border {
-  border-image: linear-gradient(135deg, var(--rose-gold-light), var(--rose-gold), var(--copper)) 1;
-  border-width: 1px;
-  border-style: solid;
 }
 
 /* ======================================== */

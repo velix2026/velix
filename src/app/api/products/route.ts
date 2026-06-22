@@ -27,10 +27,10 @@ async function getProducts() {
     let products = JSON.parse(data);
     
     let changed = false;
-    products = products.map((product: any, index: number) => {
+    products = products.map((product: Record<string, unknown>, index: number) => {
       if (!product.createdAt) {
         changed = true;
-        const daysAgo = Math.min(30, (product.slug || index + 1) % 31);
+        const daysAgo = Math.min(30, (Number(product.slug) || index + 1) % 31);
         const fakeDate = new Date();
         fakeDate.setDate(fakeDate.getDate() - daysAgo);
         return {
@@ -54,7 +54,7 @@ async function getProducts() {
   }
 }
 
-async function saveProducts(products: any[]) {
+async function saveProducts(products: Record<string, unknown>[]) {
   try {
     await redis.set(PRODUCTS_KEY, JSON.stringify(products));
   } catch (error) {
@@ -63,7 +63,7 @@ async function saveProducts(products: any[]) {
   }
 }
 
-async function renumberProducts(products: any[]) {
+async function renumberProducts(products: Record<string, unknown>[]) {
   return products.map((product, index) => ({
     ...product,
     id: index + 1,
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
       subImagesUrls.push(url);
     }
 
-    let products = await getProducts();
+    const products = await getProducts();
     
     // ✅ توليد الـ slug من الاسم
     const slug = generateSlug(name);

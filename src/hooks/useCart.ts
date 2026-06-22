@@ -20,11 +20,11 @@ const getAvailableStock = (product: Product, selectedSize?: string, selectedColo
   if (product.stockItems && Array.isArray(product.stockItems)) {
     if (selectedSize && selectedColor) {
       const stockItem = product.stockItems.find(
-        (item: any) => item.size === selectedSize && item.colorCode === selectedColor
+        (item: { size: string; colorCode: string; quantity: number }) => item.size === selectedSize && item.colorCode === selectedColor
       );
       return stockItem?.quantity || 0;
     }
-    return product.stockItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    return product.stockItems.reduce((sum: number, item: { size: string; colorCode: string; quantity: number }) => sum + item.quantity, 0);
   }
   return product.stock || 0;
 };
@@ -55,11 +55,7 @@ const getItemTotalPrice = (item: CartItem): number => {
   return effectivePrice * totalQuantity;
 };
 
-const getVariationTotalPrice = (item: CartItem, variation: CartVariation): number => {
-  const totalQuantity = item.variations.reduce((sum, v) => sum + v.quantity, 0);
-  const effectivePrice = getDiscountedPricePerItem(item, totalQuantity);
-  return effectivePrice * variation.quantity;
-};
+
 
 // ✅ تغيير: استقبال slug بدل id
 const generateCartItemId = (productSlug: string): string => {
@@ -70,18 +66,7 @@ const generateVariationId = (): string => {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
 };
 
-const trackCartEvent = (eventName: string, data: any) => {
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', eventName, { ...data, event_category: 'cart' });
-  }
-  try {
-    const cartEvents = JSON.parse(localStorage.getItem('cart_events') || '[]');
-    cartEvents.push({ event: eventName, data, timestamp: new Date().toISOString() });
-    localStorage.setItem('cart_events', JSON.stringify(cartEvents.slice(-50)));
-  } catch (error) {
-    console.error('Error tracking cart event:', error);
-  }
-};
+
 
 export function useCart() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -148,7 +133,7 @@ export function useCart() {
         const saved = localStorage.getItem('cart');
         if (saved) {
           const cartItems = JSON.parse(saved);
-          const itemsWithDefaults = cartItems.map((item: any) => ({
+          const itemsWithDefaults = cartItems.map((item: Record<string, unknown>) => ({
             ...item,
             variations: item.variations || (item.selectedSize || item.selectedColor ? [{
               variationId: generateVariationId(),
@@ -156,7 +141,7 @@ export function useCart() {
               color: item.selectedColor,
               quantity: item.quantity || 1
             }] : [{ variationId: generateVariationId(), quantity: item.quantity || 1 }]),
-            quantity: item.variations?.reduce((sum: number, v: any) => sum + v.quantity, 0) || item.quantity || 1
+            quantity: (item.variations as Array<{ quantity: number }> | undefined)?.reduce((sum: number, v: { quantity: number }) => sum + v.quantity, 0) || item.quantity || 1
           }));
           setCart(itemsWithDefaults);
           const { totalQuantity, total } = calculateCartStats(itemsWithDefaults);

@@ -66,7 +66,7 @@ export default function BrandStory() {
           </p>
 
           <div className="relative mt-8 pt-4">
-            <div className="absolute right-0 -top-2 text-6xl text-rose-gold/10 font-serif">"</div>
+            <div className="absolute right-0 -top-2 text-6xl text-rose-gold/10 font-serif">&ldquo;</div>
             <p className="text-rose-gold font-black text-xl md:text-2xl leading-relaxed pr-6">
               VELIX .. فخامة في كل تفصيلة
             </p>

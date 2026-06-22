@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { toArabicNumber, formatPrice } from '@/lib/utils';
 import { getColorByCode } from '@/lib/colors';
+import { canRedeem, pointsToEGP } from '@/lib/loyalty';
 
 interface OrderItemVariation {
   variationId: string;
@@ -27,7 +28,7 @@ interface OrderModalProps {
   isOpen: boolean;
   onClose: () => void;
   product: { id: number; name: string; price: number; mainImage: string; quantity: number };
-  onSubmit: (orderData: any) => void;
+  onSubmit: (orderData: Record<string, unknown>) => void;
   onCartCleared?: () => void;
 }
 
@@ -48,13 +49,18 @@ const getColorName = (colorCode: string): string => {
   return color.name || colorCode;
 };
 
-export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartCleared }: OrderModalProps) {
+export default function OrderModal({ isOpen, onClose, product: _product, onSubmit, onCartCleared }: OrderModalProps) {
   const [formData, setFormData] = useState({ name: '', phone: '', altPhone: '', address: '', landmark: '', notes: '' });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [cartItems, setCartItems] = useState<OrderItem[]>([]);
   const [isMultiOrder, setIsMultiOrder] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [loyaltyPhone, setLoyaltyPhone] = useState('');
+  const [loyaltyData, setLoyaltyData] = useState<{ points: number; tier: string; enrolled: boolean } | null>(null);
+  const [loyaltyLoading, setLoyaltyLoading] = useState(false);
+  const [redeemPoints, setRedeemPoints] = useState(0);
+  const [redeemDiscount, setRedeemDiscount] = useState(0);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   const loadSavedCustomerData = useCallback(() => {
@@ -130,31 +136,46 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
       landmark: formData.landmark.trim(),
       notes: formData.notes.trim(),
       items: cartItems,
-      totalAmount: totalAmount,
+      totalAmount: totalAmount - redeemDiscount,
+      originalAmount: totalAmount,
       isMultiOrder: isMultiOrder,
       orderId: Date.now().toString(),
+      ...(redeemPoints > 0 && { loyaltyRedeem: { phone: loyaltyPhone, points: redeemPoints, discount: redeemDiscount } }),
     };
 
     try {
       const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData) });
       const data = await res.json();
       if (res.ok) {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { message: `✓ تم استلام طلبك! رقم الطلب: ${data.orderId} - هنتواصل معاك قريب`, type: 'success' } }));
         onSubmit(orderData);
         localStorage.removeItem('cart');
         localStorage.removeItem('tempOrderData');
         window.dispatchEvent(new CustomEvent('cartUpdated'));
         if (onCartCleared) onCartCleared();
-        onClose();
         setFormData({ name: '', phone: '', altPhone: '', address: '', landmark: '', notes: '' });
+
+        const orderIdValue = data.orderId || orderData.orderId;
+        const whatsappLink = `https://wa.me/${orderData.phone.replace(/^0/, '20')}?text=${encodeURIComponent(
+          `مرحباً VELIX! طلبي رقم #${orderIdValue}`
+        )}`;
+
+        window.dispatchEvent(new CustomEvent('showToast', {
+          detail: {
+            message: `✓ تم استلام طلبك! رقم الطلب: ${orderIdValue}`,
+            type: 'success',
+            orderId: orderIdValue,
+            whatsappLink,
+          },
+        }));
         
-        // === Google Customer Reviews Survey Opt-in ===
+        // === Google Analytics & Reviews ===
         try {
-          if (typeof window !== 'undefined' && (window as any).gapi) {
+          const w = window as any;
+          if (w.gapi) {
             const deliveryDate = new Date();
             deliveryDate.setDate(deliveryDate.getDate() + 5);
-            (window as any).gapi.load('surveyoptin', function() {
-              (window as any).gapi.surveyoptin.render({
+            w.gapi.load('surveyoptin', function() {
+              w.gapi.surveyoptin.render({
                 merchant_id: 5810030916,
                 order_id: data.orderId || orderData.orderId,
                 email: orderData.phone,
@@ -163,12 +184,8 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
               });
             });
           }
-        } catch (err) { console.error('GCR survey error:', err); }
-        
-        // === Google Analytics Purchase Event ===
-        try {
-          if (typeof window !== 'undefined' && (window as any).gtag) {
-            (window as any).gtag('event', 'purchase', {
+          if (w.gtag) {
+            w.gtag('event', 'purchase', {
               transaction_id: data.orderId || orderData.orderId,
               value: totalAmount,
               currency: 'EGP',
@@ -182,7 +199,7 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
           }
         } catch (err) { console.error('GA purchase error:', err); }
       } else throw new Error(data.error || 'فشل إرسال الطلب');
-    } catch (error) {
+      } catch (_error) {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { message: '✗ حصل مشكلة، حاول تاني', type: 'error' } }));
     } finally { setLoading(false); }
   };
@@ -228,6 +245,9 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
           <div className="mt-3 pt-2 border-t border-rose-gold/20">
             <div className="flex justify-between"><span className="font-bold">إجمالي القطع:</span><span>{toArabicNumber(totalItems)} قطعة</span></div>
             <div className="flex justify-between mt-1"><span className="font-bold">الإجمالي:</span><span className="text-xl font-bold text-rose-gold">{formatPrice(totalAmount)}</span></div>
+            {redeemDiscount > 0 && (
+              <div className="flex justify-between mt-1"><span className="font-bold text-green-600">خصم النقاط:</span><span className="font-bold text-green-600">-{formatPrice(redeemDiscount)}</span></div>
+            )}
             {totalAmount > 500 && <p className="text-xs text-rose-gold mt-1">شامل الشحن المجاني</p>}
           </div>
         </div>
@@ -239,6 +259,87 @@ export default function OrderModal({ isOpen, onClose, product, onSubmit, onCartC
           <div><label className="block text-sm font-bold text-black mb-1">العنوان بالتفصيل <span className="text-rose-gold">*</span></label><textarea rows={3} value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-gold font-bold text-black resize-none ${errors.address ? 'border-red-500' : 'border-rose-gold/20'}`} placeholder="المحافظة - المنطقة - الشارع - رقم المنزل" disabled={loading} autoComplete="address-line1" />{errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}</div>
           <div><label className="block text-sm font-bold text-black mb-1">علامة مميزة <span className="text-rose-gold">*</span></label><input type="text" value={formData.landmark} onChange={(e) => handleInputChange('landmark', e.target.value)} className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-gold font-bold text-black ${errors.landmark ? 'border-red-500' : 'border-rose-gold/20'}`} placeholder="مثال: بجوار مسجد النور، قدام مدرسة العبور" disabled={loading} />{errors.landmark && <p className="text-red-500 text-xs mt-1">{errors.landmark}</p>}</div>
           <div><label className="block text-sm font-bold text-black mb-1">ملاحظات إضافية (اختياري)</label><textarea rows={2} value={formData.notes} onChange={(e) => handleInputChange('notes', e.target.value)} className="w-full p-2.5 border border-rose-gold/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-gold font-bold text-black resize-none" placeholder="أي تفاصيل إضافية عشان نوصل لك أسرع" disabled={loading} /></div>
+
+          {/* Loyalty Section */}
+          <div className="border-t border-rose-gold/20 pt-4">
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="w-4 h-4 text-rose-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+              <span className="text-sm font-black text-black">نقاط الولاء</span>
+            </div>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="tel"
+                value={loyaltyPhone}
+                onChange={(e) => { setLoyaltyPhone(e.target.value); setLoyaltyData(null); setRedeemPoints(0); setRedeemDiscount(0); }}
+                placeholder="رقم التليفون عشان تشوف نقاطك"
+                className="flex-1 p-2 text-sm border border-rose-gold/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-gold font-bold text-black"
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!loyaltyPhone) return;
+                  setLoyaltyLoading(true);
+                  try {
+                    const res = await fetch(`/api/loyalty?phone=${encodeURIComponent(loyaltyPhone)}`);
+                    if (res.ok) {
+                      const d = await res.json();
+                      setLoyaltyData(d);
+                    } else {
+                      setLoyaltyData({ points: 0, tier: '', enrolled: false });
+                    }
+                  } catch { setLoyaltyData({ points: 0, tier: '', enrolled: false }); }
+                  finally { setLoyaltyLoading(false); }
+                }}
+                disabled={loyaltyLoading || !loyaltyPhone}
+                className="px-3 py-2 text-xs bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold rounded-xl hover:scale-[1.02] transition-all disabled:opacity-50"
+              >
+                {loyaltyLoading ? '...' : 'اعرض'}
+              </button>
+            </div>
+            {loyaltyData && (
+              <div className="bg-rose-gold/5 rounded-xl p-3 border border-rose-gold/20">
+                {loyaltyData.enrolled ? (
+                  <>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-bold text-black">نقاطك: <span className="text-rose-gold">{toArabicNumber(loyaltyData.points)}</span></span>
+                      <span className="text-[10px] font-bold text-black/60">{loyaltyData.tier}</span>
+                    </div>
+                    {canRedeem(loyaltyData.points) && !redeemPoints && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const p = Math.floor(loyaltyData.points / 100) * 100;
+                          setRedeemPoints(p);
+                          setRedeemDiscount(pointsToEGP(p));
+                        }}
+                        className="w-full text-xs bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold py-1.5 rounded-lg hover:scale-[1.02] transition-all"
+                      >
+                        استخدم {toArabicNumber(Math.floor(loyaltyData.points / 100) * 100)} نقطة (خصم {toArabicNumber(pointsToEGP(Math.floor(loyaltyData.points / 100) * 100))} ج.م)
+                      </button>
+                    )}
+                    {redeemPoints > 0 && (
+                      <div className="text-center">
+                        <span className="text-xs font-bold text-green-600">تم تطبيق خصم {toArabicNumber(redeemDiscount)} ج.م</span>
+                        <button
+                          type="button"
+                          onClick={() => { setRedeemPoints(0); setRedeemDiscount(0); }}
+                          className="block mx-auto text-[10px] text-red-500 font-bold mt-1 hover:underline"
+                        >
+                          إلغاء
+                        </button>
+                      </div>
+                    )}
+                    {!canRedeem(loyaltyData.points) && (
+                      <p className="text-xs text-black/50 font-bold">الحد الأدنى للاستبدال ١٠٠ نقطة. كمل جمع وارجع تاني!</p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-xs text-black/50 font-bold">رقم التليفون ده مش مسجل في نظام النقاط. أول طلب ليك هتبدأ تجمع!</p>
+                )}
+              </div>
+            )}
+          </div>
         </form>
 
         <div className="sticky bottom-0 bg-white border-t border-rose-gold/20 p-4">

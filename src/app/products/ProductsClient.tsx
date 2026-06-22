@@ -6,7 +6,6 @@ import { useInView } from 'react-intersection-observer';
 import ProductCard from "@/components/ProductCard";
 import { Product } from '@/lib/products';
 import Image from 'next/image';
-import Link from 'next/link';
 import { create } from 'zustand';
 import { ProductGridSkeleton } from '@/components/Skeleton';
 import { toArabicNumber } from '@/lib/utils';
@@ -110,60 +109,41 @@ const shuffleArray = <T,>(array: T[]): T[] => {
   return shuffled;
 };
 
-const getTotalStock = (product: Product): number => {
-  if (product.stockItems && Array.isArray(product.stockItems)) {
-    return product.stockItems.reduce((sum, item) => sum + item.quantity, 0);
-  }
-  return product.stock || 0;
-};
+
 
 interface ProductsClientProps {
   initialProducts: Product[];
 }
 
 export default function ProductsClient({ initialProducts }: ProductsClientProps) {
-  // ✅ الحل: useRef عشان نتجنب الـ Hydration Mismatch
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [products] = useState(initialProducts);
+  const [isHydrated] = useState(true);
+  const [loading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(12);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [bestSellers, setBestSellers] = useState<Product[]>([]);
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(1000);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const { loadFromStorage } = useStore();
-  const { ref: loadMoreRef, inView } = useInView();
-
-  // ✅ 1. تأكد من الـ Hydration (مرة واحدة)
-  useEffect(() => {
-    setIsHydrated(true);
-    setProducts(initialProducts);
-    setLoading(false);
-  }, [initialProducts]);
-
-  // ✅ 2. حساب best sellers والـ price range بعد ما البيانات تتحمل
-  useEffect(() => {
-    if (products.length === 0) return;
-    
-    const sortedBySales = [...products]
+  const bestSellers = useMemo(() => {
+    if (products.length === 0) return [];
+    return [...products]
       .filter(p => (p.salesCount || 0) > 0)
       .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0))
       .slice(0, 4);
-    setBestSellers(sortedBySales);
-    
-    const prices = products.map(p => p.price);
-    setMinPrice(Math.min(...prices, 0));
-    setMaxPrice(Math.max(...prices, 1000));
-    setPriceRange([Math.min(...prices, 0), Math.max(...prices, 1000)]);
-    
-    loadFromStorage();
+  }, [products]);
+
+  const prices = products.map(p => p.price);
+  const minPrice = prices.length ? Math.min(...prices, 0) : 0;
+  const maxPrice = prices.length ? Math.max(...prices, 1000) : 1000;
+
+  useEffect(() => {
+    if (products.length > 0) {
+      loadFromStorage();
+    }
   }, [products, loadFromStorage]);
 
   const recommended = useMemo(() => {
@@ -179,7 +159,9 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     return () => { if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current); };
   }, [searchQuery]);
 
-  useEffect(() => {
+  const filterKey = `${selectedCategory}-${sortBy}-${debouncedQuery}-${priceRange[0]}-${priceRange[1]}`;
+
+  const filteredProducts = useMemo(() => {
     let filtered = [...products];
     
     if (selectedCategory !== 'all') {
@@ -206,9 +188,8 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
       filtered.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
     }
     
-    setFilteredProducts(filtered);
-    setVisibleCount(12);
-  }, [selectedCategory, sortBy, debouncedQuery, priceRange, products]);
+    return filtered;
+  }, [filterKey, products, selectedCategory, sortBy, debouncedQuery, priceRange]);
 
   // ✅ حساب عدد المنتجات في كل قسم
   const getCategoryCount = (categoryId: string) => {
@@ -228,12 +209,17 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
 
   const displayedProducts = filteredProducts.slice(0, visibleCount);
   const hasMore = visibleCount < filteredProducts.length;
+  const { ref: loadMoreRef } = useInView({
+    onChange: (inViewNow) => {
+      if (inViewNow && hasMore) {
+        setVisibleCount(prev => prev + 12);
+      }
+    },
+  });
 
   useEffect(() => {
-    if (inView && hasMore && !loading) {
-      setVisibleCount(prev => prev + 12);
-    }
-  }, [inView, hasMore, loading]);
+    setVisibleCount(12);
+  }, [filterKey]);
 
   // ✅ قبل الـ Hydration، اعرض Skeleton
   if (!isHydrated || (loading && products.length === 0)) {
@@ -413,7 +399,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
           <p className="text-black/60 text-sm font-bold">
             <span className="font-bold text-rose-gold">{toArabicNumber(filteredProducts.length)}</span> منتج
             {selectedCategory !== 'all' && <> في <span className="font-bold text-black">{allCategories.find(c => c.id === selectedCategory)?.name}</span></>}
-            {searchQuery && <> مطابق لـ <span className="font-bold text-rose-gold">"{searchQuery}"</span></>}
+            {searchQuery && <> مطابق لـ <span className="font-bold text-rose-gold">&ldquo;{searchQuery}&rdquo;</span></>}
           </p>
         </div>
         

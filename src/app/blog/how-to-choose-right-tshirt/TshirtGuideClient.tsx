@@ -2,14 +2,10 @@
 'use client';
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 export default function TshirtGuideClient() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [mounted] = useState(true);
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -23,7 +19,7 @@ export default function TshirtGuideClient() {
           text: text,
           url: url,
         });
-      } catch (err) {
+      } catch {
         console.log('تم إلغاء المشاركة');
       }
     } else {

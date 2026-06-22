@@ -26,11 +26,11 @@ const getAvailableStock = (product: Product, size?: string, color?: string): num
   if (product.stockItems && Array.isArray(product.stockItems)) {
     if (size && color) {
       const stockItem = product.stockItems.find(
-        (item: any) => item.size === size && item.colorCode === color
+        (item: { size: string; colorCode: string; quantity: number }) => item.size === size && item.colorCode === color
       );
       return stockItem?.quantity || 0;
     }
-    return product.stockItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    return product.stockItems.reduce((sum: number, item: { size: string; colorCode: string; quantity: number }) => sum + item.quantity, 0);
   }
   return product.stock || 0;
 };
@@ -46,9 +46,11 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   const [imgError, setImgError] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [showSelectionModal, setShowSelectionModal] = useState(false);
-  const [selections, setSelections] = useState<CartItemSelection[]>([
+  const [selections, setSelections] = useState<CartItemSelection[]>(() => [
     { size: '', color: '', quantity: 1, id: Date.now().toString() }
   ]);
+  const [liveRating, setLiveRating] = useState(product.rating || 0);
+  const [liveReviewCount, setLiveReviewCount] = useState(product.salesCount || 0);
 
   const { addToCart, removeFromCartByProductSlug, isInCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -76,7 +78,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     return selections.length > 0;
   };
 
-  const rating = product.rating || 0;
+  const rating = liveRating || product.rating || 0;
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;
   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
@@ -135,12 +137,28 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
   useEffect(() => {
     mountedRef.current = true;
+    const currentTimeout = timeoutRef.current;
+    const currentAutoPlay = autoPlayRef.current;
     return () => {
       mountedRef.current = false;
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+      if (currentTimeout) clearTimeout(currentTimeout);
+      if (currentAutoPlay) clearInterval(currentAutoPlay);
     };
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`/api/reviews/${encodeURIComponent(product.slug)}`, { signal: controller.signal })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data.averageRating > 0) {
+          setLiveRating(data.averageRating);
+          setLiveReviewCount(data.reviewCount);
+        }
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [product.slug]);
 
   useEffect(() => {
     if (allImages.length > 1 && !showSelectionModal) {
@@ -335,7 +353,6 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   };
 
   const totalItems = selections.reduce((sum, s) => sum + s.quantity, 0);
-  const totalPrice = totalItems * product.price;
   const applicableTier = getApplicableTier(totalItems);
   const hasDiscount = applicableTier !== null;
 
@@ -498,9 +515,9 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                     <span key={i} className="text-rose-gold/30">★</span>
                   ))}
                 </div>
-                <span className="text-black/50 font-bold text-[9px] md:text-[10px] mr-1">
-                  ({toArabicNumber(product.salesCount || rating)})
-                </span>
+                  <span className="text-black/50 font-bold text-[9px] md:text-[10px] mr-1">
+                    ({toArabicNumber(liveReviewCount || product.salesCount || 0)})
+                  </span>
               </div>
             )}
 

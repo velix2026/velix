@@ -1,5 +1,6 @@
 // app/products/[slug]/page.tsx
 import Link from 'next/link';
+import { sql } from '@vercel/postgres';
 import { getProducts, getTotalStock } from "@/lib/products";
 import ProductClient from "./ProductClient";
 
@@ -84,6 +85,23 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   
   const relatedProducts = allProducts.filter(p => p.category === product.category && p.slug !== decodedSlug).slice(0, 8);
   console.log('✅ [ProductPage] 8. Related products count:', relatedProducts.length);
+
+  let reviewStats = { averageRating: 0, reviewCount: 0 };
+  try {
+    const result = await sql`
+      SELECT 
+        COUNT(*)::int as review_count,
+        COALESCE(AVG(rating)::numeric(10,2), 0)::float as average_rating
+      FROM product_reviews 
+      WHERE product_slug = ${decodedSlug} AND is_approved = true
+    `;
+    reviewStats = {
+      averageRating: result.rows[0]?.average_rating || 0,
+      reviewCount: result.rows[0]?.review_count || 0,
+    };
+  } catch (error) {
+    console.error('Error fetching review stats:', error);
+  }
   
-  return <ProductClient product={product} relatedProducts={relatedProducts} />;
+  return <ProductClient product={product} relatedProducts={relatedProducts} reviewStats={reviewStats} allProducts={allProducts} />;
 }

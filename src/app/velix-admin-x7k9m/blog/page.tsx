@@ -54,7 +54,7 @@ export default function AdminBlogPage() {
   function openEdit(post: BlogPost) {
     setEditingPost(post);
     setSlug(post.slug); setTitle(post.title); setExcerpt(post.excerpt || '');
-    setContent((post as any).content || ''); setCategory(post.category || 'نصائح');
+    setContent((post as unknown as { content?: string }).content || ''); setCategory(post.category || 'نصائح');
     setTags(post.tags?.join(', ') || ''); setReadTime(post.read_time || '5 دقايق');
     setIsPublished(post.is_published);
     setShowEditor(true);

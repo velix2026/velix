@@ -212,7 +212,7 @@ export default function AddProductPage() {
           ]
         });
         const fileInputs = document.querySelectorAll('input[type="file"]');
-        fileInputs.forEach((input: any) => (input.value = ''));
+        fileInputs.forEach((input) => ((input as HTMLInputElement).value = ''));
       } else {
         const error = await res.text();
         console.error('API Error:', error);

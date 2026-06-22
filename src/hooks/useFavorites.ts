@@ -1,21 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Product } from '@/lib/products';
 
-const trackFavoriteEvent = (eventName: string, data: any) => {
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', eventName, {
+const trackFavoriteEvent = (eventName: string, data: Record<string, unknown>) => {
+  const w = window as unknown as { gtag?: (...args: unknown[]) => void };
+  if (typeof window !== 'undefined' && w.gtag) {
+    w.gtag('event', eventName, {
       ...data,
       event_category: 'favorites',
     });
   }
-};
-
-// ✅ دالة حساب إجمالي الكمية من stockItems
-const getTotalStock = (product: Product): number => {
-  if (product.stockItems && Array.isArray(product.stockItems)) {
-    return product.stockItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
-  }
-  return product.stock || 0;
 };
 
 export function useFavorites() {

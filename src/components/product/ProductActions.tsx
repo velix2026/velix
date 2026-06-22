@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/hooks/useCart';
 import { useFavorites } from '@/hooks/useFavorites';
 import { toArabicNumber, formatPrice } from '@/lib/utils';
 import { getColorByCode } from '@/lib/colors';
 import SizeGuideModal from '@/components/SizeGuideModal';
+import SizeQuiz from '@/components/SizeQuiz';
+import { Product } from '@/lib/products';
 
 interface ProductActionsProps {
-  product: any;
+  product: Product;
   onOrder: (data: { size: string; color: string; quantity: number }) => void;
 }
 
@@ -21,7 +23,7 @@ interface MultiItem {
 }
 
 // دالة حساب السعر بعد خصم الكمية
-const getQuantityDiscountPrice = (product: any, quantity: number) => {
+const getQuantityDiscountPrice = (product: Product, quantity: number) => {
   if (!product.quantityDiscount?.enabled) return product.price * quantity;
   const { tiers } = product.quantityDiscount;
   let applicableTier = null;
@@ -33,9 +35,9 @@ const getQuantityDiscountPrice = (product: any, quantity: number) => {
 };
 
 // دالة حساب الكمية المتاحة
-const getAvailableStock = (product: any, size: string, color: string): number => {
+const getAvailableStock = (product: Product, size: string, color: string): number => {
   if (product.stockItems && Array.isArray(product.stockItems) && size && color) {
-    const stockItem = product.stockItems.find((item: any) => item.size === size && item.colorCode === color);
+    const stockItem = product.stockItems.find((item: { size: string; colorCode: string; quantity: number }) => item.size === size && item.colorCode === color);
     return stockItem?.quantity || 0;
   }
   return product.stock || 0;
@@ -58,32 +60,22 @@ const getColorDetails = (colorCode: string) => {
 
 export default function ProductActions({ product, onOrder }: ProductActionsProps) {
   const [isMultiMode, setIsMultiMode] = useState(false);
-  const [items, setItems] = useState<MultiItem[]>([{ id: Date.now().toString(), size: '', color: '', quantity: 1 }]);
-  const [singleSelection, setSingleSelection] = useState({ size: '', color: '', quantity: 1 });
-  const [forceUpdate, setForceUpdate] = useState(0);
+  const [items, setItems] = useState<MultiItem[]>(() => [{ id: Date.now().toString(), size: '', color: '', quantity: 1 }]);
+  const defaultSize = product.sizes?.[0] || '';
+  const defaultColor = product.colors?.[0] || '';
+  const [singleSelection, setSingleSelection] = useState({ size: defaultSize, color: defaultColor, quantity: 1 });
+  const [, setForceUpdate] = useState(0);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
+  const [isSizeQuizOpen, setIsSizeQuizOpen] = useState(false);
   
-  const { addToCart, removeFromCartByProductSlug, isInCart, cart } = useCart();
+  const { addToCart, removeFromCartByProductSlug, isInCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
 
-  const sizes: string[] = product.sizes || [];
-  const colors: string[] = product.colors || [];
+  const sizes = useMemo(() => product.sizes || [], [product.sizes]);
+  const colors = useMemo(() => product.colors || [], [product.colors]);
   const singleAvailableStock = getAvailableStock(product, singleSelection.size, singleSelection.color);
   const isInCartState = isInCart(product.slug);
   const isFavoritedState = isFavorite(product.slug);
-
-  // تحديث الـ UI عند تغير السلة
-  useEffect(() => {
-    setForceUpdate(prev => prev + 1);
-  }, [cart, product.slug]);
-
-  useEffect(() => {
-    setSingleSelection(prev => ({ ...prev, size: sizes[0] || '', color: colors[0] || '' }));
-  }, [sizes, colors]);
-
-  useEffect(() => {
-    setSingleSelection(prev => ({ ...prev, quantity: 1 }));
-  }, [singleSelection.size, singleSelection.color]);
 
   const addItem = () => setItems(prev => [...prev, { id: Date.now().toString() + Math.random(), size: sizes[0] || '', color: colors[0] || '', quantity: 1 }]);
   const removeItem = (id: string) => { if (items.length > 1) setItems(prev => prev.filter(item => item.id !== id)); };
@@ -159,8 +151,8 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
     <>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="mt-6">
         
-        {/* ✅ زر دليل المقاسات */}
-        <div className="mb-4">
+        {/* ✅ أزرار المقاسات */}
+        <div className="mb-4 flex flex-wrap gap-3">
           <button
             onClick={() => setIsSizeGuideOpen(true)}
             className="inline-flex items-center gap-2 text-sm text-rose-gold hover:text-copper transition-colors group"
@@ -168,7 +160,16 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
             <svg className="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="border-b border-rose-gold/30 group-hover:border-rose-gold transition">مش عارف مقاسك؟ شوف دليل المقاسات</span>
+            <span className="border-b border-rose-gold/30 group-hover:border-rose-gold transition">دليل المقاسات</span>
+          </button>
+          <button
+            onClick={() => setIsSizeQuizOpen(true)}
+            className="inline-flex items-center gap-2 text-sm text-rose-gold hover:text-copper transition-colors group"
+          >
+            <svg className="w-5 h-5 group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            <span className="border-b border-rose-gold/30 group-hover:border-rose-gold transition">اعرف مقاسك</span>
           </button>
         </div>
 
@@ -332,7 +333,7 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
             <svg className="w-5 h-5" fill={isFavoritedState ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
             {isFavoritedState ? 'في المفضلة' : 'ضيف للمفضلة'}
           </button>
-          <button onClick={async () => { const url = window.location.href; if (navigator.share) { try { await navigator.share({ title: `VELIX - ${product.name}`, text: `شوف منتج ${product.name} من VELIX`, url }); } catch (err) {} } else { await navigator.clipboard.writeText(url); alert('تم نسخ الرابط'); } }} className="py-3 px-6 rounded-full font-bold bg-white text-black border-2 border-rose-gold/20 hover:border-rose-gold hover:bg-rose-gold/5 transition-all duration-300 flex items-center justify-center gap-2">
+          <button onClick={async () => { const url = window.location.href; if (navigator.share) { try { await navigator.share({ title: `VELIX - ${product.name}`, text: `شوف منتج ${product.name} من VELIX`, url }); } catch {} } else { await navigator.clipboard.writeText(url); alert('تم نسخ الرابط'); } }} className="py-3 px-6 rounded-full font-bold bg-white text-black border-2 border-rose-gold/20 hover:border-rose-gold hover:bg-rose-gold/5 transition-all duration-300 flex items-center justify-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
             مشاركة
           </button>
@@ -343,6 +344,10 @@ export default function ProductActions({ product, onOrder }: ProductActionsProps
       <SizeGuideModal 
         isOpen={isSizeGuideOpen} 
         onClose={() => setIsSizeGuideOpen(false)} 
+      />
+      <SizeQuiz 
+        isOpen={isSizeQuizOpen} 
+        onClose={() => setIsSizeQuizOpen(false)} 
       />
     </>
   );

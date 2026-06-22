@@ -25,9 +25,9 @@ async function getProducts() {
     if (!data) return [];
     let products = JSON.parse(data);
     
-    products = products.map((product: any, index: number) => {
+    products = products.map((product: Record<string, unknown>, index: number) => {
       if (!product.createdAt) {
-        const daysAgo = Math.min(30, (product.slug || index + 1) % 31);
+        const daysAgo = Math.min(30, (Number(product.slug) || index + 1) % 31);
         const fakeDate = new Date();
         fakeDate.setDate(fakeDate.getDate() - daysAgo);
         return {
@@ -47,7 +47,7 @@ async function getProducts() {
   }
 }
 
-async function saveProducts(products: any[]) {
+async function saveProducts(products: Record<string, unknown>[]) {
   try {
     await redis.set(PRODUCTS_KEY, JSON.stringify(products));
   } catch (error) {
@@ -72,7 +72,7 @@ export async function GET(
   try {
     const { slug } = await params;
     const products = await getProducts();
-    const product = products.find((p: any) => p.slug === slug);
+    const product = products.find((p: { slug: string }) => p.slug === slug);
     
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -132,8 +132,8 @@ export async function PATCH(
       }
     }
     
-    let products = await getProducts();
-    const index = products.findIndex((p: any) => p.slug === slug);
+    const products = await getProducts();
+    const index = products.findIndex((p: { slug: string }) => p.slug === slug);
     
     if (index === -1) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -225,8 +225,8 @@ export async function DELETE(
 ) {
   try {
     const { slug } = await params;
-    let products = await getProducts();
-    const productToDelete = products.find((p: any) => p.slug === slug);
+    const products = await getProducts();
+    const productToDelete = products.find((p: { slug: string }) => p.slug === slug);
     
     if (!productToDelete) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -249,7 +249,7 @@ export async function DELETE(
       }
     }
     
-    const newProducts = products.filter((p: any) => p.slug !== slug);
+    const newProducts = products.filter((p: { slug: string }) => p.slug !== slug);
     await saveProducts(newProducts);
     
     return NextResponse.json({ success: true });

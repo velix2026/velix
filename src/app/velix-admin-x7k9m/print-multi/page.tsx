@@ -17,7 +17,7 @@ interface Order {
   total_amount: number;
   created_at: string;
   notes?: string;
-  items?: any[];
+  items?: Array<{ product_name: string; product_id?: number; selected_size?: string; selected_color?: string; quantity?: number; price?: number }>;
 }
 
 export default function PrintMultiPage() {
@@ -259,7 +259,7 @@ export default function PrintMultiPage() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {order.items?.slice(0, 3).map((item: any, i: number) => (
+                                {order.items?.slice(0, 3).map((item: { product_name: string; selected_size?: string; selected_color?: string; quantity?: number; price?: number }, i: number) => (
                                   <tr key={i} className="border-t border-rose-gold/10">
                                     <td className="p-1">
                                       <p className="font-bold truncate max-w-20">{item.product_name}</p>
@@ -273,7 +273,7 @@ export default function PrintMultiPage() {
                                     </td>
                                     <td className="p-1 text-center font-bold">{toArabicNumber(item.quantity)}</td>
                                     <td className="p-1 text-center">{formatPrice(item.price)}</td>
-                                    <td className="p-1 text-center font-bold">{formatPrice(item.price * item.quantity)}</td>
+                                    <td className="p-1 text-center font-bold">{formatPrice((item.price || 0) * (item.quantity || 0))}</td>
                                   </tr>
                                 ))}
                                 {order.items && order.items.length > 3 && (

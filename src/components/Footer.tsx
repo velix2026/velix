@@ -152,6 +152,14 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link 
+                    href="/loyalty" 
+                    className="text-black/60 hover:text-rose-gold hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group font-medium"
+                  >
+                    برنامج الولاء
+                  </Link>
+                </li>
+                <li>
+                  <Link 
                     href="/contact" 
                     className="text-black/60 hover:text-rose-gold hover:translate-x-1 transition-all duration-200 text-sm inline-flex items-center gap-1 group font-medium"
                   >

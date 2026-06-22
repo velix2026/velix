@@ -30,6 +30,8 @@ export interface Product {
     size: string;
     quantity: number;
   }>;
+  bestseller?: boolean;
+  offerEndsAt?: string;
 }
 
 // ✅ دالة توليد الـ slug من اسم المنتج
@@ -66,7 +68,7 @@ export async function getProducts(): Promise<Product[]> {
     const products = await res.json();
     
     // ✅ تأكد من وجود slug لكل منتج، وولده لو مش موجود
-    const productsWithSlug = products.map((p: any) => ({
+    const productsWithSlug = products.map((p: { slug?: string; name: string; stockItems?: { colorCode: string; size: string; quantity: number }[]; stock?: number; quantity?: number }) => ({
       ...p,
       slug: p.slug || generateSlug(p.name), // ✅ لو مفيش slug، يولده من الاسم
       stockItems: p.stockItems || [],

@@ -4,14 +4,15 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toArabicNumber, formatPrice } from '@/lib/utils';
 import SizeGuideModal from '@/components/SizeGuideModal';
+import { Product } from '@/lib/products';
 
 interface ProductInfoProps {
-  product: any;
+  product: Product;
 }
 
-const getTotalStock = (product: any): number => {
+const getTotalStock = (product: Product): number => {
   if (product.stockItems && Array.isArray(product.stockItems)) {
-    return product.stockItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    return product.stockItems.reduce((sum: number, item: { colorCode: string; size: string; quantity: number }) => sum + item.quantity, 0);
   }
   return product.stock || 0;
 };
@@ -21,9 +22,10 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
   useEffect(() => {
-    if (!product?.offerEndsAt) return;
+    const endsAt = product?.offerEndsAt;
+    if (!endsAt) return;
     const interval = setInterval(() => {
-      const diff = new Date(product.offerEndsAt).getTime() - Date.now();
+      const diff = new Date(endsAt).getTime() - Date.now();
       setTimeLeft(diff > 0 ? diff : 0);
     }, 1000);
     return () => clearInterval(interval);

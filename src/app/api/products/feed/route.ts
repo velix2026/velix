@@ -11,8 +11,8 @@ async function getProducts() {
   try {
     const data = await redis.get(PRODUCTS_KEY);
     if (!data) return [];
-    let products = JSON.parse(data);
-    return products.map((p: any) => ({
+    const products = JSON.parse(data);
+    return products.map((p: { slug?: string; name: string; stockItems?: { colorCode: string; size: string; quantity: number }[] }) => ({
       ...p,
       slug: p.slug || p.name.toLowerCase().replace(/[^\w\u0600-\u06FF\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''),
       stockItems: p.stockItems || [],
@@ -23,9 +23,9 @@ async function getProducts() {
   }
 }
 
-function getTotalStock(product: any): number {
+function getTotalStock(product: { stockItems?: { quantity: number }[]; stock?: number }): number {
   if (product.stockItems && product.stockItems.length > 0) {
-    return product.stockItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    return product.stockItems.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0);
   }
   return product.stock || 0;
 }
@@ -42,7 +42,7 @@ function escapeXml(str: string): string {
 export async function GET() {
   const products = await getProducts();
   const baseUrl = 'https://velix-eg.store';
-  const today = new Date().toISOString().split('T')[0];
+  const _today = new Date().toISOString().split('T')[0];
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">

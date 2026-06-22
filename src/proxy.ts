@@ -1,4 +1,3 @@
-// proxy.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -8,25 +7,17 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'velix@2026';
 export function proxy(request: NextRequest) {
   const { pathname, protocol, host } = request.nextUrl;
   const method = request.method;
-  
-  // ==================== 0. إعادة توجيه HTTP → HTTPS ====================
+
   if (protocol === 'http:') {
     const httpsUrl = new URL(`https://${host}${pathname}${request.nextUrl.search}`);
-    console.log('🔄 Redirecting HTTP to HTTPS:', httpsUrl.toString());
     return NextResponse.redirect(httpsUrl, 301);
   }
-  
-  // ==================== 0. إعادة توجيه www → non-www ====================
+
   if (host.startsWith('www.')) {
     const nonWwwUrl = new URL(`https://${host.slice(4)}${pathname}${request.nextUrl.search}`);
-    console.log('🔄 Redirecting www to non-www:', nonWwwUrl.toString());
     return NextResponse.redirect(nonWwwUrl, 301);
   }
-  
-  console.log('🔍 Proxy check:', pathname, method);
-  
-  // ==================== 1. السماح لـ APIs العامة الجديدة ====================
-  
+
   const publicAdminApis = [
     `/api/${ADMIN_SECRET_PATH}/verify`,
     `/api/${ADMIN_SECRET_PATH}/setup`,
@@ -36,83 +27,66 @@ export function proxy(request: NextRequest) {
   if (publicAdminApis.includes(pathname)) {
     return NextResponse.next();
   }
-  
-  // السماح لـ public blog API
+
   if (pathname === '/api/blog' && method === 'GET') {
     return NextResponse.next();
   }
-  
-  // ==================== 2. منع الوصول للمسار القديم ====================
-  
+
   if (pathname.startsWith('/admin') && !pathname.startsWith(`/${ADMIN_SECRET_PATH}`)) {
-    console.log('🚫 Blocked old admin path:', pathname);
     return NextResponse.redirect(new URL('/', request.url));
   }
-  
-  // ==================== 3. مسارات الأدمن (الصفحات) ====================
-  
+
   if (pathname.startsWith(`/${ADMIN_SECRET_PATH}`)) {
     const adminAuth = request.cookies.get('adminAuth')?.value;
     const isLoginPage = pathname === `/${ADMIN_SECRET_PATH}/login`;
-    
+
     if (!isLoginPage && adminAuth !== 'true') {
-      console.log('🔒 Redirecting to login, adminAuth:', adminAuth);
       const loginUrl = new URL(`/${ADMIN_SECRET_PATH}/login`, request.url);
       return NextResponse.redirect(loginUrl);
     }
-    
+
     return NextResponse.next();
   }
-  
-  // ==================== 4. المسارات المفتوحة للجميع ====================
-  
+
   if (pathname === '/api/products' && method === 'GET') {
     return NextResponse.next();
   }
-  
+
   if (pathname === '/api/orders' && method === 'POST') {
     return NextResponse.next();
   }
-  
+
+  if (pathname.startsWith('/api/orders/track') && method === 'GET') {
+    return NextResponse.next();
+  }
+
   if (pathname === '/api/newsletter' && ['POST', 'PUT', 'DELETE'].includes(method)) {
     return NextResponse.next();
   }
-  
-  // ==================== 5. مسارات API الأدمن (تتحقق من header أو cookie) ====================
-  
+
   if (pathname.startsWith(`/api/${ADMIN_SECRET_PATH}`)) {
-    // ✅ التحقق من Authorization header أولاً
     const authHeader = request.headers.get('authorization');
     if (authHeader === `Bearer ${ADMIN_PASSWORD}`) {
-      console.log('✅ Admin authorized via header:', pathname);
       return NextResponse.next();
     }
-    
-    // ✅ ثم التحقق من الـ cookie القديم
+
     const adminAuth = request.cookies.get('adminAuth')?.value;
     if (adminAuth === 'true') {
-      console.log('✅ Admin authorized via cookie:', pathname);
       return NextResponse.next();
     }
-    
-    // ✅ التحقق من الـ session token الجديد
+
     const adminToken = request.cookies.get('admin_token')?.value;
     if (adminToken && adminToken.length > 20) {
-      console.log('✅ Admin authorized via session token:', pathname);
       return NextResponse.next();
     }
-    
-    console.log('🔒 Unauthorized - no valid auth');
+
     return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
   }
-  
-  // منع API الأدمن القديم
+
   if (pathname.startsWith('/api/admin/')) {
     return NextResponse.json({ error: 'API غير متاح' }, { status: 404 });
   }
-  
-  // ==================== 6. PATCH/DELETE للمنتجات ====================
-  
+
   if (pathname.startsWith('/api/products/') && (method === 'PATCH' || method === 'DELETE')) {
     const authHeader = request.headers.get('authorization');
     if (authHeader === `Bearer ${ADMIN_PASSWORD}`) {
@@ -124,10 +98,12 @@ export function proxy(request: NextRequest) {
     }
     return NextResponse.next();
   }
-  
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: '/api/:path*',
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|images/|sw.js|manifest.json|android-chrome|apple-touch-icon|favicon|site\\.webmanifest|llms\\.txt|opengraph-image|Stamp\\.png).*)',
+  ],
 };

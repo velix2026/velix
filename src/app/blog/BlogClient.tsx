@@ -3,7 +3,7 @@
 
 import Link from 'next/link'
 import { useState, useMemo } from 'react'
-import { BookOpen, Search, Star, Calendar, Clock, FolderOpen, X, Mail, Sparkles, Ruler, Heart, Shirt, Gift, ShoppingBag, Lightbulb } from 'lucide-react'
+import { BookOpen, Search, Star, Calendar, Clock, FolderOpen, X, Mail, Sparkles, Ruler, Heart, Gift, ShoppingBag, Lightbulb } from 'lucide-react'
 import NewsletterModal from '@/components/NewsletterModal'
 import { posts } from './posts-data'
 
@@ -180,7 +180,7 @@ export default function BlogClient() {
           {searchQuery && (
             <div className="text-center mb-6">
               <p className="text-black/60 text-sm">
-                نتائج البحث عن "<span className="text-rose-gold font-bold">{searchQuery}</span>": 
+                نتائج البحث عن &ldquo;<span className="text-rose-gold font-bold">{searchQuery}</span>&rdquo;: 
                 <span className="font-bold text-rose-gold"> {filteredPosts.length} </span> 
                 مقالة
               </p>

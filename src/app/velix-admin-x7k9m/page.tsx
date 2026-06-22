@@ -13,6 +13,22 @@ interface RevenueData {
   topProducts: { name: string; total: number; sold: number }[];
 }
 
+function SparklineChart({ revenue, maxRevenue }: { revenue: RevenueData | null; maxRevenue: number }) {
+  const data = revenue?.daily?.slice().reverse() || [];
+  if (data.length === 0) return null;
+  const w = 280, h = 80;
+  const px = (i: number) => (i / (data.length - 1 || 1)) * w;
+  const py = (v: number) => h - (v / maxRevenue) * (h - 4) - 2;
+  const pts = data.map((d, i) => `${px(i)},${py(d.revenue)}`).join(' ');
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-24">
+      <defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#B76E79" stopOpacity="0.3"/><stop offset="100%" stopColor="#B76E79" stopOpacity="0"/></linearGradient></defs>
+      <polyline fill="none" stroke="#B76E79" strokeWidth="2" points={pts} className="drop-shadow-sm" />
+      <polygon fill="url(#rg)" points={`${px(0)},${h} ${pts} ${px(data.length - 1)},${h}`} />
+    </svg>
+  );
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<{ displayName: string } | null>(null);
@@ -21,6 +37,36 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({ orders: 0, products: 0, subscribers: 0, revenue: 0 });
   const [revenue, setRevenue] = useState<RevenueData | null>(null);
   const [showRevenue, setShowRevenue] = useState(false);
+
+  const fetchStats = async () => {
+    try {
+      const [ordersRes, productsRes] = await Promise.all([
+        fetch(`/api/${ADMIN_SECRET_PATH}/orders`),
+        fetch('/api/products'),
+      ]);
+      const orders = await ordersRes.json();
+      const products = await productsRes.json();
+      let subscribersCount = 0;
+      try {
+        const subRes = await fetch(`/api/${ADMIN_SECRET_PATH}/newsletter`);
+        if (subRes.ok) { const subs = await subRes.json(); subscribersCount = Array.isArray(subs) ? subs.length : 0; }
+      } catch {}
+      const revenue = Array.isArray(orders) ? orders.filter((o: { status: string }) => o.status === 'delivered').reduce((sum: number, o: { total_amount?: number }) => sum + (o.total_amount || 0), 0) : 0;
+      setStats({
+        orders: Array.isArray(orders) ? orders.length : 0,
+        products: Array.isArray(products) ? products.length : 0,
+        subscribers: subscribersCount,
+        revenue,
+      });
+    } catch {}
+  };
+
+  const fetchRevenue = async () => {
+    try {
+      const res = await fetch(`/api/${ADMIN_SECRET_PATH}/revenue`);
+      if (res.ok) setRevenue(await res.json());
+    } catch {}
+  };
 
   useEffect(() => {
     async function checkAuth() {
@@ -41,43 +87,12 @@ export default function AdminDashboard() {
   }, [router]);
 
   useEffect(() => {
-    setIsOnline(navigator.onLine);
     const h = () => setIsOnline(true);
     const h2 = () => setIsOnline(false);
     window.addEventListener('online', h);
     window.addEventListener('offline', h2);
     return () => { window.removeEventListener('online', h); window.removeEventListener('offline', h2); };
   }, []);
-
-  const fetchStats = async () => {
-    try {
-      const [ordersRes, productsRes] = await Promise.all([
-        fetch(`/api/${ADMIN_SECRET_PATH}/orders`),
-        fetch('/api/products'),
-      ]);
-      const orders = await ordersRes.json();
-      const products = await productsRes.json();
-      let subscribersCount = 0;
-      try {
-        const subRes = await fetch(`/api/${ADMIN_SECRET_PATH}/newsletter`);
-        if (subRes.ok) { const subs = await subRes.json(); subscribersCount = Array.isArray(subs) ? subs.length : 0; }
-      } catch {}
-      const revenue = Array.isArray(orders) ? orders.filter((o: any) => o.status === 'delivered').reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0) : 0;
-      setStats({
-        orders: Array.isArray(orders) ? orders.length : 0,
-        products: Array.isArray(products) ? products.length : 0,
-        subscribers: subscribersCount,
-        revenue,
-      });
-    } catch {}
-  };
-
-  const fetchRevenue = async () => {
-    try {
-      const res = await fetch(`/api/${ADMIN_SECRET_PATH}/revenue`);
-      if (res.ok) setRevenue(await res.json());
-    } catch {}
-  };
 
   const handleLogout = async () => {
     await fetch(`/api/${ADMIN_SECRET_PATH}/verify-session`, {
@@ -108,22 +123,6 @@ export default function AdminDashboard() {
   ];
 
   const maxRevenue = revenue?.daily?.length ? Math.max(...revenue.daily.map(d => d.revenue), 1) : 1;
-
-  function SparklineChart() {
-    const data = revenue?.daily?.slice().reverse() || [];
-    if (data.length === 0) return null;
-    const w = 280, h = 80;
-    const px = (i: number) => (i / (data.length - 1 || 1)) * w;
-    const py = (v: number) => h - (v / maxRevenue) * (h - 4) - 2;
-    const pts = data.map((d, i) => `${px(i)},${py(d.revenue)}`).join(' ');
-    return (
-      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-24">
-        <defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#B76E79" stopOpacity="0.3"/><stop offset="100%" stopColor="#B76E79" stopOpacity="0"/></linearGradient></defs>
-        <polyline fill="none" stroke="#B76E79" strokeWidth="2" points={pts} className="drop-shadow-sm" />
-        <polygon fill="url(#rg)" points={`${px(0)},${h} ${pts} ${px(data.length - 1)},${h}`} />
-      </svg>
-    );
-  }
 
   if (loading) {
     return <div className="min-h-screen bg-[#F5F3F0] flex items-center justify-center"><div className="w-12 h-12 border-4 border-rose-gold/20 border-t-rose-gold rounded-full animate-spin" /></div>;
@@ -206,7 +205,7 @@ export default function AdminDashboard() {
                 <div className="mb-6">
                   <p className="text-sm font-black text-black mb-2">الإيرادات اليومية (آخر 30 يوم)</p>
                   <div className="bg-[#FDF8F5] rounded-xl p-4 border border-rose-gold/20">
-                    <SparklineChart />
+                    <SparklineChart revenue={revenue} maxRevenue={maxRevenue} />
                     <div className="flex justify-between text-xs text-black/40 font-bold mt-1">
                       <span>{revenue.daily[revenue.daily.length - 1]?.date?.slice(5) || ''}</span>
                       <span>{revenue.daily[0]?.date?.slice(5) || ''}</span>

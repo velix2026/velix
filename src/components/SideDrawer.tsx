@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Product } from '@/lib/products';
 import { useCart, CartItem } from '@/hooks/useCart';
 import { useFavorites } from '@/hooks/useFavorites';
 import OrderModal from './OrderModal';
@@ -50,20 +49,18 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
   const title = type === 'favorites' ? 'المفضلة' : 'سلة التسوق';
   const emptyMessage = type === 'favorites' ? 'لسه مفيش حاجة في المفضلة' : 'السلة فاضية';
   
-  const { cart, removeVariation, removeFromCartByProductSlug, updateVariationQuantity, clearCart } = useCart();
+  const { cart, removeVariation, updateVariationQuantity, clearCart } = useCart();
   const { favorites, removeFromFavorites } = useFavorites();
   
   const items = type === 'cart' ? cart : favorites;
-  const [total, setTotal] = useState(0);
+  const total = useMemo(() => {
+    if (type === 'cart') {
+      return cart.reduce((sum, item) => sum + getItemTotalPrice(item), 0);
+    }
+    return 0;
+  }, [cart, type]);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (type === 'cart') {
-      const sum = cart.reduce((sum, item) => sum + getItemTotalPrice(item), 0);
-      setTotal(sum);
-    }
-  }, [cart, type]);
 
   useEffect(() => {
     const handleEscKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && isOpen) onClose(); };
@@ -86,9 +83,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
     removeVariation(productSlug, variationId, productName, variationDesc);
   }, [removeVariation]);
 
-  const handleRemoveProduct = useCallback((productSlug: string, productName: string) => {
-    removeFromCartByProductSlug(productSlug, productName);
-  }, [removeFromCartByProductSlug]);
+
 
   const openOrderModal = useCallback(() => {
     if (cart.length === 0) return;
@@ -110,7 +105,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
     setIsOrderModalOpen(true);
   }, [cart, total]);
 
-  const handleOrderSubmit = useCallback(async (orderData: any) => {
+  const handleOrderSubmit = useCallback(async () => {
     try {
       clearCart();
       localStorage.removeItem('tempOrderData');
@@ -222,8 +217,34 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
           )}
         </div>
 
-        {type === 'cart' && items.length > 0 && (
+          {type === 'cart' && items.length > 0 && (
           <div className="border-t border-rose-gold/20 p-4 bg-white sticky bottom-0 z-10 shadow-lg rounded-t-2xl">
+            <div className="space-y-2 mb-3">
+              <p className="text-xs font-bold text-black/50 text-center">أكمل إطلالتك - ضيف منتجات مكملة</p>
+              <div className="flex gap-2 justify-center">
+                <Link
+                  href="/collections/هوديز"
+                  onClick={onClose}
+                  className="text-[10px] px-3 py-1.5 rounded-full border border-rose-gold/20 text-rose-gold font-bold hover:bg-rose-gold hover:text-white transition-all"
+                >
+                  + هوديز
+                </Link>
+                <Link
+                  href="/collections/شروال"
+                  onClick={onClose}
+                  className="text-[10px] px-3 py-1.5 rounded-full border border-rose-gold/20 text-rose-gold font-bold hover:bg-rose-gold hover:text-white transition-all"
+                >
+                  + شروال
+                </Link>
+                <Link
+                  href="/collections/تيشرتات"
+                  onClick={onClose}
+                  className="text-[10px] px-3 py-1.5 rounded-full border border-rose-gold/20 text-rose-gold font-bold hover:bg-rose-gold hover:text-white transition-all"
+                >
+                  + تيشرتات
+                </Link>
+              </div>
+            </div>
             <div className="flex justify-between items-center mb-3">
               <span className="text-black font-bold text-sm">الإجمالي الكلي</span>
               <span className="text-xl font-bold text-rose-gold">{formatPrice(total)}</span>

@@ -386,7 +386,7 @@ export default function AdminProductsPage() {
                     <div className="mb-3 p-2 bg-rose-gold/10 rounded-lg border border-rose-gold/30">
                       <p className="text-xs font-bold text-rose-gold mb-1 flex items-center gap-1">🎉 عروض الكمية:</p>
                       <div className="space-y-1">
-                        {product.quantityDiscount.tiers.map((tier: any, idx: number) => (
+                        {product.quantityDiscount.tiers.map((tier: { minQuantity: number; discountPerItem: number }, idx: number) => (
                           tier.discountPerItem > 0 && (
                             <p key={idx} className="text-xs font-bold text-rose-gold/80">
                               {toArabicNumber(tier.minQuantity)}+ قطعة: خصم {toArabicNumber(tier.discountPerItem)} جنيه لكل قطعة

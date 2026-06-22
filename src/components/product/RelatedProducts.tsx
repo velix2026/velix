@@ -1,19 +1,19 @@
 'use client';
 
 import { useRef } from 'react';
-import Link from 'next/link';
 import { motion, useInView } from 'framer-motion';
 import ProductCard from '@/components/ProductCard';
+import { Product } from '@/lib/products';
 
 interface RelatedProductsProps {
-  products: any[];
-  currentProductId: number;
+  products: Product[];
+  currentProductId: string;
 }
 
 export default function RelatedProducts({ products, currentProductId }: RelatedProductsProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
-  const related = products.filter(p => p.id !== currentProductId).slice(0, 4);
+  const related = products.filter(p => p.slug !== currentProductId).slice(0, 4);
 
   if (related.length === 0) return null;
 

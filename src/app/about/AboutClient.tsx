@@ -109,7 +109,7 @@ export default function AboutClient() {
                 transition={{ duration: 0.6 }}
               >
                 <div className="relative">
-                  <div className="absolute -top-6 -right-6 text-6xl text-rose-gold/10 font-black select-none">"</div>
+                  <div className="absolute -top-6 -right-6 text-6xl text-rose-gold/10 font-black select-none">&rdquo;</div>
                   <h2 className="text-3xl md:text-4xl font-black text-black mb-6">
                     إزاي ابتدت الحكاية؟
                   </h2>
@@ -126,7 +126,7 @@ export default function AboutClient() {
                     <div className="pt-4">
                       <div className="border-r-4 border-rose-gold pr-4">
                         <p className="text-rose-gold font-black text-lg italic">
-                          "VELIX .. فخامة في كل تفصيلة"
+                          &ldquo;VELIX .. فخامة في كل تفصيلة&rdquo;
                         </p>
                       </div>
                     </div>
@@ -222,7 +222,7 @@ export default function AboutClient() {
                 <h3 className="text-2xl font-black text-black mb-4">رسالتنا</h3>
                 <p className="text-black/70 font-bold leading-relaxed text-lg">
                   نقدملك ملابس تخليك تحس بالفرق. جودة تحسها في إيدك، وتصميم يخليك تتطلع في المراية 
-                  وتقول "دا أنا". وكل ده بدعم الصناعة المصرية وبأيد مصرية.
+                  وتقول &ldquo;دا أنا&rdquo;. وكل ده بدعم الصناعة المصرية وبأيد مصرية.
                 </p>
                 <div className="mt-6 h-1 w-20 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper rounded-full" />
               </div>

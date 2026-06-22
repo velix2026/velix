@@ -9,12 +9,14 @@ import ProductImages from '@/components/product/ProductImages';
 import ProductInfo from '@/components/product/ProductInfo';
 import ProductActions from '@/components/product/ProductActions';
 import RelatedProducts from '@/components/product/RelatedProducts';
-import { getTotalStock } from '@/lib/products';
+import BundleOffer from '@/components/BundleOffer';
+import Reviews from '@/components/Reviews';
+import { Product, getTotalStock } from '@/lib/products';
 
 export const dynamic = 'force-dynamic';
 
 // دالة توليد JSON-LD للمنتج
-const generateProductSchema = (product: any, url: string) => {
+const generateProductSchema = (product: Product, url: string, avgRating: number, reviewCount: number) => {
   return {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -54,16 +56,16 @@ const generateProductSchema = (product: any, url: string) => {
         "returnFees": "https://schema.org/FreeReturn"
       }
     },
-    "aggregateRating": product.rating && product.rating > 0 ? {
+    "aggregateRating": avgRating > 0 ? {
       "@type": "AggregateRating",
-      "ratingValue": product.rating,
-      "reviewCount": product.salesCount || 0
+      "ratingValue": avgRating,
+      "reviewCount": reviewCount
     } : undefined
   };
 };
 
 // دالة توليد Breadcrumbs JSON-LD
-const generateBreadcrumbSchema = (product: any, categoryName: string) => {
+const generateBreadcrumbSchema = (product: Product, categoryName: string) => {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -76,12 +78,19 @@ const generateBreadcrumbSchema = (product: any, categoryName: string) => {
   };
 };
 
-interface ProductClientProps {
-  product: any;
-  relatedProducts: any[];
+interface ReviewStats {
+  averageRating: number;
+  reviewCount: number;
 }
 
-export default function ProductClient({ product, relatedProducts }: ProductClientProps) {
+interface ProductClientProps {
+  product: Product;
+  relatedProducts: Product[];
+  allProducts?: Product[];
+  reviewStats?: ReviewStats;
+}
+
+export default function ProductClient({ product, relatedProducts, allProducts, reviewStats }: ProductClientProps) {
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [orderSelection, setOrderSelection] = useState({ size: '', color: '', quantity: 1 });
 
@@ -89,15 +98,16 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
     if (product?.slug) {
       fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: 'view_product', productSlug: product.slug }) }).catch(() => {});
       
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', 'view_item', {
+      const w = window as unknown as { gtag?: (...args: unknown[]) => void };
+      if (typeof window !== 'undefined' && w.gtag) {
+        w.gtag('event', 'view_item', {
           currency: 'EGP',
           value: product.price,
           items: [{ item_id: product.slug, item_name: product.name, price: product.price, quantity: 1 }],
         });
       }
     }
-  }, [product?.slug]);
+  }, [product?.slug, product?.name, product?.price]);
 
   const handleOrder = (selection: { size: string; color: string; quantity: number }) => {
     setOrderSelection(selection);
@@ -122,7 +132,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
     setIsOrderModalOpen(true);
   };
 
-  const handleOrderSubmit = (orderData: any) => {
+  const handleOrderSubmit = (orderData: Record<string, unknown>) => {
     console.log('Order submitted:', orderData);
     setIsOrderModalOpen(false);
   };
@@ -141,7 +151,7 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generateProductSchema(product, productUrl)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generateProductSchema(product, productUrl, reviewStats?.averageRating || 0, reviewStats?.reviewCount || 0)) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generateBreadcrumbSchema(product, categoryName)) }} />
       
       <div className="bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] min-h-screen pt-24 pb-16">
@@ -191,7 +201,14 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
             <div>
               <ProductInfo product={product} />
               <ProductActions product={product} onOrder={handleOrder} />
+              {allProducts && allProducts.length > 0 && (
+                <BundleOffer currentProduct={product} allProducts={allProducts} />
+              )}
             </div>
+          </div>
+
+          <div className="max-w-3xl mx-auto">
+            <Reviews productSlug={product.slug} productId={product.id} />
           </div>
 
           <RelatedProducts products={relatedProducts} currentProductId={product.slug} />
