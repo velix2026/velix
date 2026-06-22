@@ -85,15 +85,14 @@ async function runSetup() {
     `;
     await sql.query(migration);
 
-    const adminHash = await bcrypt.hash('admin123', 10);
-    const managerHash = await bcrypt.hash('manager123', 10);
+    const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
+    const adminHash = await bcrypt.hash(adminPassword, 10);
 
     await sql.query(`
       INSERT INTO admin_users (username, password_hash, display_name, role)
-      VALUES ($1, $2, 'Admin', 'admin'),
-             ($3, $4, 'Manager', 'manager')
-      ON CONFLICT (username) DO NOTHING
-    `, ['admin', adminHash, 'manager', managerHash]);
+      VALUES ('admin', $1, 'Admin', 'admin')
+      ON CONFLICT (username) DO UPDATE SET password_hash = $1
+    `, [adminHash]);
 
     return NextResponse.json({ success: true, message: 'Migration completed' });
   } catch (error) {

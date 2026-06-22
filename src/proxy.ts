@@ -88,10 +88,17 @@ export function proxy(request: NextRequest) {
       return NextResponse.next();
     }
     
-    // ✅ ثم التحقق من الـ cookie
+    // ✅ ثم التحقق من الـ cookie القديم
     const adminAuth = request.cookies.get('adminAuth')?.value;
     if (adminAuth === 'true') {
       console.log('✅ Admin authorized via cookie:', pathname);
+      return NextResponse.next();
+    }
+    
+    // ✅ التحقق من الـ session token الجديد
+    const adminToken = request.cookies.get('admin_token')?.value;
+    if (adminToken && adminToken.length > 20) {
+      console.log('✅ Admin authorized via session token:', pathname);
       return NextResponse.next();
     }
     

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
 export async function GET(request: NextRequest) {
+  if (!await checkAdminAuth(request)) return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
   try {
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 200);

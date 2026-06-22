@@ -8,7 +8,7 @@ const ADMIN_SECRET_PATH = process.env.NEXT_PUBLIC_ADMIN_SECRET_PATH || 'velix-ad
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<{ displayName: string; role: string } | null>(null);
+  const [user, setUser] = useState<{ displayName: string } | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 

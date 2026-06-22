@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
+import { checkAdminAuth } from '@/lib/admin-auth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!await checkAdminAuth(request)) return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
   try {
     const { rows } = await sql.query(
       `SELECT * FROM coupons ORDER BY created_at DESC`
@@ -13,6 +15,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!await checkAdminAuth(request)) return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
   try {
     const { code, discountType, discountValue, minOrderAmount, maxUses, expiresAt, description } = await request.json();
     const { rows } = await sql.query(
@@ -27,6 +30,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  if (!await checkAdminAuth(request)) return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
   try {
     const { id, code, discountType, discountValue, minOrderAmount, maxUses, isActive, expiresAt, description } = await request.json();
     await sql.query(
@@ -40,6 +44,7 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  if (!await checkAdminAuth(request)) return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

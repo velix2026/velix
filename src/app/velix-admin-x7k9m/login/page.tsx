@@ -8,13 +8,7 @@ import { motion } from 'framer-motion';
 
 const ADMIN_SECRET_PATH = process.env.NEXT_PUBLIC_ADMIN_SECRET_PATH || 'velix-admin-x7k9m';
 
-const ACCOUNTS = [
-  { id: 'admin', username: 'admin', label: 'Admin', icon: '★' },
-  { id: 'manager', username: 'manager', label: 'Manager', icon: '◆' },
-];
-
 export default function AdminLoginPage() {
-  const [selectedAccount, setSelectedAccount] = useState('admin');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -22,16 +16,11 @@ export default function AdminLoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    checkSession();
+    fetch(`/api/${ADMIN_SECRET_PATH}/verify-session`)
+      .then(r => r.json())
+      .then(d => { if (d.authenticated) router.push(`/${ADMIN_SECRET_PATH}`); })
+      .catch(() => {});
   }, [router]);
-
-  async function checkSession() {
-    try {
-      const res = await fetch(`/api/${ADMIN_SECRET_PATH}/verify-session`);
-      const data = await res.json();
-      if (data.authenticated) router.push(`/${ADMIN_SECRET_PATH}`);
-    } catch {}
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,15 +31,14 @@ export default function AdminLoginPage() {
       const res = await fetch(`/api/${ADMIN_SECRET_PATH}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: selectedAccount, password }),
+        body: JSON.stringify({ password }),
       });
 
       const data = await res.json();
       if (res.ok && data.success) {
-        sessionStorage.setItem('adminUser', JSON.stringify(data.user));
         router.push(`/${ADMIN_SECRET_PATH}`);
       } else {
-        setError(data.error || 'بيانات الدخول غلط');
+        setError(data.error || 'كلمة المرور غلط');
       }
     } catch {
       setError('حصل مشكلة، حاول تاني');
@@ -75,23 +63,6 @@ export default function AdminLoginPage() {
           </div>
           
           <div className="px-8 pb-8">
-            <div className="flex gap-2 mb-6">
-              {ACCOUNTS.map(acc => (
-                <button
-                  key={acc.id}
-                  onClick={() => setSelectedAccount(acc.username)}
-                  className={`flex-1 p-3 rounded-2xl text-center font-bold transition border-2 ${
-                    selectedAccount === acc.username
-                      ? 'bg-rose-gold text-white border-rose-gold shadow-md'
-                      : 'bg-[#FDF8F5] text-black/60 border-transparent hover:border-rose-gold/20'
-                  }`}
-                >
-                  <span className="text-lg block">{acc.icon}</span>
-                  <span className="text-sm">{acc.label}</span>
-                </button>
-              ))}
-            </div>
-
             <form onSubmit={handleSubmit}>
               <div className="mb-6">
                 <label className="flex text-xs font-black text-black uppercase tracking-wider mb-2 items-center gap-2">
@@ -115,23 +86,12 @@ export default function AdminLoginPage() {
                       textSecurity: showPassword ? 'none' : 'disc',
                     } as CSSProperties & { WebkitTextSecurity: string }}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-rose-gold transition z-10"
-                    aria-label={showPassword ? 'إخفاء' : 'إظهار'}
-                  >
-                    {showPassword ? (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    ) : (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    )}
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-rose-gold transition z-10">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
                   </button>
                 </div>
               </div>

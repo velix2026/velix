@@ -9,7 +9,7 @@ const ADMIN_SECRET_PATH = process.env.NEXT_PUBLIC_ADMIN_SECRET_PATH || 'velix-ad
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [user, setUser] = useState<{ displayName: string; role: string } | null>(null);
+  const [user, setUser] = useState<{ displayName: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
   const [stats, setStats] = useState({ orders: 0, products: 0, subscribers: 0, revenue: 0 });
@@ -114,7 +114,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h1 className="text-xl font-black text-black">VELIX</h1>
-              <p className="text-rose-gold/60 text-xs font-bold">{user.displayName} — {user.role === 'admin' ? 'Admin' : 'Manager'}</p>
+              <p className="text-rose-gold/60 text-xs font-bold">لوحة التحكم</p>
             </div>
           </div>
           <button onClick={handleLogout} className="px-4 py-2 bg-linear-to-r from-gray-500 to-gray-700 text-white rounded-full text-sm font-bold hover:scale-[1.02] transition-all shadow-md">خروج</button>
