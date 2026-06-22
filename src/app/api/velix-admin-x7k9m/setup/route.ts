@@ -82,6 +82,57 @@ async function runSetup() {
       CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON blog_posts(slug);
       CREATE INDEX IF NOT EXISTS idx_blog_posts_published ON blog_posts(is_published, published_at);
       CREATE INDEX IF NOT EXISTS idx_coupons_code ON coupons(code);
+      -- Loyalty points
+      CREATE TABLE IF NOT EXISTS loyalty_points (
+        id SERIAL PRIMARY KEY,
+        phone VARCHAR(50) UNIQUE NOT NULL,
+        points INT DEFAULT 0,
+        total_earned INT DEFAULT 0,
+        tier VARCHAR(20) DEFAULT 'bronze',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS loyalty_transactions (
+        id SERIAL PRIMARY KEY,
+        phone VARCHAR(50) NOT NULL,
+        points INT NOT NULL,
+        type VARCHAR(20) NOT NULL CHECK (type IN ('earned', 'spent')),
+        reference_type VARCHAR(50),
+        reference_id VARCHAR(255),
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS loyalty_redemptions (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(255) UNIQUE NOT NULL,
+        phone VARCHAR(50) NOT NULL,
+        points_used INT NOT NULL,
+        discount_amount DECIMAL(10,2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_loyalty_phone ON loyalty_points(phone);
+      CREATE INDEX IF NOT EXISTS idx_loyalty_tx_phone ON loyalty_transactions(phone);
+      CREATE INDEX IF NOT EXISTS idx_loyalty_tx_created ON loyalty_transactions(created_at);
+      CREATE INDEX IF NOT EXISTS idx_loyalty_redemptions_order ON loyalty_redemptions(order_id);
+      -- Product reviews
+      CREATE TABLE IF NOT EXISTS product_reviews (
+        id SERIAL PRIMARY KEY,
+        product_slug VARCHAR(255) NOT NULL,
+        customer_name VARCHAR(100) NOT NULL,
+        customer_phone VARCHAR(50),
+        rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+        title VARCHAR(255),
+        body TEXT,
+        is_approved BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS review_images (
+        id SERIAL PRIMARY KEY,
+        review_id INTEGER REFERENCES product_reviews(id) ON DELETE CASCADE,
+        image_url TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_product_reviews_product ON product_reviews(product_slug, is_approved);
+      CREATE INDEX IF NOT EXISTS idx_product_reviews_approved ON product_reviews(is_approved);
     `;
     await sql.query(migration);
 
