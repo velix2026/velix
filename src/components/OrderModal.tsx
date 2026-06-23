@@ -20,6 +20,7 @@ interface OrderItem {
   price: number;
   oldPrice?: number;
   mainImage: string;
+  quantity: number;
   quantityDiscount?: { enabled: boolean; tiers: Array<{ minQuantity: number; discountPerItem: number }> };
   variations: OrderItemVariation[];
 }
@@ -33,7 +34,7 @@ interface OrderModalProps {
 }
 
 const getItemTotalPrice = (item: OrderItem): number => {
-  const totalQty = item.variations.reduce((sum, v) => sum + v.quantity, 0);
+  const totalQty = item.quantity || item.variations.reduce((sum, v) => sum + v.quantity, 0);
   if (!item.quantityDiscount?.enabled) return item.price * totalQty;
   const { tiers } = item.quantityDiscount;
   let applicableTier = null;

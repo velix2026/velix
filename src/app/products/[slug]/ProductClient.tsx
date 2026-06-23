@@ -120,6 +120,7 @@ export default function ProductClient({ product, relatedProducts, allProducts, r
         oldPrice: product.oldPrice,
         mainImage: product.mainImage,
         quantityDiscount: product.quantityDiscount,
+        quantity: selection.quantity,
         variations: [{
           variationId: `${product.slug}-${selection.size}-${selection.color}`,
           size: selection.size,

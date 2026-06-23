@@ -96,6 +96,7 @@ export default function SideDrawer({ isOpen, onClose, type }: SideDrawerProps) {
         oldPrice: item.oldPrice,
         mainImage: item.mainImage,
         quantityDiscount: item.quantityDiscount,
+        quantity: getProductTotalQuantity(item),
         variations: item.variations
       })),
       totalAmount: total,

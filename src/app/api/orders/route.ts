@@ -154,14 +154,16 @@ export async function POST(request: NextRequest) {
 
     // حفظ كل منتج في order_items وتحديث المخزون
     for (const item of orderData.items) {
+      const itemQuantity = item.quantity ?? item.variations?.reduce((s: number, v: { quantity: number }) => s + v.quantity, 0) ?? 1;
+      const selectedSize = item.selectedSize ?? item.variations?.[0]?.size ?? null;
+      const selectedColor = item.selectedColor ?? item.variations?.[0]?.color ?? null;
       await sql`
         INSERT INTO order_items (order_id, product_id, product_name, quantity, price, selected_size, selected_color)
-        VALUES (${orderId}, ${item.id}, ${item.name}, ${item.quantity}, ${item.price}, ${item.selectedSize || null}, ${item.selectedColor || null})
+        VALUES (${orderId}, ${item.id}, ${item.name}, ${itemQuantity}, ${item.price}, ${selectedSize}, ${selectedColor})
       `;
       
-      // ✅ تحديث المخزون باستخدام الدالة الجديدة
-      await updateProductStock(item.id, item.quantity, item.selectedSize, item.selectedColor);
-      await incrementProductSales(item.id, item.quantity);
+      await updateProductStock(item.id, itemQuantity, selectedSize, selectedColor);
+      await incrementProductSales(item.id, itemQuantity);
     }
     console.log('✅ Saved to Postgres and updated stock');
 
