@@ -143,7 +143,6 @@ export default function Header() {
               { href: '/blog', label: 'المدونة' },
               { href: '/track', label: 'تتبع طلبك' },
               { href: '/loyalty', label: 'المكافآت' },
-              { href: '/gifts', label: 'كروت هدايا' },
               { href: '/about', label: 'عن البراند' },
               { href: '/contact', label: 'اتصل بنا' }
             ].map((link) => {
@@ -344,9 +343,6 @@ export default function Header() {
               </Link>
               <Link href="/loyalty" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold text-black hover:text-rose-gold py-2 transition-all">
                 برنامج المكافآت
-              </Link>
-              <Link href="/gifts" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold text-black hover:text-rose-gold py-2 transition-all">
-                كروت هدايا
               </Link>
               <Link href="/blog" onClick={() => setIsMenuOpen(false)} className="text-sm font-semibold text-black hover:text-rose-gold py-2 transition-all">
                 المدونة
