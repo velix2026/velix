@@ -231,8 +231,9 @@ export async function POST(request: NextRequest) {
       message: 'تم استلام طلبك بنجاح! سنتواصل معك قريباً'
     });
   } catch (error) {
-    console.error('Error processing order:', error);
-    return NextResponse.json({ error: 'حدث خطأ' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'حدث خطأ';
+    console.error('Order error detail:', msg, error);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
