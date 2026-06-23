@@ -125,10 +125,14 @@ export function proxy(request: NextRequest) {
       return NextResponse.next();
     }
     const adminAuth = request.cookies.get('adminAuth')?.value;
-    if (adminAuth !== 'true') {
-      return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
+    if (adminAuth === 'true') {
+      return NextResponse.next();
     }
-    return NextResponse.next();
+    const adminToken = request.cookies.get('admin_token')?.value;
+    if (adminToken && adminToken.length > 20) {
+      return NextResponse.next();
+    }
+    return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
   }
 
   return NextResponse.next();
