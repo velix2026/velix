@@ -62,12 +62,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// ✅ POST - إضافة مشترك
+// ✅ POST - إضافة مشترك (عام - مشترك جديد)
 export async function POST(request: NextRequest) {
-  if (!isAdminAuthorized(request)) {
-    return NextResponse.json({ error: 'غير مصرح به' }, { status: 401 });
-  }
-  
   try {
     const { email } = await request.json();
     

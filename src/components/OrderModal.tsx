@@ -57,11 +57,11 @@ export default function OrderModal({ isOpen, onClose, product: _product, onSubmi
   const [cartItems, setCartItems] = useState<OrderItem[]>([]);
   const [isMultiOrder, setIsMultiOrder] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [loyaltyPhone, setLoyaltyPhone] = useState('');
   const [loyaltyData, setLoyaltyData] = useState<{ points: number; tier: string; enrolled: boolean } | null>(null);
   const [loyaltyLoading, setLoyaltyLoading] = useState(false);
   const [redeemPoints, setRedeemPoints] = useState(0);
   const [redeemDiscount, setRedeemDiscount] = useState(0);
+  const [loyaltyOfferAccepted, setLoyaltyOfferAccepted] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   const loadSavedCustomerData = useCallback(() => {
@@ -89,6 +89,20 @@ export default function OrderModal({ isOpen, onClose, product: _product, onSubmi
       } catch (error) { console.error('Error loading order data:', error); }
     }
   }, [isOpen, loadSavedCustomerData]);
+
+  useEffect(() => {
+    if (!isOpen || !formData.phone || formData.phone.length < 11) { setLoyaltyData(null); setRedeemPoints(0); setRedeemDiscount(0); setLoyaltyOfferAccepted(false); return; }
+    const timer = setTimeout(async () => {
+      setLoyaltyLoading(true);
+      try {
+        const res = await fetch(`/api/loyalty?phone=${encodeURIComponent(formData.phone)}`);
+        if (res.ok) { const d = await res.json(); setLoyaltyData(d); }
+        else setLoyaltyData({ points: 0, tier: '', enrolled: false });
+      } catch { setLoyaltyData({ points: 0, tier: '', enrolled: false }); }
+      finally { setLoyaltyLoading(false); }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [formData.phone, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -141,7 +155,7 @@ export default function OrderModal({ isOpen, onClose, product: _product, onSubmi
       originalAmount: totalAmount,
       isMultiOrder: isMultiOrder,
       orderId: Date.now().toString(),
-      ...(redeemPoints > 0 && { loyaltyRedeem: { phone: loyaltyPhone, points: redeemPoints, discount: redeemDiscount } }),
+      ...(redeemPoints > 0 && { loyaltyRedeem: { phone: formData.phone, points: redeemPoints, discount: redeemDiscount } }),
     };
 
     try {
@@ -273,38 +287,12 @@ export default function OrderModal({ isOpen, onClose, product: _product, onSubmi
               <svg className="w-4 h-4 text-rose-gold" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
               <span className="text-sm font-black text-black">نقاط المكافآت</span>
             </div>
-            <div className="flex gap-2 mb-2">
-              <input
-                type="tel"
-                value={loyaltyPhone}
-                onChange={(e) => { setLoyaltyPhone(e.target.value); setLoyaltyData(null); setRedeemPoints(0); setRedeemDiscount(0); }}
-                placeholder="رقم التليفون عشان تشوف نقاطك"
-                className="flex-1 p-2 text-sm border border-rose-gold/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-gold font-bold text-black"
-                disabled={loading}
-              />
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!loyaltyPhone) return;
-                  setLoyaltyLoading(true);
-                  try {
-                    const res = await fetch(`/api/loyalty?phone=${encodeURIComponent(loyaltyPhone)}`);
-                    if (res.ok) {
-                      const d = await res.json();
-                      setLoyaltyData(d);
-                    } else {
-                      setLoyaltyData({ points: 0, tier: '', enrolled: false });
-                    }
-                  } catch { setLoyaltyData({ points: 0, tier: '', enrolled: false }); }
-                  finally { setLoyaltyLoading(false); }
-                }}
-                disabled={loyaltyLoading || !loyaltyPhone}
-                className="px-3 py-2 text-xs bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold rounded-xl hover:scale-[1.02] transition-all disabled:opacity-50"
-              >
-                {loyaltyLoading ? '...' : 'اعرض'}
-              </button>
-            </div>
-            {loyaltyData && (
+            {loyaltyLoading && (
+              <div className="bg-rose-gold/5 rounded-xl p-3 border border-rose-gold/20 text-center">
+                <p className="text-xs text-black/50 font-bold">بيتم فحص النقاط...</p>
+              </div>
+            )}
+            {loyaltyData && !loyaltyLoading && (
               <div className="bg-rose-gold/5 rounded-xl p-3 border border-rose-gold/20">
                 {loyaltyData.enrolled ? (
                   <>
@@ -312,29 +300,19 @@ export default function OrderModal({ isOpen, onClose, product: _product, onSubmi
                       <span className="text-xs font-bold text-black">نقاطك: <span className="text-rose-gold">{toArabicNumber(loyaltyData.points)}</span></span>
                       <span className="text-[10px] font-bold text-black/60">{loyaltyData.tier}</span>
                     </div>
-                    {canRedeem(loyaltyData.points) && !redeemPoints && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const p = Math.floor(loyaltyData.points / 100) * 100;
-                          setRedeemPoints(p);
-                          setRedeemDiscount(pointsToEGP(p));
-                        }}
-                        className="w-full text-xs bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold py-1.5 rounded-lg hover:scale-[1.02] transition-all"
-                      >
-                        استخدم {toArabicNumber(Math.floor(loyaltyData.points / 100) * 100)} نقطة (خصم {toArabicNumber(pointsToEGP(Math.floor(loyaltyData.points / 100) * 100))} ج.م)
-                      </button>
+                    {canRedeem(loyaltyData.points) && !redeemPoints && !loyaltyOfferAccepted && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-bold text-black">عندك خصم {toArabicNumber(pointsToEGP(Math.floor(loyaltyData.points / 100) * 100))} ج.م عايز تستخدمه؟</p>
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => { const p = Math.floor(loyaltyData.points / 100) * 100; setRedeemPoints(p); setRedeemDiscount(pointsToEGP(p)); setLoyaltyOfferAccepted(true); }} className="flex-1 text-xs bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white font-bold py-1.5 rounded-lg hover:scale-[1.02] transition-all">أهو، استخدمه</button>
+                          <button type="button" onClick={() => { setLoyaltyOfferAccepted(true); }} className="flex-1 text-xs bg-gray-200 text-gray-700 font-bold py-1.5 rounded-lg hover:scale-[1.02] transition-all">لا، شكراً</button>
+                        </div>
+                      </div>
                     )}
                     {redeemPoints > 0 && (
                       <div className="text-center">
-                        <span className="text-xs font-bold text-green-600">تم تطبيق خصم {toArabicNumber(redeemDiscount)} ج.م</span>
-                        <button
-                          type="button"
-                          onClick={() => { setRedeemPoints(0); setRedeemDiscount(0); }}
-                          className="block mx-auto text-[10px] text-red-500 font-bold mt-1 hover:underline"
-                        >
-                          إلغاء
-                        </button>
+                        <span className="text-xs font-bold text-green-600">✓ تم تطبيق خصم {toArabicNumber(redeemDiscount)} ج.م</span>
+                        <button type="button" onClick={() => { setRedeemPoints(0); setRedeemDiscount(0); setLoyaltyOfferAccepted(false); }} className="block mx-auto text-[10px] text-red-500 font-bold mt-1 hover:underline">إلغاء</button>
                       </div>
                     )}
                     {!canRedeem(loyaltyData.points) && (
