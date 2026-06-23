@@ -23,7 +23,7 @@ export function canRedeem(points: number) {
 }
 
 export function pointsToEGP(points: number) {
-  return (Math.floor(points / 100) * 10);
+  return Math.floor(points / 100);
 }
 
 export { TIERS };
