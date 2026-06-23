@@ -198,9 +198,15 @@ export default function OrderModal({ isOpen, onClose, product: _product, onSubmi
             });
           }
         } catch (err) { console.error('GA purchase error:', err); }
-      } else throw new Error(data.error || 'فشل إرسال الطلب');
-      } catch (_error) {
-      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: '✗ حصل مشكلة، حاول تاني', type: 'error' } }));
+      } else {
+        const errMsg = data.error || data.message || 'فشل إرسال الطلب';
+        console.error('❌ Order API error:', errMsg, data);
+        throw new Error(errMsg);
+      }
+    } catch (_error) {
+      const errMsg = _error instanceof Error ? _error.message : 'حصل مشكلة، حاول تاني';
+      console.error('❌ Order failed:', errMsg);
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { message: `✗ ${errMsg}`, type: 'error' } }));
     } finally { setLoading(false); }
   };
 
