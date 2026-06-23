@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_KEY = '2e80b152a38e4791a5151b92f31b3ec0';
+const API_KEY = '070020312f7041e397753e58f2ea9dc6';
 const HOST = 'velix-eg.store';
 const INDEXNOW_URL = 'https://api.indexnow.org/indexnow';
 
