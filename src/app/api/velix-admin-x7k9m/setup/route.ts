@@ -139,6 +139,51 @@ async function runSetup() {
     const adminPassword = process.env.ADMIN_PASSWORD || 'velix@2026';
     const adminHash = await bcrypt.hash(adminPassword, 10);
 
+    // Orders & order_items tables
+    await sql.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(255) UNIQUE NOT NULL,
+        customer_name VARCHAR(255) NOT NULL,
+        customer_phone VARCHAR(50) NOT NULL,
+        customer_alt_phone VARCHAR(50),
+        customer_address TEXT NOT NULL,
+        landmark VARCHAR(255),
+        total_amount DECIMAL(10,2) NOT NULL,
+        notes TEXT,
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    // Add missing columns if table already exists
+    await sql.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_alt_phone VARCHAR(50)`);
+    await sql.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS landmark VARCHAR(255)`);
+
+    await sql.query(`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(255) REFERENCES orders(order_id) ON DELETE CASCADE,
+        product_id INTEGER NOT NULL,
+        product_name VARCHAR(255) NOT NULL,
+        quantity INTEGER NOT NULL,
+        price DECIMAL(10,2) NOT NULL,
+        selected_size VARCHAR(50),
+        selected_color VARCHAR(100)
+      );
+      CREATE TABLE IF NOT EXISTS analytics (
+        id INTEGER PRIMARY KEY DEFAULT 1,
+        total_orders INTEGER DEFAULT 0,
+        total_sales DECIMAL(12,2) DEFAULT 0,
+        total_customers INTEGER DEFAULT 0,
+        total_reviews INTEGER DEFAULT 0,
+        average_rating DECIMAL(3,2) DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      INSERT INTO analytics (id, total_orders, total_sales, total_customers, total_reviews, average_rating)
+      SELECT 1, 0, 0, 0, 0, 0
+      WHERE NOT EXISTS (SELECT 1 FROM analytics WHERE id = 1);
+    `);
+
     await sql.query(`
       INSERT INTO admin_users (username, password_hash, display_name, role)
       VALUES ('admin', $1, 'Admin', 'admin')

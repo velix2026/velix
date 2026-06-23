@@ -53,7 +53,27 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname === '/api/orders' && method === 'POST') {
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith('/api/orders/track') && method === 'GET') {
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith('/api/loyalty') && method === 'GET') {
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith('/api/reviews') && !pathname.startsWith(`/api/${ADMIN_SECRET_PATH}`)) {
+    return NextResponse.next();
+  }
+
+  if (pathname === '/api/track' && method === 'POST') {
+    return NextResponse.next();
+  }
+
+  if (pathname === '/api/indexnow' && method === 'GET') {
     return NextResponse.next();
   }
 
