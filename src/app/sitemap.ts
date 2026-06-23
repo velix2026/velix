@@ -8,14 +8,19 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 export const revalidate = 0;
 
-const INDEXNOW_KEY = '17f14e12a20f409db338c6c3de08161b';
+const INDEXNOW_KEY = '9efd03914b95463a8d249d6968ecda2a';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://velix-eg.store';
 
   // Ping IndexNow to notify Bing of content changes
   try {
-    fetch(`https://indexnow.bing.com/indexnow?url=${baseUrl}/sitemap.xml&key=${INDEXNOW_KEY}`, { method: 'GET' });
+    fetch(`https://www.bing.com/indexnow?url=${baseUrl}/sitemap.xml&key=${INDEXNOW_KEY}`, { method: 'GET' });
+    fetch(`https://api.indexnow.org/indexnow`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ host: 'velix-eg.store', key: INDEXNOW_KEY, keyLocation: `https://velix-eg.store/${INDEXNOW_KEY}.txt`, urlList: [baseUrl, `${baseUrl}/sitemap.xml`] }),
+    });
   } catch {} // fire-and-forget
   
   // ============================================
@@ -81,6 +86,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/track`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/loyalty`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/gifts`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
     },
   ];
   
