@@ -36,42 +36,56 @@ const statusSteps = [
   { key: 'delivered', label: 'تم التوصيل', icon: '✅' },
 ];
 
-const trackSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  name: 'تتبع طلبك - VELIX',
-  description: 'تابع حالة طلبك من VELIX',
-  url: 'https://velix-eg.store/track',
+const getStatusIcon = (status: string) => {
+  if (status === 'cancelled') return '❌';
+  const step = statusSteps.find(s => s.key === status);
+  return step?.icon || '📦';
+};
+
+const getStatusColor = (status: string) => {
+  if (status === 'cancelled') return 'bg-red-100 text-red-700';
+  if (status === 'delivered') return 'bg-emerald-100 text-emerald-700';
+  return 'bg-rose-gold/10 text-rose-gold';
+};
+
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('ar-EG', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
 
 export default function TrackClient() {
-  const [orderId, setOrderId] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [orderData, setOrderData] = useState<OrderData | null>(null);
+  const [orders, setOrders] = useState<OrderData[]>([]);
   const [searched, setSearched] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!orderId.trim() || !phone.trim()) {
-      setError('يرجى إدخال رقم الطلب ورقم الهاتف');
+    if (!phone.trim()) {
+      setError('يرجى إدخال رقم الهاتف');
       return;
     }
     setLoading(true);
     setError('');
-    setOrderData(null);
+    setOrders([]);
     setSearched(true);
 
     try {
-      const res = await fetch(`/api/orders/track?orderId=${encodeURIComponent(orderId.trim())}&phone=${encodeURIComponent(phone.trim())}`);
+      const res = await fetch(`/api/orders/track?phone=${encodeURIComponent(phone.trim())}`);
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'لم يتم العثور على الطلب');
+        throw new Error(data.error || 'لم يتم العثور على طلبات');
       }
 
-      setOrderData(data.order);
+      setOrders(data.orders);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'حدث خطأ');
     } finally {
@@ -79,34 +93,23 @@ export default function TrackClient() {
     }
   };
 
-  const getStatusIndex = (status: string) => {
-    return statusSteps.findIndex(s => s.key === status);
-  };
-
-  const currentStep = orderData ? getStatusIndex(orderData.status) : -1;
-  const isCancelled = orderData?.status === 'cancelled';
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('ar-EG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(trackSchema) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebPage',
+            name: 'تتبع طلباتك - VELIX',
+            description: 'تابع حالة طلباتك من VELIX',
+            url: 'https://velix-eg.store/track',
+          }),
+        }}
       />
 
       <div className="bg-linear-to-b from-white via-[#FCFCFC] to-[#F5F3F0] min-h-screen pt-28 pb-16">
         <div className="container mx-auto px-4 max-w-2xl">
-
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -117,11 +120,11 @@ export default function TrackClient() {
               طلبك في أمان
             </span>
             <h1 className="text-3xl md:text-4xl font-black text-black mb-4">
-              تتبع طلبك
+              تتبع طلباتك
             </h1>
             <div className="w-20 h-1 bg-linear-to-r from-rose-gold-light via-rose-gold to-copper rounded-full mx-auto mb-6" />
             <p className="text-black/60 font-bold text-sm max-w-xl mx-auto">
-              أدخل رقم الطلب ورقم الهاتف عشان تعرف طلبك فين دلوقتي
+              أدخل رقم الهاتف عشان تشوف كل طلباتك
             </p>
           </motion.div>
 
@@ -133,19 +136,6 @@ export default function TrackClient() {
             className="bg-white rounded-2xl p-6 border border-rose-gold/20 shadow-lg mb-8"
           >
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-black mb-1">
-                  رقم الطلب <span className="text-rose-gold">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={orderId}
-                  onChange={(e) => setOrderId(e.target.value)}
-                  className="w-full p-3 border border-rose-gold/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-gold font-bold text-black"
-                  placeholder="مثلاً: 1712345678901"
-                  disabled={loading}
-                />
-              </div>
               <div>
                 <label className="block text-sm font-bold text-black mb-1">
                   رقم الهاتف <span className="text-rose-gold">*</span>
@@ -173,7 +163,7 @@ export default function TrackClient() {
                     بيتم البحث...
                   </span>
                 ) : (
-                  '🔍 تتبع الطلب'
+                  '🔍 تتبع طلباتي'
                 )}
               </button>
             </div>
@@ -192,7 +182,7 @@ export default function TrackClient() {
                 <p className="text-red-600 font-bold">{error}</p>
                 {searched && (
                   <p className="text-red-400 text-sm mt-2 font-bold">
-                    تأكد من رقم الطلب ورقم الهاتف
+                    تأكد من رقم الهاتف
                   </p>
                 )}
                 <a
@@ -206,138 +196,149 @@ export default function TrackClient() {
               </motion.div>
             )}
 
-            {orderData && !error && (
+            {orders.length > 0 && !error && (
               <motion.div
-                key="order-details"
+                key="orders-list"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4 }}
               >
-                <div className="bg-white rounded-2xl border border-rose-gold/20 shadow-lg overflow-hidden mb-6">
-                  <div className="bg-linear-to-r from-rose-gold-light via-rose-gold to-copper p-4 text-center">
-                    <p className="text-white/80 text-sm font-bold">رقم الطلب</p>
-                    <h2 className="text-white text-2xl font-black">#{orderData.orderId}</h2>
-                  </div>
+                <p className="text-center text-black/50 font-bold mb-4">
+                  تم العثور على {toArabicNumber(orders.length)} طلب{orders.length > 1 ? 'ات' : ''}
+                </p>
 
-                  <div className="p-6">
-                    <div className="text-center mb-6">
-                      <span className="text-5xl block mb-2">
-                        {isCancelled ? '❌' : statusSteps[currentStep]?.icon || '📦'}
-                      </span>
-                      <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-black ${
-                        isCancelled
-                          ? 'bg-red-100 text-red-700'
-                          : orderData.status === 'delivered'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-rose-gold/10 text-rose-gold'
-                      }`}>
-                        {orderData.statusLabel}
-                      </span>
-                      <p className="text-black/50 text-xs mt-2 font-bold">
-                        آخر تحديث: {formatDate(orderData.updatedAt || orderData.createdAt)}
-                      </p>
-                    </div>
+                {orders.map((order, idx) => {
+                  const currentStep = statusSteps.findIndex(s => s.key === order.status);
+                  const isCancelled = order.status === 'cancelled';
 
-                    {!isCancelled && (
-                      <div className="mb-6">
-                        <div className="flex justify-between items-center">
-                          {statusSteps.map((step, idx) => (
-                            <div key={step.key} className="flex flex-col items-center relative">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
-                                idx <= currentStep
-                                  ? 'bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white shadow-md'
-                                  : 'bg-gray-100 text-gray-400'
-                              }`}>
-                                {idx < currentStep ? '✓' : step.icon}
-                              </div>
-                              <p className={`text-xs font-bold mt-1 ${
-                                idx <= currentStep ? 'text-rose-gold' : 'text-gray-400'
-                              }`}>
-                                {step.label}
-                              </p>
-                              {idx < statusSteps.length - 1 && (
-                                <div className={`absolute top-5 left-10 w-full h-0.5 -z-10 ${
-                                  idx < currentStep ? 'bg-rose-gold' : 'bg-gray-200'
-                                }`} style={{ width: 'calc(100% + 1rem)' }} />
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                  return (
+                    <motion.div
+                      key={order.orderId}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: idx * 0.1 }}
+                      className="bg-white rounded-2xl border border-rose-gold/20 shadow-lg overflow-hidden mb-6"
+                    >
+                      <div className="bg-linear-to-r from-rose-gold-light via-rose-gold to-copper p-4 text-center">
+                        <p className="text-white/80 text-sm font-bold">رقم الطلب</p>
+                        <h2 className="text-white text-2xl font-black">#{order.orderId}</h2>
                       </div>
-                    )}
 
-                    <div className="border-t border-rose-gold/10 pt-4 space-y-3">
-                      <h3 className="font-black text-black mb-3">تفاصيل العميل</h3>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <p className="text-black/50 font-bold">الاسم</p>
-                          <p className="font-bold text-black">{orderData.customerName}</p>
+                      <div className="p-6">
+                        <div className="text-center mb-4">
+                          <span className="text-4xl block mb-2">
+                            {getStatusIcon(order.status)}
+                          </span>
+                          <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-black ${getStatusColor(order.status)}`}>
+                            {order.statusLabel}
+                          </span>
+                          <p className="text-black/40 text-xs mt-2 font-bold">
+                            {formatDate(order.createdAt)}
+                          </p>
                         </div>
-                        <div>
-                          <p className="text-black/50 font-bold">الهاتف</p>
-                          <p className="font-bold text-black" dir="ltr">{orderData.customerPhone}</p>
+
+                        {!isCancelled && (
+                          <div className="mb-4">
+                            <div className="flex justify-between items-center">
+                              {statusSteps.map((step, sIdx) => (
+                                <div key={step.key} className="flex flex-col items-center relative">
+                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
+                                    sIdx <= currentStep
+                                      ? 'bg-linear-to-r from-rose-gold-light via-rose-gold to-copper text-white shadow-md'
+                                      : 'bg-gray-100 text-gray-400'
+                                  }`}>
+                                    {sIdx < currentStep ? '✓' : step.icon}
+                                  </div>
+                                  <p className={`text-xs font-bold mt-1 ${
+                                    sIdx <= currentStep ? 'text-rose-gold' : 'text-gray-400'
+                                  }`}>
+                                    {step.label}
+                                  </p>
+                                  {sIdx < statusSteps.length - 1 && (
+                                    <div className={`absolute top-5 left-10 w-full h-0.5 -z-10 ${
+                                      sIdx < currentStep ? 'bg-rose-gold' : 'bg-gray-200'
+                                    }`} style={{ width: 'calc(100% + 1rem)' }} />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="border-t border-rose-gold/10 pt-4 space-y-3">
+                          <h3 className="font-black text-black mb-3">تفاصيل العميل</h3>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <p className="text-black/50 font-bold">الاسم</p>
+                              <p className="font-bold text-black">{order.customerName}</p>
+                            </div>
+                            <div>
+                              <p className="text-black/50 font-bold">الهاتف</p>
+                              <p className="font-bold text-black" dir="ltr">{order.customerPhone}</p>
+                            </div>
+                            <div className="col-span-2">
+                              <p className="text-black/50 font-bold">العنوان</p>
+                              <p className="font-bold text-black">{order.customerAddress}</p>
+                            </div>
+                            {order.landmark && (
+                              <div className="col-span-2">
+                                <p className="text-black/50 font-bold">علامة مميزة</p>
+                                <p className="font-bold text-black">{order.landmark}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="col-span-2">
-                          <p className="text-black/50 font-bold">العنوان</p>
-                          <p className="font-bold text-black">{orderData.customerAddress}</p>
+
+                        <div className="border-t border-rose-gold/10 pt-4 mt-4">
+                          <h3 className="font-black text-black mb-3">المنتجات</h3>
+                          <div className="space-y-3">
+                            {order.items.map((item, iIdx) => (
+                              <div key={iIdx} className="bg-rose-gold/5 rounded-xl p-3 border border-rose-gold/10">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <p className="font-bold text-black text-sm">{item.productName}</p>
+                                    <div className="flex gap-2 mt-1">
+                                      {item.selectedSize && (
+                                        <span className="text-xs bg-rose-gold/10 px-2 py-0.5 rounded-full text-rose-gold">
+                                          مقاس {item.selectedSize}
+                                        </span>
+                                      )}
+                                      {item.selectedColor && (
+                                        <span className="text-xs bg-rose-gold/10 px-2 py-0.5 rounded-full text-rose-gold">
+                                          {item.selectedColor}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="text-left">
+                                    <p className="font-bold text-rose-gold">{formatPrice(item.price)}</p>
+                                    <p className="text-xs text-black/50 font-bold">الكمية: {toArabicNumber(item.quantity)}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                        {orderData.landmark && (
-                          <div className="col-span-2">
-                            <p className="text-black/50 font-bold">علامة مميزة</p>
-                            <p className="font-bold text-black">{orderData.landmark}</p>
+
+                        <div className="border-t border-rose-gold/10 pt-4 mt-4">
+                          <div className="flex justify-between items-center">
+                            <span className="font-black text-black text-lg">الإجمالي</span>
+                            <span className="font-black text-rose-gold text-xl">{formatPrice(order.totalAmount)}</span>
+                          </div>
+                          <p className="text-xs text-rose-gold/70 mt-1 font-bold">الدفع عند الاستلام</p>
+                        </div>
+
+                        {order.notes && (
+                          <div className="border-t border-rose-gold/10 pt-4 mt-4">
+                            <p className="text-black/50 text-sm font-bold">ملاحظات</p>
+                            <p className="font-bold text-black text-sm mt-1">{order.notes}</p>
                           </div>
                         )}
                       </div>
-                    </div>
-
-                    <div className="border-t border-rose-gold/10 pt-4 mt-4">
-                      <h3 className="font-black text-black mb-3">المنتجات</h3>
-                      <div className="space-y-3">
-                        {orderData.items.map((item, idx) => (
-                          <div key={idx} className="bg-rose-gold/5 rounded-xl p-3 border border-rose-gold/10">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="font-bold text-black text-sm">{item.productName}</p>
-                                <div className="flex gap-2 mt-1">
-                                  {item.selectedSize && (
-                                    <span className="text-xs bg-rose-gold/10 px-2 py-0.5 rounded-full text-rose-gold">
-                                      مقاس {item.selectedSize}
-                                    </span>
-                                  )}
-                                  {item.selectedColor && (
-                                    <span className="text-xs bg-rose-gold/10 px-2 py-0.5 rounded-full text-rose-gold">
-                                      {item.selectedColor}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="text-left">
-                                <p className="font-bold text-rose-gold">{formatPrice(item.price)}</p>
-                                <p className="text-xs text-black/50 font-bold">الكمية: {toArabicNumber(item.quantity)}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="border-t border-rose-gold/10 pt-4 mt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="font-black text-black text-lg">الإجمالي</span>
-                        <span className="font-black text-rose-gold text-xl">{formatPrice(orderData.totalAmount)}</span>
-                      </div>
-                      <p className="text-xs text-rose-gold/70 mt-1 font-bold">الدفع عند الاستلام</p>
-                    </div>
-
-                    {orderData.notes && (
-                      <div className="border-t border-rose-gold/10 pt-4 mt-4">
-                        <p className="text-black/50 text-sm font-bold">ملاحظات</p>
-                        <p className="font-bold text-black text-sm mt-1">{orderData.notes}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                    </motion.div>
+                  );
+                })}
 
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
